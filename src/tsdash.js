@@ -120,7 +120,37 @@ TsDashboard.prototype.run = function () {
         for (var i in self.conf.blocks) {
             var block = self.conf.blocks[i];
             var block_div = $(document.createElement("div"));
-            block_div.text(block.title);
+            block_div.addClass("tds-block");
+            if (block.title && block.title.length > 0) {
+                block_div.append($(document.createElement("h2")).text(block.title));
+            }
+
+            var block_div2 = $(document.createElement("div"));
+            block_div2.addClass("tds-block-inner");
+            block_div.append(block_div2);
+
+            for (var j in block.panels) {
+                var panel = block.panels[j];
+                var panel_div = $(document.createElement("div"));
+                panel_div.addClass("tds-panel");
+                panel_div.addClass("tds-col-1-3");
+                if (panel.title && panel.title.length > 0) {
+                    panel_div.append($(document.createElement("h3")).text(panel.title));
+                }
+
+                for (var k in panel.widgets) {
+                    var widget = panel.widgets[k];
+                    var widget_div = $(document.createElement("div"));
+                    widget_div.addClass("tds-widget");
+                    if (widget.title && widget.title.length > 0) {
+                        widget_div.append($(document.createElement("h3")).text(widget.title));
+                    }
+                    panel_div.append(widget_div);
+                }
+
+                block_div2.append(panel_div);
+            }
+
             main.append(block_div);
         };
     });

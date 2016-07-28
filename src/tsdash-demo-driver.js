@@ -83,13 +83,38 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
         ],
         blocks: [
             {
-                title: "Main",
+                title: "Main block",
                 panels: [
                     {
-                        title: "",
+                        title: "Main panel",
                         widgets: [
                             {
-                                title: "",
+                                title: "Widget 1",
+                                height: 500,
+                                timeseries: ["s1", "s2"]
+                            },
+                            {
+                                title: "Widget 1x",
+                                height: 500,
+                                timeseries: ["s1", "s2"]
+                            }
+                        ]
+                    },
+                    {
+                        title: "Almost main panel",
+                        widgets: [
+                            {
+                                title: "Widget 1x",
+                                height: 500,
+                                timeseries: ["s1", "s2"]
+                            }
+                        ]
+                    },
+                    {
+                        title: "Another main panel",
+                        widgets: [
+                            {
+                                title: "Widget 1x",
                                 height: 500,
                                 timeseries: ["s1", "s2"]
                             }
@@ -98,13 +123,14 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                 ]
             },
             {
-                title: "Sub",
+                //title: "Secondary block",
+                title: "",
                 panels: [
                     {
-                        title: "",
+                        title: "Next panel",
                         widgets: [
                             {
-                                title: "",
+                                title: "Widget 2",
                                 height: 200,
                                 timeseries: ["s3"]
                             }
