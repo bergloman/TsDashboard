@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" type="text/css" href="tsdash.css">
+    </head>
+<body>
+
+<div id="divTarget"></div>
+<!--
+<div>
+    <div class="tsd-header">
+        Header
+    </div>
+    <div class="tsd-sidebar">
+        Sidebar
+    </div>
+    <div class="tsd-main">
+        Main
+    </div>
+
+</div>
+-->
+
+
+<script src="dep/d3-4.1.1.min.js"></script>
+<script src="dep/jquery-3.1.0.min.js"></script>
+
+<script src="tsdash.js"></script>
+<script src="tsdash-demo-driver.js"></script>
+
+<script>
+    // create driver
+    var driver = new TsDashboardDemoDriver();
+
+    // create dashboard
+    var dash = new TsDashboard("divTarget", driver);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,84 @@
+body, dd, div, dl, dt, fieldset, form, h1, h2, h3, h4, h5, h6, input, li, ol, p, pre, td, textarea, th, ul {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: #f3f5f6;
+    overflow: hidden;
+    position: relative;
+    font-family: sans-serif;
+    font-size: 14px;
+    color: #39464E;
+}
+
+.tsd-header{
+    height: 55px;
+    background: #fff;
+    box-shadow: 0 0 5px rgba(57,70,78,.2);
+    z-index: 100;
+}
+
+.tsd-sidebar {
+    padding: 10px;
+    margin: 0;
+    font-size: 12px;
+    width: 190px;
+    position: absolute;
+    top: 55px;
+    left: 0;
+    border-right: solid 1px #e9eced;
+    height: calc(100vh - 55px);
+    background: #fff;
+}
+
+.tsd-sidebar select, .tsd-sidebar input {
+    width: 100%
+}
+.tsd-main {
+    position: relative;
+    margin-left: 190px;
+}
+
+.match-options div{
+    cursor: pointer;
+}
+.match-options div:hover{
+    color: rgba(24,149,215,1);
+}
+
+/***********************************************************************/
+
+.tsd-sidebar input, .tsd-sidebar select{
+  min-height: 30px;
+  font-size: 14px;
+  width:100%;
+  /*border-radius:3px;*/
+  border:rgba(0,0,0,.3) 2px solid;
+  box-sizing:border-box;
+  padding:2px;
+  margin-bottom:10px;
+}
+
+.tsd-sidebar input[type="checkbox"]{
+  min-height: initial;
+}
+
+.tsd-sidebar input:focus, .tsd-sidebar select:focus{
+  outline:none;
+   border:rgba(24,149,215,1) 2px solid;
+   color:rgba(24,149,215,1);
+}
+
+.tsd-sidebar button{
+  min-height: 30px;
+  font-size: 14px;
+  width:100%;
+  /*border-radius:3px;*/
+  border:rgba(0,0,0,.3) 2px solid;
+   background-color :rgba(24,149,215,1);
+   color: white;
+  box-sizing:border-box;
+  padding:2px;
+  margin-bottom:10px;
+}

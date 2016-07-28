@@ -1,0 +1,24 @@
+{
+  "name": "tsdashboard",
+  "version": "0.1",
+  "description": "Light-weight javascript libarry for creating time-series dashboards.",
+  "main": "src/tsdash.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xxxxxxxxxxxx/xxxxxxxxxxxxx.git"
+  },
+  "author": {
+    "name": "Quintelligence",
+    "email": "info@quintelligence.com",
+    "homepage": "http://quintelligence.com"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/xxxxxxxxxxxxx/xxxxxxxxxxxx/issues"
+  },
+  "homepage": "https://github.com/xxxxxxxxxxxx/xxxxxxxxxxxxx",
+  "dependencies": {
+    "jquery": ">=3.1.0",
+    "d3": ">=4.1.1"
+  }
+}
