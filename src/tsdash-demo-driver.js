@@ -1,9 +1,57 @@
 function TsDashboardDemoDriver() {
     this.countries = null;
+    this.view_definition = null;
     this.prepareListOfCountries();
+    this.prepareViewDefinition();
 }
 
 TsDashboardDemoDriver.prototype.getViewDefinition = function (callback) {
+    callback(this.view_definition);
+}
+
+TsDashboardDemoDriver.prototype.getParamValues = function (name, search, callback) {
+    if (name === "param3" || name === "param3x") {
+        callback([
+            { value: "v1", caption: "Value 1" },
+            { value: "v2", caption: "Value 2" },
+            { value: "v3", caption: "Value 3" }
+        ]);
+    } else if (name === "param2") {
+        if (!search) return callback([]);
+        serach = search.trim().toLowerCase();
+        var options = this.countries
+            .filter(function (x) { return x.lcname.indexOf(search) >= 0; });
+        callback(options.map(function (x) { return x.name; }));
+    }
+}
+
+TsDashboardDemoDriver.prototype.getDrawData = function (options, callback) {
+    var length_in_days = 15;
+    var ts = new Date();
+    ts = new Date(ts.getTime() - length_in_days * 24 * 60 * 60 * 1000);
+
+    var res = {
+        timeseries: []
+    };
+
+    var ts1 = [];
+    var ts2 = [];
+    var ts3 = [];
+    for (var i = 0; i <= length_in_days; i++) {
+        var d = new Date(ts.getTime() + i * 24 * 60 * 60 * 1000);
+        ts1.push({ ts: d, val: i % 5 });
+        ts2.push({ ts: d, val: Math.random() * 2 + 2 });
+        ts3.push({ ts: d, val: Math.random() * 6 });
+    }
+    res.timeseries.push({ name: "s1", values: ts1 });
+    res.timeseries.push({ name: "s2", values: ts2 });
+    res.timeseries.push({ name: "s3", values: ts3 });
+    callback(res);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+
+TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
     var res = {
         title: "Demo dashboard",
         parameters: [
@@ -24,7 +72,7 @@ TsDashboardDemoDriver.prototype.getViewDefinition = function (callback) {
             },
             {
                 name: "param3x",
-                title: "Third parameter",
+                title: "Third parameter again",
                 type: "enum"
             },
             {
@@ -32,26 +80,43 @@ TsDashboardDemoDriver.prototype.getViewDefinition = function (callback) {
                 title: "Fourth parameter",
                 type: "boolean"
             }
+        ],
+        blocks: [
+            {
+                title: "Main",
+                panels: [
+                    {
+                        title: "",
+                        widgets: [
+                            {
+                                title: "",
+                                height: 500,
+                                timeseries: ["s1", "s2"]
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                title: "Sub",
+                panels: [
+                    {
+                        title: "",
+                        widgets: [
+                            {
+                                title: "",
+                                height: 200,
+                                timeseries: ["s3"]
+                            }
+                        ]
+                    }
+                ]
+            }
         ]
     };
-    callback(res);
+    this.view_definition = res;
 }
 
-TsDashboardDemoDriver.prototype.getParamValues = function (name, search, callback) {
-    if (name === "param3" || name === "param3x") {
-        callback([
-            { value: "v1", caption: "Value 1" },
-            { value: "v2", caption: "Value 2" },
-            { value: "v3", caption: "Value 3" }
-        ]);
-    } else if (name === "param2") {
-        if (!search) return callback([]);
-        serach = search.trim().toLowerCase();
-        var options = this.countries
-            .filter(function (x) { return x.lcname.indexOf(search) >= 0; });
-        callback(options.map(function (x) { return x.name; }));
-    }
-}
 
 TsDashboardDemoDriver.prototype.prepareListOfCountries = function () {
 

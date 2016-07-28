@@ -14,7 +14,7 @@ TsDashboard.prototype.init = function () {
 
         self.top.append("<div class='tsd-header'></div>");
         self.top.append("<div class='tsd-sidebar dark-matter'></div>");
-        self.top.append("<div class='tsd-main'></div>");
+        self.top.append("<div class='tsd-main' id='tsd_main'></div>");
 
         $(".tsd-header").append("<h1>" + conf.title + "</h1>");
 
@@ -55,8 +55,7 @@ TsDashboard.prototype.initParams = function () {
                         option.click(function () {
                             $("#in" + par.name).val(options[i]);
                         })
-                        $("#opt" + par.name)
-                            .append(option);
+                        $("#opt" + par.name).append(option);
                     })(ii);
                 });
             });
@@ -107,7 +106,22 @@ TsDashboard.prototype.collectParameterValues = function () {
 }
 
 TsDashboard.prototype.run = function () {
-    // collect parameter values 
-    var param_values = this.collectParameterValues();
-    console.log(param_values);
+    var self = this;
+
+    var options = {
+        conf: self.conf,
+        params: self.collectParameterValues(),
+        ts_from: $("#sinFrom").val(),
+        ts_to: $("#sinTo").val()
+    }
+    self.driver.getDrawData(options, function (data) {
+        var main = $("#tsd_main");
+        main.empty();
+        for (var i in self.conf.blocks) {
+            var block = self.conf.blocks[i];
+            var block_div = $(document.createElement("div"));
+            block_div.text(block.title);
+            main.append(block_div);
+        };
+    });
 }
