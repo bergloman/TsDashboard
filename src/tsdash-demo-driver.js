@@ -37,11 +37,12 @@ TsDashboardDemoDriver.prototype.getDrawData = function (options, callback) {
     var ts1 = [];
     var ts2 = [];
     var ts3 = [];
+    var d = ts.getTime();
     for (var i = 0; i <= length_in_days; i++) {
-        var d = new Date(ts.getTime() + i * 24 * 60 * 60 * 1000);
-        ts1.push({ ts: d, val: i % 5 });
-        ts2.push({ ts: d, val: Math.random() * 2 + 2 });
-        ts3.push({ ts: d, val: Math.random() * 6 });
+        d += 24 * 60 * 60 * 1000; // advance single day 
+        ts1.push({ epoch: d, val: i % 5 });
+        ts2.push({ epoch: d, val: Math.random() * 2 + 2 });
+        ts3.push({ epoch: d, val: Math.random() * 6 });
     }
     res.timeseries.push({ name: "s1", values: ts1 });
     res.timeseries.push({ name: "s2", values: ts2 });
@@ -90,12 +91,12 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                         widgets: [
                             {
                                 title: "Widget 1",
-                                height: 500,
+                                height: 200,
                                 timeseries: ["s1", "s2"]
                             },
                             {
                                 title: "Widget 1x",
-                                height: 500,
+                                height: 100,
                                 timeseries: ["s1", "s2"]
                             }
                         ]
@@ -105,7 +106,7 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                         widgets: [
                             {
                                 title: "Widget 1x",
-                                height: 500,
+                                height: 328,
                                 timeseries: ["s1", "s2"]
                             }
                         ]
@@ -115,7 +116,7 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                         widgets: [
                             {
                                 title: "Widget 1x",
-                                height: 500,
+                                height: 300,
                                 timeseries: ["s1", "s2"]
                             }
                         ]

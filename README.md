@@ -10,14 +10,14 @@ Dependencies:
 
 ## Basic idea
 
-Create client-side library that:
+Create a client-side library that:
 
 - is writen in pure `javascript`
-- creates nice dashboards for time-series data
-- receives he data as well as the configuration from a `driver object`, which
+- creates nice dashboards, used primarily for time-series data
+- receives the data as well as the configuration from a `driver object`, which:
     - is supplied by the developer
     - handles all server-side calls
-    - handles clicks  
+    - handles clicks by forwarding them to the driver object
 
 ## Parameter types
 
