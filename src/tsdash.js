@@ -155,9 +155,21 @@ TsDashboard.prototype.run = function () {
 
                         var widget_id = "tsd_widget_" + widget_counter;
                         widget_div.append($(document.createElement("div")).attr("id", widget_id));
+
+                        var data_series = [];
+                        data_series = widget.timeseries
+                            .map(x => {
+                                for (var series of data.timeseries) {
+                                    if (series.name === x) {
+                                        return series.values;
+                                    }
+                                }
+                                return null;
+                            })
+                            .filter(x => x !== null);
                         self.drawTimeSeriesMulti({
                             chart_div: "#" + widget_id,
-                            data: [data.timeseries[0].values],
+                            data: data_series,
                             height: widget.height,
                             handle_clicks: true,
                             //ydomain_min: 0,
@@ -171,7 +183,13 @@ TsDashboard.prototype.run = function () {
     });
 }
 
+TsDashboard.prototype.toNiceDateTime = function(s) {
+    if (!s) return "-";
+    return moment(s).format("YYYY-MM-DD HH:mm:ss");
+}
+
 TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
+    var self = this;
     // Default parameters.
     var p = {
         chart_div: "#someChart",
@@ -434,8 +452,8 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
 
                 focus.style('display', null);
                 tooltip.style('opacity', 0.8);
-                tooltip.html(p.yaccessor(d).toFixed(4) + "<br/>" + BVal.Utils.toNiceDateTime(p.xaccessor(d)))
-                    .style("left", xx - 100 + "px")
+                tooltip.html(p.yaccessor(d).toFixed(4) + "<br/>" + self.toNiceDateTime(p.xaccessor(d)))
+                    .style("left", xx - 10 + "px")
                     .style("top", yy - 10 + "px");
 
                 focus.select('#focusCircle')

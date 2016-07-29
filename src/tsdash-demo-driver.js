@@ -26,7 +26,7 @@ TsDashboardDemoDriver.prototype.getParamValues = function (name, search, callbac
 }
 
 TsDashboardDemoDriver.prototype.getDrawData = function (options, callback) {
-    var length_in_days = 15;
+    var length_in_days = 45;
     var ts = new Date();
     ts = new Date(ts.getTime() - length_in_days * 24 * 60 * 60 * 1000);
 
@@ -92,12 +92,12 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                             {
                                 title: "Widget 1",
                                 height: 200,
-                                timeseries: ["s1", "s2"]
+                                timeseries: ["s1"]
                             },
                             {
                                 title: "Widget 1x",
                                 height: 100,
-                                timeseries: ["s1", "s2"]
+                                timeseries: ["s2"]
                             }
                         ]
                     },
@@ -116,8 +116,8 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                         widgets: [
                             {
                                 title: "Widget 1x",
-                                height: 300,
-                                timeseries: ["s1", "s2"]
+                                height: 328,
+                                timeseries: ["s3"]
                             }
                         ]
                     }
@@ -133,7 +133,7 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                             {
                                 title: "Widget 2",
                                 height: 200,
-                                timeseries: ["s3"]
+                                timeseries: ["s1", "s2", "s3"]
                             }
                         ]
                     }

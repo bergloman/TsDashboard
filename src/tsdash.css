@@ -243,3 +243,15 @@ path2 {
     fill: red;
     color: red;
 }
+.line-chart-tooltip {
+    position: relative;
+    width: 100px;
+    text-align: center;
+    min-height: 40px;
+    padding: 2px;
+    font: 12px sans-serif;
+    color: white;
+    background: black;
+    border: 0px;
+    pointer-events: none;
+ }
