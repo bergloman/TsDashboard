@@ -152,30 +152,35 @@ TsDashboard.prototype.run = function () {
                     widget_div.addClass("tds-widget");
                     if (widget.title && widget.title.length > 0) {
                         widget_div.append($(document.createElement("h3")).text(widget.title));
-
-                        var widget_id = "tsd_widget_" + widget_counter;
-                        widget_div.append($(document.createElement("div")).attr("id", widget_id));
-
-                        var data_series = [];
-                        data_series = widget.timeseries
-                            .map(x => {
-                                for (var series of data.timeseries) {
-                                    if (series.name === x) {
-                                        return series.values;
-                                    }
-                                }
-                                return null;
-                            })
-                            .filter(x => x !== null);
-                        self.drawTimeSeriesMulti({
-                            chart_div: "#" + widget_id,
-                            data: data_series,
-                            height: widget.height,
-                            handle_clicks: true,
-                            //ydomain_min: 0,
-                            //series_style_indices: style_indices
-                        });
                     }
+                    var widget_id = "tsd_widget_" + widget_counter;
+                    widget_div.append(
+                        $(document.createElement("div"))
+                        .attr("id", widget_id)
+                        .attr("class", "tsd-widget-sub"));
+
+                    var data_series = [];
+                    data_series = widget.timeseries
+                        .map(x => {
+                            for (var series of data.timeseries) {
+                                if (series.name === x) {
+                                    return series.values;
+                                }
+                            }
+                            return null;
+                        })
+                        .filter(x => x !== null);
+
+                    var options = {
+                        chart_div: "#" + widget_id,
+                        data: data_series,
+                        height: widget.height,
+                        handle_clicks: true
+                    }
+                    if (widget.options) {
+                        Object.assign(options, widget.options);
+                    }
+                    self.drawTimeSeriesMulti(options);
                     widget_counter++;
                 }
             }
@@ -183,7 +188,7 @@ TsDashboard.prototype.run = function () {
     });
 }
 
-TsDashboard.prototype.toNiceDateTime = function(s) {
+TsDashboard.prototype.toNiceDateTime = function (s) {
     if (!s) return "-";
     return moment(s).format("YYYY-MM-DD HH:mm:ss");
 }
@@ -218,7 +223,6 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
         tickNumber: function (height, yDomainMax) {
             return Math.min(height < 100 ? 3 : 8, yDomainMax);
         },
-        server: null,
         markerStroke: 1,
         markerOpacity: 0.4,
         markerOpacityHover: 0.6,
@@ -454,7 +458,7 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
                 tooltip.style('opacity', 0.8);
                 tooltip.html(p.yaccessor(d).toFixed(4) + "<br/>" + self.toNiceDateTime(p.xaccessor(d)))
                     .style("left", xx - 10 + "px")
-                    .style("top", yy - 10 + "px");
+                    .style("top", yy + 40 + "px");
 
                 focus.select('#focusCircle')
                     .attr('cx', xx)

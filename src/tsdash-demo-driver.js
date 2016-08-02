@@ -38,11 +38,20 @@ TsDashboardDemoDriver.prototype.getDrawData = function (options, callback) {
     var ts2 = [];
     var ts3 = [];
     var d = ts.getTime();
+    var ts1_curr = 1;
+    var ts2_curr = 2;
+    var ts3_curr = 3;
     for (var i = 0; i <= length_in_days; i++) {
         d += 24 * 60 * 60 * 1000; // advance single day 
-        ts1.push({ epoch: d, val: i % 5 });
-        ts2.push({ epoch: d, val: Math.random() * 2 + 2 });
-        ts3.push({ epoch: d, val: Math.random() * 6 });
+        ts1.push({ epoch: d, val: ts1_curr });
+        ts2.push({ epoch: d, val: ts2_curr });
+        ts3.push({ epoch: d, val: ts3_curr });
+        ts1_curr += 0.5 * (Math.random() - 0.5);
+        ts2_curr += 0.2 * (Math.random() - 0.5);
+        ts3_curr += 0.1 * (Math.random() - 0.5);
+        ts1_curr = Math.max(ts1_curr, 0);
+        ts2_curr = Math.max(ts2_curr, 0);
+        ts3_curr = Math.max(ts3_curr, 0);
     }
     res.timeseries.push({ name: "s1", values: ts1 });
     res.timeseries.push({ name: "s2", values: ts2 });
@@ -91,13 +100,17 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                         widgets: [
                             {
                                 title: "Widget 1",
-                                height: 200,
-                                timeseries: ["s1"]
+                                timeseries: ["s1"],
+                                options: {
+                                    height: 200
+                                }
                             },
                             {
                                 title: "Widget 1x",
-                                height: 100,
-                                timeseries: ["s2"]
+                                timeseries: ["s2"],
+                                options: {
+                                    height: 100
+                                }
                             }
                         ]
                     },
@@ -106,8 +119,12 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                         widgets: [
                             {
                                 title: "Widget 1x",
-                                height: 328,
-                                timeseries: ["s1", "s2"]
+                                timeseries: ["s1", "s2"],
+                                options: {
+                                    height: 328,
+                                    ydomain_min: 0,
+                                    ydomain_max: 10
+                                }
                             }
                         ]
                     },
@@ -115,9 +132,10 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                         title: "Another main panel",
                         widgets: [
                             {
-                                title: "Widget 1x",
-                                height: 328,
-                                timeseries: ["s3"]
+                                timeseries: ["s3"],
+                                options: {
+                                    height: 328
+                                }
                             }
                         ]
                     }
@@ -132,8 +150,11 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                         widgets: [
                             {
                                 title: "Widget 2",
-                                height: 200,
-                                timeseries: ["s1", "s2", "s3"]
+                                timeseries: ["s1", "s2", "s3"],
+                                options: {
+                                    height: 200,
+                                    series_style_indices: [5, 6, 7]
+                                }
                             }
                         ]
                     }

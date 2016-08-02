@@ -140,6 +140,10 @@ h3{
     background-color :#147bb1;
 }
 
+.tsd-widget-sub {
+    position: relative;
+}
+
 /*********************************/
 /* Chart styles                  */
 /*********************************/
@@ -194,7 +198,7 @@ h3{
 
 
 svg text {
-    fill: #eee;
+    fill: #666;
 }
 
 path { 
@@ -244,6 +248,16 @@ path2 {
     color: red;
 }
 .line-chart-tooltip {
+    position: absolute;
+    text-align: center;
+    min-height: 40px;
+    padding: 2px;
+    font: 12px sans-serif;
+    color: white;
+    background: black;
+    border: 0px;
+    pointer-events: none;
+    /*
     position: relative;
     width: 100px;
     text-align: center;
@@ -254,4 +268,5 @@ path2 {
     background: black;
     border: 0px;
     pointer-events: none;
+    */
  }
