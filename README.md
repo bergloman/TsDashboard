@@ -73,7 +73,7 @@ Here, epoch should be valid `Javascript` epoch
 - `datetime` - date and time value in `YYYY-MM-DD HH:MM:SS` format
 - `boolean` - simple checkbox
 
-Chart options:
+## Time-series chart options
 
 - `height` - height of chart in pixels. Default is 100.
 - `xdomain_min` - minimal value of X domain (timeseries) - in `javascript` epochs.
