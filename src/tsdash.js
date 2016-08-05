@@ -25,28 +25,61 @@ TsDashboard.prototype.init = function () {
     });
 }
 
+TsDashboard.prototype.getTimeString = function (d) {
+    if (!d) {
+        d = new Date();
+    }
+    return moment(d).format('YYYY-MM-DD hh:mm:ss');
+}
+
+TsDashboard.prototype.getDateString = function (d) {
+    if (!d) {
+        d = new Date();
+    }
+    return moment(d).format('YYYY-MM-DD');
+}
+
 TsDashboard.prototype.initParams = function () {
     var self = this;
     var sidebar = $(".tsd-sidebar");
-    // $(".tsd-sidebar").append("<h2>Time period</h2>");
-    // $(".tsd-sidebar").append("From <input id='sinFrom' placeholder='yyyy-mm-dd hh:MM:ss'></input>");
-    // $(".tsd-sidebar").append("To <input id='sinTo' placeholder='yyyy-mm-dd hh:MM:ss'></input>");
-    // $(".tsd-sidebar").append("<h2>Parameters</h2>");
     for (var ii in self.conf.parameters) (function (i) {
         var par = self.conf.parameters[i];
 
-        var label = $(document.createElement("label"));
+        var label = $(document.createElement("div"));
         label.appendTo(sidebar);
         label.append("<span>" + par.title + "</span>");
 
         if (par.type === "string") {
             label.append("<input id='in" + par.name + "'></input>");
+            if (par.default) {
+                $("#in" + par.name).val(par.default);
+            }
 
         } else if (par.type === "datetime") {
             label.append("<input id='in" + par.name + "' placeholder='yyyy-mm-dd hh:MM:ss'></input>");
+            label
+                .append("<a id='hin_now_" + par.name + "'>Now</a>")
+                .click(function () { $("#in" + par.name).val(self.getNowString()); });
+            label
+                .append("<a id='hin_today_" + par.name + "'>Today</a>")
+                .click(function () { alert(par.name); });
+            if (par.default) {
+                if (par.default instanceof Date) {
+                    $("#in" + par.name).val(self.getTimeString(par.default));
+                } else {
+                    $("#in" + par.name).val(par.default);
+                }
+            }
 
         } else if (par.type === "date") {
             label.append("<input id='in" + par.name + "' placeholder='yyyy-mm-dd'></input>");
+            if (par.default) {
+                if (par.default instanceof Date) {
+                    $("#in" + par.name).val(self.getDateString(par.default));
+                } else {
+                    $("#in" + par.name).val(par.default);
+                }
+            }
 
         } else if (par.type === "filter") {
             label.append("<input id='in" + par.name + "'></input>");
@@ -69,6 +102,10 @@ TsDashboard.prototype.initParams = function () {
                     })(ii);
                 });
             });
+            if (par.default) {
+                $("#in" + par.name).val(par.default);
+            }
+
         } else if (par.type === "enum") {
             label.append("<select id='sel" + par.name + "'></select >");
             self.driver.getParamValues(par.name, null, function (options) {
@@ -76,10 +113,16 @@ TsDashboard.prototype.initParams = function () {
                     var option = options[i];
                     $("#sel" + par.name).append("<option value='" + option.value + "'>" + option.caption + "</option>");
                 }
+                if (par.default) {
+                    $("#sel" + par.name).val(par.default);
+                }
             });
 
         } else if (par.type === "boolean") {
             label.append("<input type='checkbox'' id='cb" + par.name + "'></input>");
+                if (par.default) {
+                    $("#cb" + par.name).attr('checked', "true");
+                }
         }
     })(ii);
 
@@ -139,9 +182,7 @@ TsDashboard.prototype.run = function () {
     }
     var options = {
         conf: self.conf,
-        params: params,
-        // ts_from: $("#sinFrom").val(),
-        // ts_to: $("#sinTo").val()
+        params: params
     }
     self.driver.getDrawData(options, function (data) {
         var main = $("#tsd_main");
@@ -196,7 +237,7 @@ TsDashboard.prototype.run = function () {
                             }
                             return null;
                         })
-                        .filter(function(x) { return x !== null; });
+                        .filter(function (x) { return x !== null; });
 
                     var options = {
                         chart_div: "#" + widget_id,

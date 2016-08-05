@@ -6,6 +6,8 @@ function TsDashboardDemoDriver() {
 }
 
 TsDashboardDemoDriver.prototype.getViewDefinition = function (callback) {
+    this.view_definition.parameters[0].default = new Date();
+    this.view_definition.parameters[1].default = new Date();
     callback(this.view_definition);
 }
 
@@ -88,17 +90,20 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
             {
                 name: "param3",
                 title: "Third parameter",
-                type: "enum"
+                type: "enum",
+                default: "v2"
             },
             {
                 name: "param3x",
                 title: "Third parameter again",
-                type: "enum"
+                type: "enum",
+                default: "v3"
             },
             {
                 name: "param4",
                 title: "Fourth parameter",
-                type: "boolean"
+                type: "boolean",
+                default: true
             }
         ],
         blocks: [
