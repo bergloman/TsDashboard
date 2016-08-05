@@ -2,6 +2,9 @@ function TsDashboard(div_id, driver) {
     this.driver = driver;
     this.div_id = div_id;
     this.init();
+
+    this.regex_date = /^(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31))$/;
+    this.regex_datetime = /^(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31)) (0[0-9]|1[0-9]|2[0-3])(:[0-5][0-9]){2}$/;
 }
 
 TsDashboard.prototype.init = function () {
@@ -25,12 +28,10 @@ TsDashboard.prototype.init = function () {
 TsDashboard.prototype.initParams = function () {
     var self = this;
     var sidebar = $(".tsd-sidebar");
-    $(".tsd-sidebar").append("<h2>Time period</h2>");
-    $(".tsd-sidebar").append("From <input id='sinFrom' placeholder='yyyy-mm-dd hh:MM:ss'></input>");
-    $(".tsd-sidebar").append("To <input id='sinTo' placeholder='yyyy-mm-dd hh:MM:ss'></input>");
-
-
-    $(".tsd-sidebar").append("<h2>Parameters</h2>");
+    // $(".tsd-sidebar").append("<h2>Time period</h2>");
+    // $(".tsd-sidebar").append("From <input id='sinFrom' placeholder='yyyy-mm-dd hh:MM:ss'></input>");
+    // $(".tsd-sidebar").append("To <input id='sinTo' placeholder='yyyy-mm-dd hh:MM:ss'></input>");
+    // $(".tsd-sidebar").append("<h2>Parameters</h2>");
     for (var ii in self.conf.parameters) (function (i) {
         var par = self.conf.parameters[i];
 
@@ -40,6 +41,12 @@ TsDashboard.prototype.initParams = function () {
 
         if (par.type === "string") {
             label.append("<input id='in" + par.name + "'></input>");
+
+        } else if (par.type === "datetime") {
+            label.append("<input id='in" + par.name + "' placeholder='yyyy-mm-dd hh:MM:ss'></input>");
+
+        } else if (par.type === "date") {
+            label.append("<input id='in" + par.name + "' placeholder='yyyy-mm-dd'></input>");
 
         } else if (par.type === "filter") {
             label.append("<input id='in" + par.name + "'></input>");
@@ -85,17 +92,33 @@ TsDashboard.prototype.initParams = function () {
 TsDashboard.prototype.collectParameterValues = function () {
     var self = this;
     var param_values = [];
-    for (var ii in self.conf.parameters) (function (i) {
+    for (var i in self.conf.parameters) {
         var par = self.conf.parameters[i];
         var par_value = { name: par.name };
         if (par.type === "string") {
             par_value.value = $("#in" + par.name).val()
 
+        } else if (par.type === "datetime") {
+            par_value.value = $("#in" + par.name).val();
+            if (!self.regex_datetime.test(par_value.value)) {
+                alert("Invalid date format or value: " + par.title);
+                return null;
+            }
+            par_value.value = new Date($("#in" + par.name).val());
+
+        } else if (par.type === "date") {
+            par_value.value = $("#in" + par.name).val();
+            if (!self.regex_date.test(par_value.value)) {
+                alert("Invalid date format or value: " + par.title);
+                return null;
+            }
+            par_value.value = new Date($("#in" + par.name).val());
+
         } else if (par.type === "filter") {
-            par_value.value = $("#in" + par.name).val()
+            par_value.value = $("#in" + par.name).val();
 
         } else if (par.type === "enum") {
-            par_value.value = $("#sel" + par.name).val()
+            par_value.value = $("#sel" + par.name).val();
 
         } else if (par.type === "boolean") {
             par_value.value = false;
@@ -104,18 +127,21 @@ TsDashboard.prototype.collectParameterValues = function () {
             }
         }
         param_values.push(par_value);
-    })(ii);
+    };
     return param_values;
 }
 
 TsDashboard.prototype.run = function () {
     var self = this;
-
+    var params = self.collectParameterValues();
+    if (!params) {
+        return;
+    }
     var options = {
         conf: self.conf,
-        params: self.collectParameterValues(),
-        ts_from: $("#sinFrom").val(),
-        ts_to: $("#sinTo").val()
+        params: params,
+        // ts_from: $("#sinFrom").val(),
+        // ts_to: $("#sinTo").val()
     }
     self.driver.getDrawData(options, function (data) {
         var main = $("#tsd_main");
@@ -156,20 +182,21 @@ TsDashboard.prototype.run = function () {
                     var widget_id = "tsd_widget_" + widget_counter;
                     widget_div.append(
                         $(document.createElement("div"))
-                        .attr("id", widget_id)
-                        .attr("class", "tsd-widget-sub"));
+                            .attr("id", widget_id)
+                            .attr("class", "tsd-widget-sub"));
 
                     var data_series = [];
                     data_series = widget.timeseries
-                        .map(x => {
-                            for (var series of data.timeseries) {
+                        .map(function (x) {
+                            for (var series_i in data.timeseries) {
+                                var series = data.timeseries[series_i];
                                 if (series.name === x) {
                                     return series.values;
                                 }
                             }
                             return null;
                         })
-                        .filter(x => x !== null);
+                        .filter(function(x) { return x !== null; });
 
                     var options = {
                         chart_div: "#" + widget_id,

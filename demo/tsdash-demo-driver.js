@@ -66,6 +66,16 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
         title: "Demo dashboard",
         parameters: [
             {
+                name: "ts_from",
+                title: "From",
+                type: "datetime"
+            },
+            {
+                name: "ts_to",
+                title: "To",
+                type: "date"
+            },
+            {
                 name: "param1",
                 title: "First parameter",
                 type: "string"

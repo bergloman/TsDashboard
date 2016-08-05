@@ -1,11 +1,11 @@
 {
-  "name": "tsdashboard",
-  "version": "0.1",
+  "name": "tsdash",
+  "version": "0.2.0",
   "description": "Light-weight javascript libarry for creating time-series dashboards.",
   "main": "src/tsdash.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/xxxxxxxxxxxx/xxxxxxxxxxxxx.git"
+    "url": "https://github.com/bergloman/TsDashboard.git"
   },
   "author": {
     "name": "Quintelligence",
@@ -14,11 +14,13 @@
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/xxxxxxxxxxxxx/xxxxxxxxxxxx/issues"
+    "url": "https://github.com/bergloman/TsDashboard/issues"
   },
-  "homepage": "https://github.com/xxxxxxxxxxxx/xxxxxxxxxxxxx",
-  "dependencies": {
-    "jquery": ">=3.1.0",
-    "d3": ">=4.1.1"
+  "homepage": "https://github.com/bergloman/TsDashboard",
+  "dependencies": {},
+  "devDependencies": {
+    "grunt": "^1.0.1",
+    "grunt-contrib-jshint": "^1.0.0",
+    "grunt-contrib-uglify": "^2.0.0"
   }
 }
