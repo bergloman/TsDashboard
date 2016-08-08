@@ -69,7 +69,13 @@ TsDashboard.prototype.initParams = function () {
                 if (par.default instanceof Date) {
                     $("#in" + par.name).val(self.getTimeString(par.default));
                 } else {
-                    $("#in" + par.name).val(par.default);
+                    if (par.default == "$now") {
+                        $("#in" + par.name).val(self.getTimeString(new Date()));
+                    } else if (par.default == "$today") {
+                        $("#in" + par.name).val(self.getTimeString(self.getToday()));
+                    } else {
+                        $("#in" + par.name).val(par.default);
+                    }
                 }
             }
 
@@ -81,7 +87,13 @@ TsDashboard.prototype.initParams = function () {
                 if (par.default instanceof Date) {
                     $("#in" + par.name).val(self.getDateString(par.default));
                 } else {
-                    $("#in" + par.name).val(par.default);
+                    if (par.default == "$now") {
+                        $("#in" + par.name).val(self.getDateString(new Date()));
+                    } else if (par.default == "$today") {
+                        $("#in" + par.name).val(self.getDateString(new Date()));
+                    } else {
+                        $("#in" + par.name).val(par.default);
+                    }
                 }
             }
 
