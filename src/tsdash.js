@@ -25,6 +25,9 @@ TsDashboard.prototype.init = function () {
     });
 }
 
+TsDashboard.prototype.getToday = function () {
+    return moment({ hour: 0 }).toDate();
+}
 TsDashboard.prototype.getTimeString = function (d) {
     if (!d) {
         d = new Date();
@@ -57,12 +60,11 @@ TsDashboard.prototype.initParams = function () {
 
         } else if (par.type === "datetime") {
             label.append("<input id='in" + par.name + "' placeholder='yyyy-mm-dd hh:MM:ss'></input>");
-            label
-                .append("<a id='hin_now_" + par.name + "'>Now</a>")
-                .click(function () { $("#in" + par.name).val(self.getNowString()); });
-            label
-                .append("<a id='hin_today_" + par.name + "'>Today</a>")
-                .click(function () { alert(par.name); });
+            label.append("<a id='hin_now_" + par.name + "'>Now</a> ");
+            $("#hin_now_" + par.name).click(function () { $("#in" + par.name).val(self.getTimeString()); });
+            label.append("<a id='hin_today_" + par.name + "'>Today</a> ");
+            $("#hin_today_" + par.name).click(function () { $("#in" + par.name).val(self.getTimeString(self.getToday())); });
+
             if (par.default) {
                 if (par.default instanceof Date) {
                     $("#in" + par.name).val(self.getTimeString(par.default));
@@ -73,6 +75,8 @@ TsDashboard.prototype.initParams = function () {
 
         } else if (par.type === "date") {
             label.append("<input id='in" + par.name + "' placeholder='yyyy-mm-dd'></input>");
+            label.append("<a id='hin_today_" + par.name + "'>Today</a> ");
+            $("#hin_today_" + par.name).click(function () { $("#in" + par.name).val(self.getDateString(self.getToday())); });
             if (par.default) {
                 if (par.default instanceof Date) {
                     $("#in" + par.name).val(self.getDateString(par.default));
@@ -120,9 +124,9 @@ TsDashboard.prototype.initParams = function () {
 
         } else if (par.type === "boolean") {
             label.append("<input type='checkbox' id='cb" + par.name + "'></input>");
-                if (par.default) {
-                    $("#cb" + par.name).attr('checked', "true");
-        }
+            if (par.default) {
+                $("#cb" + par.name).attr('checked', "true");
+            }
         }
     })(ii);
 
@@ -202,7 +206,7 @@ TsDashboard.prototype.run = function () {
             block_div2.addClass("tds-block-inner");
             block_div.append(block_div2);
 
-            var col_class = "tds-col-1-" + block.panels.length; 
+            var col_class = "tds-col-1-" + block.panels.length;
 
             for (var j in block.panels) {
                 var panel = block.panels[j];
@@ -225,8 +229,8 @@ TsDashboard.prototype.run = function () {
                     var widget_id = "tsd_widget_" + widget_counter;
                     widget_div.append(
                         $(document.createElement("div"))
-                        .attr("id", widget_id)
-                        .attr("class", "tsd-widget-sub"));
+                            .attr("id", widget_id)
+                            .attr("class", "tsd-widget-sub"));
 
                     var data_series = [];
                     data_series = widget.timeseries
