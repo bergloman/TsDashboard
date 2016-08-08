@@ -6,6 +6,8 @@ function TsDashboardDemoDriver() {
 }
 
 TsDashboardDemoDriver.prototype.getViewDefinition = function (callback) {
+    this.view_definition.parameters[0].default = new Date();
+    this.view_definition.parameters[1].default = new Date();
     callback(this.view_definition);
 }
 
@@ -66,6 +68,16 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
         title: "Demo dashboard",
         parameters: [
             {
+                name: "ts_from",
+                title: "From",
+                type: "datetime"
+            },
+            {
+                name: "ts_to",
+                title: "To",
+                type: "date"
+            },
+            {
                 name: "param1",
                 title: "First parameter",
                 type: "string"
@@ -78,17 +90,20 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
             {
                 name: "param3",
                 title: "Third parameter",
-                type: "enum"
+                type: "enum",
+                default: "v2"
             },
             {
                 name: "param3x",
                 title: "Third parameter again",
-                type: "enum"
+                type: "enum",
+                default: "v3"
             },
             {
                 name: "param4",
                 title: "Fourth parameter",
-                type: "boolean"
+                type: "boolean",
+                default: true
             }
         ],
         blocks: [

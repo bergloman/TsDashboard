@@ -69,9 +69,11 @@ Here, epoch should be valid `Javascript` epoch
 - `string` - simple string, no validation
 - `enum` - string from a fixed list of available values
 - `filter` - string from a dynamic list of available values (callback is performed)
+- `date` - date value in `YYYY-MM-DD` format
+- `datetime` - date and time value in `YYYY-MM-DD HH:MM:SS` format
 - `boolean` - simple checkbox
 
-Chart options:
+## Time-series chart options
 
 - `height` - height of chart in pixels. Default is 100.
 - `xdomain_min` - minimal value of X domain (timeseries) - in `javascript` epochs.
