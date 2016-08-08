@@ -72,7 +72,7 @@ TsDashboard.prototype.initParams = function () {
             });
 
         } else if (par.type === "boolean") {
-            label.append("<input type='checkbox'' id='cb" + par.name + "'></input>");
+            label.append("<input type='checkbox' id='cb" + par.name + "'></input>");
         }
     })(ii);
 
@@ -135,12 +135,14 @@ TsDashboard.prototype.run = function () {
             block_div2.addClass("tds-block-inner");
             block_div.append(block_div2);
 
+            var col_class = "tds-col-1-" + block.panels.length; 
+
             for (var j in block.panels) {
                 var panel = block.panels[j];
                 var panel_div = $(document.createElement("div"));
                 block_div2.append(panel_div);
                 panel_div.addClass("tds-panel");
-                panel_div.addClass("tds-col-1-3");
+                panel_div.addClass(col_class);
                 if (panel.title && panel.title.length > 0) {
                     panel_div.append($(document.createElement("h3")).text(panel.title));
                 }
