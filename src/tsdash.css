@@ -110,7 +110,9 @@ h3{
 }
 
 /***********************************************************************/
-
+.tsd-sidebar-param {
+    margin-bottom:10px;
+}
 .tsd-sidebar input, .tsd-sidebar select{
     min-height: 30px;
     font-size: 14px;
@@ -119,7 +121,6 @@ h3{
     border:#ccc 1px solid;
     box-sizing:border-box;
     padding:2px;
-    margin-bottom:10px;
     background-color: #fff;
     color: #222;
 }
@@ -140,20 +141,25 @@ h3{
     width:100%;
     /*border-radius:3px;*/
     border:rgba(0,0,0,.3) 0px solid;
-    background-color :rgba(24,149,215,1);
+    background-color :#147bb1;
     color: white;
     box-sizing:border-box;
     padding:2px;
     margin-bottom:10px;
 }
-.tsd-sidebar button{
-    background-color :#147bb1;
-}
 
 .tsd-widget-sub {
     position: relative;
 }
-
+ .tds-input-help {
+     font-size: 10px;
+     color:#888;margin-right: 10px;
+     cursor: pointer;
+ }
+ .tds-input-help:hover {
+     color:goldenrod;
+ }
+ 
 /*********************************/
 /* Chart styles                  */
 /*********************************/

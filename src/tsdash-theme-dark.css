@@ -53,3 +53,9 @@ h3{
 .tsd-sidebar button{
     background-color :#147bb1;
 }
+ .tds-input-help {
+     color:#ccc;
+ }
+ .tds-input-help:hover {
+     color:goldenrod;
+ }

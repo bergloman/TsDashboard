@@ -50,6 +50,7 @@ TsDashboard.prototype.initParams = function () {
 
         var label = $(document.createElement("div"));
         label.appendTo(sidebar);
+        label.addClass("tsd-sidebar-param");
         label.append("<span>" + par.title + "</span>");
 
         if (par.type === "string") {
@@ -60,10 +61,14 @@ TsDashboard.prototype.initParams = function () {
 
         } else if (par.type === "datetime") {
             label.append("<input id='in" + par.name + "' placeholder='yyyy-mm-dd hh:MM:ss'></input>");
-            label.append("<a id='hin_now_" + par.name + "'>Now</a> ");
-            $("#hin_now_" + par.name).click(function () { $("#in" + par.name).val(self.getTimeString()); });
-            label.append("<a id='hin_today_" + par.name + "'>Today</a> ");
-            $("#hin_today_" + par.name).click(function () { $("#in" + par.name).val(self.getTimeString(self.getToday())); });
+            label.append("<a id='hin_now_" + par.name + "' class='tds-input-help'>Now</a> ");
+            $("#hin_now_" + par.name).click(function () {
+                $("#in" + par.name).val(self.getTimeString());
+            });
+            label.append("<a id='hin_today_" + par.name + "' class='tds-input-help'>Today</a> ");
+            $("#hin_today_" + par.name).click(function () {
+                $("#in" + par.name).val(self.getDateString() + " 00:00:00");
+            });
 
             if (par.default) {
                 if (par.default instanceof Date) {
@@ -81,8 +86,10 @@ TsDashboard.prototype.initParams = function () {
 
         } else if (par.type === "date") {
             label.append("<input id='in" + par.name + "' placeholder='yyyy-mm-dd'></input>");
-            label.append("<a id='hin_today_" + par.name + "'>Today</a> ");
-            $("#hin_today_" + par.name).click(function () { $("#in" + par.name).val(self.getDateString(self.getToday())); });
+            label.append("<a id='hin_today_" + par.name + "' class='tds-input-help'>Today</a> ");
+            $("#hin_today_" + par.name).click(function () {
+                $("#in" + par.name).val(self.getDateString());
+            });
             if (par.default) {
                 if (par.default instanceof Date) {
                     $("#in" + par.name).val(self.getDateString(par.default));
