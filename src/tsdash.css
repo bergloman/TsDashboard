@@ -151,14 +151,14 @@ h3{
 .tsd-widget-sub {
     position: relative;
 }
- .tds-input-help {
-     font-size: 10px;
-     color:#888;margin-right: 10px;
-     cursor: pointer;
- }
- .tds-input-help:hover {
-     color:goldenrod;
- }
+.tds-input-help {
+    font-size: 10px;
+    color:#888;margin-right: 10px;
+    cursor: pointer;
+}
+.tds-input-help:hover {
+    color:goldenrod;
+}
  
 /*********************************/
 /* Chart styles                  */
