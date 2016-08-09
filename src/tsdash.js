@@ -70,9 +70,9 @@ TsDashboard.prototype.initParams = function () {
                     $("#in" + par.name).val(self.getTimeString(par.default));
                 } else {
                     if (par.default == "$now") {
-                        $("#in" + par.name).val(self.getTimeString(new Date()));
+                        $("#in" + par.name).val(self.getTimeString());
                     } else if (par.default == "$today") {
-                        $("#in" + par.name).val(self.getTimeString(self.getToday()));
+                        $("#in" + par.name).val(self.getDateString() + " 00:00:00");
                     } else {
                         $("#in" + par.name).val(par.default);
                     }
@@ -88,9 +88,9 @@ TsDashboard.prototype.initParams = function () {
                     $("#in" + par.name).val(self.getDateString(par.default));
                 } else {
                     if (par.default == "$now") {
-                        $("#in" + par.name).val(self.getDateString(new Date()));
+                        $("#in" + par.name).val(self.getDateString());
                     } else if (par.default == "$today") {
-                        $("#in" + par.name).val(self.getDateString(new Date()));
+                        $("#in" + par.name).val(self.getDateString());
                     } else {
                         $("#in" + par.name).val(par.default);
                     }
@@ -163,7 +163,8 @@ TsDashboard.prototype.collectParameterValues = function () {
                 alert("Invalid date format or value: " + par.title);
                 return null;
             }
-            par_value.value = new Date($("#in" + par.name).val());
+            // parse string into local time-zone
+            par_value.value = moment(par_value.value, "YYYY-MM-DD HH:mm:ss").toDate();
 
         } else if (par.type === "date") {
             par_value.value = $("#in" + par.name).val();
@@ -171,7 +172,8 @@ TsDashboard.prototype.collectParameterValues = function () {
                 alert("Invalid date format or value: " + par.title);
                 return null;
             }
-            par_value.value = new Date($("#in" + par.name).val());
+            // parse string into local time-zone
+            par_value.value = moment(par_value.value, "YYYY-MM-DD").toDate();
 
         } else if (par.type === "filter") {
             par_value.value = $("#in" + par.name).val();

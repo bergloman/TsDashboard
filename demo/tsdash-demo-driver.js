@@ -6,8 +6,6 @@ function TsDashboardDemoDriver() {
 }
 
 TsDashboardDemoDriver.prototype.getViewDefinition = function (callback) {
-    this.view_definition.parameters[0].default = "$today";
-    this.view_definition.parameters[1].default = "$now";
     callback(this.view_definition);
 }
 
@@ -70,12 +68,14 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
             {
                 name: "ts_from",
                 title: "From",
-                type: "date"
+                type: "date",
+                default: "$today"
             },
             {
                 name: "ts_to",
                 title: "To",
-                type: "datetime"
+                type: "datetime",
+                default: "$today"
             },
             {
                 name: "param1",
