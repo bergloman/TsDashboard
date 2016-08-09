@@ -61,6 +61,12 @@ TsDashboard.prototype.initParams = function () {
 
         } else if (par.type === "datetime") {
             label.append("<input id='in" + par.name + "' placeholder='yyyy-mm-dd hh:MM:ss'></input>");
+            $("#in" + par.name).blur(function() {
+                var val = $("#in" + par.name).val();
+                if (self.regex_date.test(val)) {
+                    $("#in" + par.name).val(val + " 00:00:00");
+                }
+            });
             label.append("<a id='hin_now_" + par.name + "' class='tds-input-help'>Now</a> ");
             $("#hin_now_" + par.name).click(function () {
                 $("#in" + par.name).val(self.getTimeString());
@@ -167,8 +173,12 @@ TsDashboard.prototype.collectParameterValues = function () {
         } else if (par.type === "datetime") {
             par_value.value = $("#in" + par.name).val();
             if (!self.regex_datetime.test(par_value.value)) {
-                alert("Invalid date format or value: " + par.title);
-                return null;
+                if (!self.regex_date.test(par_value.value)) {
+                    alert("Invalid date format or value: " + par.title);
+                    return null;
+                } else {
+                    par_value.value += " 00:00:00";
+                }
             }
             // parse string into local time-zone
             par_value.value = moment(par_value.value, "YYYY-MM-DD HH:mm:ss").toDate();
