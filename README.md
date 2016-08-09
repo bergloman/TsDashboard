@@ -42,8 +42,6 @@ This method fetches required data to draw. The `options` parameter must contain 
 
 - **conf** - configuration 
 - **params** - values of parameters that were entered by the user
-- **ts_from** - Date object representing starting timepoint of observed period.
-- **ts_to** - Date object representing end timepoint of observed period.
 
 Result should conform to the following schema:
 
@@ -80,6 +78,6 @@ Here, epoch should be valid `Javascript` epoch
 - `xdomain_max` - maximal value of X domain (timeseries) - in `javascript` epochs.
 - `ydomain_min` - minimal value of Y domain. If not specified, it is determined dynamicaly.
 - `ydomain_max` - maximal value of Y domain. If not specified, it is determined dynamicaly.
-- `series_style_indices` - array of indixes into CSS styles that are used for series. By default 0-based indices are used.
+- `series_style_indices` - array of indices into CSS styles that are used for series. By default 0-based indices are used.
 - `xcaption` - Caption of X axis
 - `ycaptions` - Caption of Y axis series (array of captions)
