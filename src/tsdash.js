@@ -20,8 +20,27 @@ TsDashboard.prototype.init = function () {
         self.top.append("<div class='tsd-main' id='tsd_main'></div>");
 
         $(".tsd-header").append("<h1>" + conf.title + "</h1>");
-        $(".tsd-main").append("<div class='tsd-error'>...</div>");
+        $(".tsd-main").append("<div role='alert'' class='tsd-error alert alert-danger'>...</div>");
         $(".tsd-main").append("<div class='tsd-main-content' id='tsd_main_content'></div>");
+        $(".tsd-main").append(
+            "<div class='modal' id='divModal' tabindex='-1' role='dialog' aria-labelledby='myModalLabel' aria-hidden='true'>\
+                <div class='modal-dialog'>\
+                    <div class='modal-content'>\
+                        <div class='modal-header'>\
+                            <button type='button' class='close' data-dismiss='modal' aria-hidden='true'>&times;</button>\
+                            <h4 class='modal-title' id='myModalLabel'>\
+                            <span data-bind='text: modal_title'></span>\
+                            </h4>\
+                        </div>\
+                        <div class='modal-body'>\
+                            <div id='divModalChart'></div>\
+                        </div>\
+                        <div class='modal-footer'>\
+                            <button type='button' class='btn btn-default' data-dismiss='modal'>Close</button>\
+                        </div>\
+                    </div>\
+                </div>\
+            </div>");
 
         self.initParams();
     });
@@ -315,6 +334,9 @@ TsDashboard.prototype.run = function () {
                         height: widget.height,
                         handle_clicks: true
                     }
+                    options.click_callback= (function(xoptions){
+                            return function () { self.showModal(xoptions); }
+                        })(options);
                     if (widget.options) {
                         Object.assign(options, widget.options);
                     }
@@ -324,6 +346,18 @@ TsDashboard.prototype.run = function () {
             }
         };
     });
+}
+
+TsDashboard.prototype.showModal = function (options) {
+    var self = this;
+    $('#divModal').on('shown.bs.modal', function (e) {
+        options.chart_div = "#divModalChart";
+        options.height = 800;
+        options.handle_clicks = true;
+        options.click_callback = function () { };
+        self.drawTimeSeriesMulti(options);
+    });
+    $('#divModal').modal();
 }
 
 TsDashboard.prototype.toNiceDateTime = function (s) {
