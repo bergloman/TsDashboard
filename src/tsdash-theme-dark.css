@@ -28,7 +28,7 @@ h3{
     color: rgba(24,149,215,1);
 }
 
-.tds-block{
+.tsd-block{
     border-bottom-color: #333;
 }
 
@@ -53,9 +53,9 @@ h3{
 .tsd-sidebar button{
     background-color :#147bb1;
 }
-.tds-input-help {
+.tsd-input-help {
     color:#ccc;
 }
-.tds-input-help:hover {
+.tsd-input-help:hover {
     color:goldenrod;
 }

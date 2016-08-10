@@ -80,12 +80,14 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
             {
                 name: "param1",
                 title: "First parameter",
-                type: "string"
+                type: "string",
+                optional: false
             },
             {
                 name: "param2",
                 title: "Second parameter",
-                type: "filter"
+                type: "filter",
+                optional: true
             },
             {
                 name: "param3",

@@ -20,9 +20,19 @@ TsDashboard.prototype.init = function () {
         self.top.append("<div class='tsd-main' id='tsd_main'></div>");
 
         $(".tsd-header").append("<h1>" + conf.title + "</h1>");
+        $(".tsd-main").append("<div class='tsd-error'>...</div>");
+        $(".tsd-main").append("<div class='tsd-main-content' id='tsd_main_content'></div>");
 
         self.initParams();
     });
+}
+
+TsDashboard.prototype.resetErrorMsg = function () {
+    $(".tsd-error").removeClass("tsd-error-visible");
+}
+TsDashboard.prototype.showErrorMsg = function (msg) {
+    $(".tsd-error").text(msg);
+    $(".tsd-error").addClass("tsd-error-visible");
 }
 
 TsDashboard.prototype.getToday = function () {
@@ -61,17 +71,17 @@ TsDashboard.prototype.initParams = function () {
 
         } else if (par.type === "datetime") {
             label.append("<input id='in" + par.name + "' placeholder='yyyy-mm-dd hh:MM:ss'></input>");
-            $("#in" + par.name).blur(function() {
+            $("#in" + par.name).blur(function () {
                 var val = $("#in" + par.name).val();
                 if (self.regex_date.test(val)) {
                     $("#in" + par.name).val(val + " 00:00:00");
                 }
             });
-            label.append("<a id='hin_now_" + par.name + "' class='tds-input-help'>Now</a> ");
+            label.append("<a id='hin_now_" + par.name + "' class='tsd-input-help'>Now</a> ");
             $("#hin_now_" + par.name).click(function () {
                 $("#in" + par.name).val(self.getTimeString());
             });
-            label.append("<a id='hin_today_" + par.name + "' class='tds-input-help'>Today</a> ");
+            label.append("<a id='hin_today_" + par.name + "' class='tsd-input-help'>Today</a> ");
             $("#hin_today_" + par.name).click(function () {
                 $("#in" + par.name).val(self.getDateString() + " 00:00:00");
             });
@@ -92,7 +102,7 @@ TsDashboard.prototype.initParams = function () {
 
         } else if (par.type === "date") {
             label.append("<input id='in" + par.name + "' placeholder='yyyy-mm-dd'></input>");
-            label.append("<a id='hin_today_" + par.name + "' class='tds-input-help'>Today</a> ");
+            label.append("<a id='hin_today_" + par.name + "' class='tsd-input-help'>Today</a> ");
             $("#hin_today_" + par.name).click(function () {
                 $("#in" + par.name).val(self.getDateString());
             });
@@ -168,13 +178,21 @@ TsDashboard.prototype.collectParameterValues = function () {
         var par = self.conf.parameters[i];
         var par_value = { name: par.name };
         if (par.type === "string") {
-            par_value.value = $("#in" + par.name).val()
+            par_value.value = $("#in" + par.name).val().trim();
+            if (!par.optional && par_value.value === "") {
+                self.showErrorMsg("Missing non-optional parameter: " + par.title);
+                return null;
+            }
 
         } else if (par.type === "datetime") {
             par_value.value = $("#in" + par.name).val();
+            if (!par.optional && par_value.value === null) {
+                self.showErrorMsg("Missing non-optional parameter: " + par.title);
+                return null;
+            }
             if (!self.regex_datetime.test(par_value.value)) {
                 if (!self.regex_date.test(par_value.value)) {
-                    alert("Invalid date format or value: " + par.title);
+                    self.showErrorMsg("Invalid date format or value: " + par.title);
                     return null;
                 } else {
                     par_value.value += " 00:00:00";
@@ -185,8 +203,12 @@ TsDashboard.prototype.collectParameterValues = function () {
 
         } else if (par.type === "date") {
             par_value.value = $("#in" + par.name).val();
+            if (!par.optional && par_value.value === null) {
+                self.showErrorMsg("Missing non-optional parameter: " + par.title);
+                return null;
+            }
             if (!self.regex_date.test(par_value.value)) {
-                alert("Invalid date format or value: " + par.title);
+                self.showErrorMsg("Invalid date format or value: " + par.title);
                 return null;
             }
             // parse string into local time-zone
@@ -194,9 +216,17 @@ TsDashboard.prototype.collectParameterValues = function () {
 
         } else if (par.type === "filter") {
             par_value.value = $("#in" + par.name).val();
+            if (!par.optional && par_value.value === null) {
+                self.showErrorMsg("Missing non-optional parameter: " + par.title);
+                return null;
+            }
 
         } else if (par.type === "enum") {
             par_value.value = $("#sel" + par.name).val();
+            if (!par.optional && par_value.value === null) {
+                self.showErrorMsg("Missing non-optional parameter: " + par.title);
+                return null;
+            }
 
         } else if (par.type === "boolean") {
             par_value.value = false;
@@ -211,6 +241,11 @@ TsDashboard.prototype.collectParameterValues = function () {
 
 TsDashboard.prototype.run = function () {
     var self = this;
+
+    var main = $("#tsd_main_content");
+    main.empty();
+    self.resetErrorMsg();
+
     var params = self.collectParameterValues();
     if (!params) {
         return;
@@ -220,30 +255,28 @@ TsDashboard.prototype.run = function () {
         params: params
     }
     self.driver.getDrawData(options, function (data) {
-        var main = $("#tsd_main");
-        main.empty();
         var widget_counter = 1;
         for (var i in self.conf.blocks) {
             var block = self.conf.blocks[i];
             var block_div = $(document.createElement("div"));
             main.append(block_div);
 
-            block_div.addClass("tds-block");
+            block_div.addClass("tsd-block");
             if (block.title && block.title.length > 0) {
                 block_div.append($(document.createElement("h2")).text(block.title));
             }
 
             var block_div2 = $(document.createElement("div"));
-            block_div2.addClass("tds-block-inner");
+            block_div2.addClass("tsd-block-inner");
             block_div.append(block_div2);
 
-            var col_class = "tds-col-1-" + block.panels.length;
+            var col_class = "tsd-col-1-" + block.panels.length;
 
             for (var j in block.panels) {
                 var panel = block.panels[j];
                 var panel_div = $(document.createElement("div"));
                 block_div2.append(panel_div);
-                panel_div.addClass("tds-panel");
+                panel_div.addClass("tsd-panel");
                 panel_div.addClass(col_class);
                 if (panel.title && panel.title.length > 0) {
                     panel_div.append($(document.createElement("h3")).text(panel.title));
@@ -253,7 +286,7 @@ TsDashboard.prototype.run = function () {
                     var widget = panel.widgets[k];
                     var widget_div = $(document.createElement("div"));
                     panel_div.append(widget_div);
-                    widget_div.addClass("tds-widget");
+                    widget_div.addClass("tsd-widget");
                     if (widget.title && widget.title.length > 0) {
                         widget_div.append($(document.createElement("h3")).text(widget.title));
                     }
