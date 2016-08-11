@@ -300,6 +300,7 @@ TsDashboard.prototype.run = function () {
 
                 for (var k in panel.widgets) {
                     var widget = panel.widgets[k];
+                    widget.timepoints = widget.timepoints || [];
                     var widget_div = $(document.createElement("div"));
                     panel_div.append(widget_div);
                     widget_div.addClass("tsd-widget");
@@ -324,10 +325,23 @@ TsDashboard.prototype.run = function () {
                             return null;
                         })
                         .filter(function (x) { return x !== null; });
+                    var point_series = [];
+                    point_series = widget.timepoints
+                        .map(function (x) {
+                            for (var points_i in data.timepoints) {
+                                var points = data.timepoints[points_i];
+                                if (points.name === x) {
+                                    return points.values;
+                                }
+                            }
+                            return null;
+                        })
+                        .filter(function (x) { return x !== null; });
 
                     var options = {
                         chart_div: "#" + widget_id,
                         data: data_series,
+                        timepoints: point_series,
                         xdomain: data.timeseries[0].xdomain,
                         height: widget.height,
                         handle_clicks: true
@@ -393,9 +407,9 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
         tickNumber: function (height, yDomainMax) {
             return Math.min(height < 100 ? 3 : 8, yDomainMax);
         },
-        markerStroke: 1,
+        markerStroke: 3,
         markerOpacity: 0.4,
-        markerOpacityHover: 0.6,
+        markerOpacityHover: 0.8,
         markerColor: "#ff0000",
         click_callback: null,
         timepoints: null,
@@ -647,42 +661,47 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
     }// if handle clicks
 
     // timepoint markers
-    if (p.timepoints) {
-        for (var i = 0; i < p.timepoints.length; i++) {
-            var alertUrl = p.timepoints[i].url;
-            var alertTitle = p.timepoints[i].title;
-            var ms = new Date(p.timepoints[i].ts).getTime();
-            var ts = new Date(p.timepoints[i].ts).toString();
-            var xx = x(ms);
-            var color = p.markerColor; // TODO could be determined with clalback
-            if (!isNaN(xx) && xx > 0) {
-                svg.append("a")
-                    .attr("xlink:href", alertUrl)
-                    .append("line")
-                    .attr("id", xx)
-                    .attr("data:ts", ts)
-                    .attr("data:tt-title", alertTitle)
-                    .attr("x1", xx)
-                    .attr("x2", xx)
-                    .attr("y1", 0)
-                    .attr("y2", p.height - margin.top - margin.bottom)
-                    .style("stroke", color)
-                    .style("stroke-width", p.markerStroke)
-                    .style("opacity", p.markerOpacity)
-                    .on("mouseover", function (d) {
-                        var ttx = d3.select(this)[0][0].id;
-                        var tts = d3.select(this)[0][0].attributes[1].value;
-                        var title = d3.select(this)[0][0].attributes[2].value;
-                        d3.select(this).style("opacity", 1)
-                        tooltip.style('opacity', p.markerOpacityHover);
-                        tooltip.html(title + "<br/>" + tts)
-                            .style("left", ttx - 70 + "px")
-                            .style("bottom", height + "px");
-                    })
-                    .on("mouseout", function (d) {
-                        d3.select(this).style("opacity", p.markerOpacity)
-                        tooltip.style('opacity', 0);
-                    })
+    if (p.timepoints && p.timepoints.length > 0) {
+        for (var j = 0; j < p.timepoints.length; j++) {
+            var timepoint_1 = p.timepoints[j];
+            for (var i = 0; i < timepoint_1.length; i++) {
+                var timepoint = timepoint_1[i];
+                //var alertUrl = timepoint.url;
+                var alertTitle = timepoint.title;
+                var ms = timepoint.epoch;
+                var ts = self.toNiceDateTime(timepoint.epoch);
+                var xx = x(ms);
+                var color = p.markerColor; // TODO could be determined with callback
+                if (!isNaN(xx) && xx > 0) {
+                    svg.append("a")
+                        //.attr("xlink:href", alertUrl)
+                        .append("line")
+                        .attr("id", xx)
+                        .attr("data:ts", ts)
+                        .attr("data:tt-title", alertTitle)
+                        .attr("x1", xx)
+                        .attr("x2", xx)
+                        .attr("y1", 0)
+                        .attr("y2", p.height - margin.top - margin.bottom)
+                        .attr("class", "series" + j)
+                        //.style("stroke", color)
+                        .style("stroke-width", p.markerStroke)
+                        .style("opacity", p.markerOpacity)
+                        .on("mouseover", function (d) {
+                            var ttx = d3.select(this)[0][0].id;
+                            var tts = d3.select(this)[0][0].attributes[1].value;
+                            var title = d3.select(this)[0][0].attributes[2].value;
+                            d3.select(this).style("opacity", 1)
+                            tooltip.style('opacity', p.markerOpacityHover);
+                            tooltip.html(title + "<br/>" + tts)
+                                .style("left", ttx - 70 + "px")
+                                .style("bottom", height + "px");
+                        })
+                        .on("mouseout", function (d) {
+                            d3.select(this).style("opacity", p.markerOpacity)
+                            tooltip.style('opacity', 0);
+                        })
+                }
             }
         }
     }

@@ -31,12 +31,15 @@ TsDashboardDemoDriver.prototype.getDrawData = function (options, callback) {
     ts = new Date(ts.getTime() - length_in_days * 24 * 60 * 60 * 1000);
 
     var res = {
-        timeseries: []
+        timeseries: [],
+        timepoints: []
     };
 
     var ts1 = [];
     var ts2 = [];
     var ts3 = [];
+    var tp1 = [];
+    var tp2 = [];
     var d = ts.getTime();
     var ts1_curr = 1;
     var ts2_curr = 2;
@@ -52,10 +55,19 @@ TsDashboardDemoDriver.prototype.getDrawData = function (options, callback) {
         ts1_curr = Math.max(ts1_curr, 0);
         ts2_curr = Math.max(ts2_curr, 0);
         ts3_curr = Math.max(ts3_curr, 0);
+
+        if (i % 3 == 2) {
+            tp1.push({ epoch: d, title: "Event A " + i });
+        }
+        if (i % 6 == 2) {
+            tp2.push({ epoch: d- 7 * 60 * 60 * 1000, title: "Event B " + i });
+        }
     }
     res.timeseries.push({ name: "s1", values: ts1 });
     res.timeseries.push({ name: "s2", values: ts2 });
     res.timeseries.push({ name: "s3", values: ts3 });
+    res.timepoints.push({ name: "p1", values: tp1 });
+    res.timepoints.push({ name: "p2", values: tp2 });
     callback(res);
 }
 
@@ -159,7 +171,7 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                 ]
             },
             {
-                title: "Secondy block",
+                title: "Second block",
                 panels: [
                     {
                         title: "Looong panel",
@@ -167,9 +179,22 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                             {
                                 title: "Widget with 3 series and custom colors",
                                 timeseries: ["s1", "s2", "s3"],
+                                timepoints: ["p1"],
                                 options: {
                                     height: 200,
                                     series_style_indices: [5, 6, 7]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        title: "Third panel",
+                        widgets: [
+                            {
+                                timeseries: ["s3"],
+                                timepoints: ["p1", "p2"],
+                                options: {
+                                    height: 328
                                 }
                             }
                         ]
