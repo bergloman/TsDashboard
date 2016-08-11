@@ -335,9 +335,9 @@ TsDashboard.prototype.run = function () {
                         height: widget.height,
                         handle_clicks: true
                     }
-                    options.click_callback= (function(xoptions){
-                            return function () { self.showModal(xoptions); }
-                        })(options);
+                    options.click_callback = (function (xoptions) {
+                        return function () { self.showModal(xoptions); }
+                    })(options);
                     if (widget.options) {
                         Object.assign(options, widget.options);
                     }
