@@ -331,6 +331,7 @@ TsDashboard.prototype.run = function () {
                     var options = {
                         chart_div: "#" + widget_id,
                         data: data_series,
+                        xdomain: data.timeseries[0].xdomain,
                         height: widget.height,
                         handle_clicks: true
                     }
