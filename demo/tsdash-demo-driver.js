@@ -97,7 +97,7 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
             },
             {
                 name: "param2",
-                title: "Second parameter",
+                title: "Second parameter - autocomplete",
                 type: "filter",
                 optional: true
             },
