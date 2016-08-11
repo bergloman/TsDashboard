@@ -113,7 +113,7 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                 title: "Main block",
                 panels: [
                     {
-                        title: "Main panel",
+                        title: "First panel",
                         widgets: [
                             {
                                 title: "Widget 1",
@@ -132,10 +132,10 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                         ]
                     },
                     {
-                        title: "Almost main panel",
+                        title: "Second panel",
                         widgets: [
                             {
-                                title: "Widget 1x",
+                                title: "Widget with fixed y-domain",
                                 timeseries: ["s1", "s2"],
                                 options: {
                                     height: 328,
@@ -146,7 +146,7 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                         ]
                     },
                     {
-                        title: "Another main panel",
+                        title: "Third panel",
                         widgets: [
                             {
                                 timeseries: ["s3"],
@@ -159,14 +159,13 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                 ]
             },
             {
-                //title: "Secondary block",
-                title: "",
+                title: "Secondy block",
                 panels: [
                     {
-                        title: "Next panel",
+                        title: "Looong panel",
                         widgets: [
                             {
-                                title: "Widget 2",
+                                title: "Widget with 3 series and custom colors",
                                 timeseries: ["s1", "s2", "s3"],
                                 options: {
                                     height: 200,
