@@ -72,33 +72,33 @@ Here, epoch should be valid `Javascript` epoch
 
 ## Configuration structure
 
-Coniguration is given in `javascript` object, which 
+Coniguration is given in `javascript` object, which looks like the following `JSON`:
 ```````````json
 {
-    title: "......",
-    parameters: [
+    "title": "......",
+    "parameters": [
         {
-            name: "......",
-            title: "......",
-            type: "......",
-            default: "......",
-            optional: true/false
+            "name: "......",
+            "title": "......",
+            "type" "......",
+            "default: "......",
+            "optional": true/false
         },
         ....
     ],
-    blocks: [
+    "blocks": [
         {
-            title: ".........",
-            panels: [
+            "title": ".........",
+            "panels": [
                 {
-                    title: ".........",
-                    widgets: [
+                    "title": ".........",
+                    "widgets": [
                         {
-                            title: ".........",
-                            timeseries: ["...", ....],
-                            timepoints: ["...", ....],
-                            options: {
-                                height: 100,
+                            "title": ".........",
+                            "timeseries": ["...", ....],
+                            "timepoints": ["...", ....],
+                            "options": {
+                                "height": 100,
                                 ..
                                 ..
                             }
