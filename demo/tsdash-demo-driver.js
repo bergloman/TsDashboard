@@ -1,8 +1,23 @@
 function TsDashboardDemoDriver() {
     this.countries = null;
     this.view_definition = null;
+    this.view_object = null;
     this.prepareListOfCountries();
     this.prepareViewDefinition();
+}
+
+TsDashboardDemoDriver.prototype.onParamChange = function (name) {
+    if (name == "param1") {
+        this.view_object.setParamValue(
+            "param2",
+            this.view_object.getParamValue("param1")
+        );
+    }
+}
+
+
+TsDashboardDemoDriver.prototype.registerView = function (view) {
+    this.view_object = view;
 }
 
 TsDashboardDemoDriver.prototype.getViewDefinition = function (callback) {
@@ -60,7 +75,7 @@ TsDashboardDemoDriver.prototype.getDrawData = function (options, callback) {
             tp1.push({ epoch: d, title: "Event A " + i });
         }
         if (i % 6 == 2) {
-            tp2.push({ epoch: d- 7 * 60 * 60 * 1000, title: "Event B " + i });
+            tp2.push({ epoch: d - 7 * 60 * 60 * 1000, title: "Event B " + i });
         }
     }
     res.timeseries.push({ name: "s1", values: ts1 });
@@ -99,7 +114,8 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                 name: "param2",
                 title: "Second parameter - autocomplete",
                 type: "filter",
-                optional: true
+                optional: true,
+                search_min_len: 0
             },
             {
                 name: "param3",

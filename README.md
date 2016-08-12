@@ -35,8 +35,16 @@ The driver object must provide the following methods:
 
 ### registerView(view_object)
 
+**Optional** method.
+
 This way the view injects itself into driver - driver can call certain methodsinto view to 
 set values or force refresh.
+
+### onParamChange(name)
+
+**Optional** method.
+
+This method is called, when the value of any of the parameters change.
 
 ### getViewDefinition(callback)
 
@@ -77,7 +85,7 @@ Here, epoch should be valid `Javascript` epoch.
 
 ## Configuration structure
 
-Coniguration is given in `javascript` object, which looks like the following `JSON`:
+Configuration is given in `javascript` object, which looks like the following `JSON`:
 ```````````json
 {
     "title": "......",
@@ -87,7 +95,8 @@ Coniguration is given in `javascript` object, which looks like the following `JS
             "title": "......",
             "type" "......",
             "default: "......",
-            "optional": true/false
+            "optional": true/false,
+            "min_len_search": 3
         },
         ....
     ],
@@ -119,6 +128,7 @@ Coniguration is given in `javascript` object, which looks like the following `JS
 }
 ```````````
 - Parameters require `name`, `title` and `type`. Other data is optional.
+    - Value `search_min_len` is applicable only to `filter` type. Default is 3.
 - All titles (blocks, panels, widgets) are optional.
 - All widget options are optional. See below for full list with explanations and default values.
 
@@ -146,6 +156,10 @@ Coniguration is given in `javascript` object, which looks like the following `JS
 ## View interface
 This section describe view interface that can be called from driver.
 
+### getParamValue(name)
+
+Gets the value of the parameter named `name`.
+
 ### setParamValue(name, value)
 
-Set value of parameter names `name` to `value`.
+Sets the value of parameter named `name` to `value`.

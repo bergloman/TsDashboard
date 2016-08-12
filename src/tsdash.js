@@ -1,11 +1,22 @@
 function TsDashboard(div_id, driver) {
+    var self = this;
     this.driver = driver;
     this.div_id = div_id;
     this.init();
 
     this.regex_date = /^(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31))$/;
     this.regex_datetime = /^(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31)) (0[0-9]|1[0-9]|2[0-3])(:[0-5][0-9]){2}$/;
+
+    if (this.driver.registerView) {
+        this.driver.registerView(this);
+    }
 }
+
+TsDashboard.prototype.onParamChange = function (name) {
+    if (self.driver.onParamChange) {
+        self.driver.onParamChange(name);
+    }
+};
 
 TsDashboard.prototype.init = function () {
     var self = this;
@@ -43,9 +54,34 @@ TsDashboard.prototype.init = function () {
     });
 }
 
+TsDashboard.prototype.getParamValue = function (name) {
+    return $("#in" + name).val();
+}
+
+TsDashboard.prototype.setParamValue = function (name, value) {
+    var self = this;
+    for (var ii in self.conf.parameters) (function (i) {
+        var par = self.conf.parameters[i];
+
+        if (par.name != name) {
+            return;
+        }
+
+        if (par.type === "boolean") {
+            label.append("<input type='checkbox' id='cb" + par.name + "'></input>");
+            if (par.default) {
+                $("#cb" + par.name).attr('checked', "true");
+            }
+        } else {
+            $("#in" + par.name).val(value);
+        }
+    })(ii);
+}
+
 TsDashboard.prototype.resetErrorMsg = function () {
     $(".tsd-error").removeClass("tsd-error-visible");
 }
+
 TsDashboard.prototype.showErrorMsg = function (msg) {
     $(".tsd-error").text(msg);
     $(".tsd-error").addClass("tsd-error-visible");
@@ -141,7 +177,10 @@ TsDashboard.prototype.initParams = function () {
             label.append("<div id='opt" + par.name + "' class='tsd-match-options'></div>");
             $("#in" + par.name).keyup(function () {
                 var val = $("#in" + par.name).val();
-                if (val.length < 3) return;
+                var skip_search =
+                    (par.search_min_len === undefined && val.length < 3) ||
+                    (par.search_min_len !== undefined && val.length < par.search_min_len)
+                if (skip_search) return;
                 self.driver.getParamValues(par.name, val, function (options) {
                     $("#opt" + par.name).empty();
                     $("#opt" + par.name).show();
@@ -179,6 +218,11 @@ TsDashboard.prototype.initParams = function () {
                 $("#cb" + par.name).attr('checked', "true");
             }
         }
+        
+        // set up callback for value change
+        $("#in" + par.name).blur(function () {
+            self.onParamChange(par.name);
+        });
     })(ii);
 
     var btn = $(document.createElement("button"));
