@@ -21,6 +21,14 @@ Create a client-side library that:
     - handles all server-side calls, if needed
     - handles clicks by forwarding them to the driver object
 
+### Dashboard structure
+
+Dashboard consists of the following hierarchy of objects:
+
+- **Blocks** - horizontal bands
+    - **Panels** - vertical bands inside blocks
+        - **Widgets** - individual charts, stacked vertically
+
 ## Required interface for driver object
 
 The driver object must provide the following methods:
@@ -66,6 +74,54 @@ Result should conform to the following schema:
 ``````
 
 Here, epoch should be valid `Javascript` epoch.
+
+## Configuration structure
+
+Coniguration is given in `javascript` object, which looks like the following `JSON`:
+```````````json
+{
+    "title": "......",
+    "parameters": [
+        {
+            "name: "......",
+            "title": "......",
+            "type" "......",
+            "default: "......",
+            "optional": true/false
+        },
+        ....
+    ],
+    "blocks": [
+        {
+            "title": ".........",
+            "panels": [
+                {
+                    "title": ".........",
+                    "widgets": [
+                        {
+                            "title": ".........",
+                            "timeseries": ["...", ....],
+                            "timepoints": ["...", ....],
+                            "options": {
+                                "height": 100,
+                                ..
+                                ..
+                            }
+                        },
+                        ....
+                    ]
+                },
+                .....
+                .....
+            ]
+        }
+    ]
+}
+```````````
+- Parameters require `name`, `title` and `type`. Other data is optional.
+- All titles (blocks, panels, widgets) are optional.
+- All widget options are optional. See below for full list with explanations and default values.
+
 
 ## Parameter types
 
