@@ -25,6 +25,11 @@ Create a client-side library that:
 
 The driver object must provide the following methods:
 
+### registerView(view_object)
+
+This way the view injects itself into driver - driver can call certain methodsinto view to 
+set values or force refresh.
+
 ### getViewDefinition(callback)
 
 Parameter `callback` must accept single parameter - an object that describes the view. For details see special section below.
@@ -60,7 +65,7 @@ Result should conform to the following schema:
 }
 ``````
 
-Here, epoch should be valid `Javascript` epoch
+Here, epoch should be valid `Javascript` epoch.
 
 ## Parameter types
 
@@ -81,3 +86,10 @@ Here, epoch should be valid `Javascript` epoch
 - `series_style_indices` - array of indices into CSS styles that are used for series. By default 0-based indices are used.
 - `xcaption` - Caption of X axis
 - `ycaptions` - Caption of Y axis series (array of captions)
+
+## View interface
+This section describe view interface that can be called from driver.
+
+### setParamValue(name, value)
+
+Set value of parameter names `name` to `value`.
