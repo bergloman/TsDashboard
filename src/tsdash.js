@@ -109,7 +109,7 @@ TsDashboard.prototype.initParams = function () {
     var sidebar = $(".tsd-sidebar");
     for (var ii in self.conf.parameters) (function (i) {
         var par = self.conf.parameters[i];
-
+        
         var label = $(document.createElement("div"));
         label.appendTo(sidebar);
         label.addClass("tsd-sidebar-param");
@@ -201,26 +201,26 @@ TsDashboard.prototype.initParams = function () {
             }
 
         } else if (par.type === "enum") {
-            label.append("<select id='sel" + par.name + "'></select >");
+            label.append("<select id='in" + par.name + "'></select >");
             self.driver.getParamValues(par.name, null, function (options) {
                 for (var i in options) {
                     var option = options[i];
-                    $("#sel" + par.name).append("<option value='" + option.value + "'>" + option.caption + "</option>");
+                    $("#in" + par.name).append("<option value='" + option.value + "'>" + option.caption + "</option>");
                 }
                 if (par.default) {
-                    $("#sel" + par.name).val(par.default);
+                    $("#in" + par.name).val(par.default);
                 }
             });
 
         } else if (par.type === "boolean") {
-            label.append("<input type='checkbox' id='cb" + par.name + "'></input>");
+            label.append("<input type='checkbox' id='in" + par.name + "'></input>");
             if (par.default) {
-                $("#cb" + par.name).attr('checked', "true");
+                $("#in" + par.name).attr('checked', "true");
             }
         }
         
         // set up callback for value change
-        $("#in" + par.name).blur(function () {
+        $("#in" + par.name).change(function () {
             self.onParamChange(par.name);
         });
     })(ii);
