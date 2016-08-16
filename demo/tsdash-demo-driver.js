@@ -15,7 +15,6 @@ TsDashboardDemoDriver.prototype.onParamChange = function (name) {
     }
 }
 
-
 TsDashboardDemoDriver.prototype.registerView = function (view) {
     this.view_object = view;
 }
