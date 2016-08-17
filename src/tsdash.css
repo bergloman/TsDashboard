@@ -1,9 +1,11 @@
-body, dd, div, dl, dt, fieldset, form, h1, h2, h3, h4, h5, h6, input, li, ol, p, pre, td, textarea, th, ul {
+/*body, dd, div, dl, dt, fieldset, form, h1, h2, h3, h4, h5, h6, input, li, ol, p, pre, td, textarea, th, ul {
     margin: 0;
     padding: 0;
-}
+}*/
 
-body {    
+tsd {
+    margin: 0;
+    padding: 0;    
     overflow: hidden;
     position: relative;
     font-family: sans-serif;
@@ -50,7 +52,7 @@ h3{
 }
 .tsd-main {
     position: relative;
-    margin-left: 20px;
+    padding-left: 20px;
 }
 
 .tsd-match-options {

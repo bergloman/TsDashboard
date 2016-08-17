@@ -25,6 +25,7 @@ TsDashboard.prototype.init = function () {
         self.conf.parameters = self.conf.parameters || [];
 
         self.top = $("#" + self.div_id);
+        self.top.addClass("tsd");
 
         //self.top.append("<div class='tsd-header'></div>");
         self.top.append("<div class='tsd-sidebar dark-matter'></div>");
@@ -32,7 +33,7 @@ TsDashboard.prototype.init = function () {
 
         self.conf.sidebar_width = self.conf.sidebar_width || 190;
         $(".tsd-sidebar").width(self.conf.sidebar_width);
-        $(".tsd-main").css("left", (+self.conf.sidebar_width) + "px");
+        $(".tsd-main").css("margin-left", (+self.conf.sidebar_width) + "px");
 
         $(".tsd-sidebar").append("<h1>" + conf.title + "</h1>");
         $(".tsd-main").append("<div role='alert'' class='tsd-error alert alert-danger'>...</div>");
