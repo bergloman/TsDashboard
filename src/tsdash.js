@@ -26,11 +26,15 @@ TsDashboard.prototype.init = function () {
 
         self.top = $("#" + self.div_id);
 
-        self.top.append("<div class='tsd-header'></div>");
+        //self.top.append("<div class='tsd-header'></div>");
         self.top.append("<div class='tsd-sidebar dark-matter'></div>");
         self.top.append("<div class='tsd-main' id='tsd_main'></div>");
 
-        $(".tsd-header").append("<h1>" + conf.title + "</h1>");
+        self.conf.sidebar_width = self.conf.sidebar_width || 190;
+        $(".tsd-sidebar").width(self.conf.sidebar_width);
+        $(".tsd-main").css("left", (+self.conf.sidebar_width) + "px");
+
+        $(".tsd-sidebar").append("<h1>" + conf.title + "</h1>");
         $(".tsd-main").append("<div role='alert'' class='tsd-error alert alert-danger'>...</div>");
         $(".tsd-main").append("<div class='tsd-main-content' id='tsd_main_content'></div>");
         $(".tsd-main").append(
@@ -109,7 +113,7 @@ TsDashboard.prototype.initParams = function () {
     var sidebar = $(".tsd-sidebar");
     for (var ii in self.conf.parameters) (function (i) {
         var par = self.conf.parameters[i];
-        
+
         var label = $(document.createElement("div"));
         label.appendTo(sidebar);
         label.addClass("tsd-sidebar-param");
@@ -218,7 +222,7 @@ TsDashboard.prototype.initParams = function () {
                 $("#in" + par.name).attr('checked', "true");
             }
         }
-        
+
         // set up callback for value change
         $("#in" + par.name).change(function () {
             self.onParamChange(par.name);

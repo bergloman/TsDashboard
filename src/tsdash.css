@@ -23,7 +23,7 @@ h3{
     color: #085075;    
 }
 
-.tsd-header{
+/*.tsd-header{
     height: 55px;
     border-bottom: solid 2px #eee;
 }
@@ -31,7 +31,7 @@ h3{
     padding-top: 5px;
     padding-left: 25px;
     font-size: 38px;
-}
+}*/
 
 .tsd-sidebar {
     padding: 10px;
@@ -39,7 +39,7 @@ h3{
     font-size: 12px;
     width: 190px;
     position: absolute;
-    top: 55px;
+    /*top: 55px;*/
     left: 0;
     border-right: solid 1px #eee;
     height: calc(100vh - 55px);
@@ -50,7 +50,7 @@ h3{
 }
 .tsd-main {
     position: relative;
-    margin-left: 210px;
+    margin-left: 20px;
 }
 
 .tsd-match-options {

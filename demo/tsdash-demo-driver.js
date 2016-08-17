@@ -90,6 +90,7 @@ TsDashboardDemoDriver.prototype.getDrawData = function (options, callback) {
 TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
     var res = {
         title: "Demo dashboard",
+        sidebar_width: 250,
         parameters: [
             {
                 name: "ts_from",

@@ -89,6 +89,7 @@ Configuration is given in `javascript` object, which looks like the following `J
 ```````````json
 {
     "title": "......",
+    "sidebar_width": 250,
     "parameters": [
         {
             "name: "......",
