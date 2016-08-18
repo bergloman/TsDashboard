@@ -124,6 +124,10 @@ h3{
     color: white;
     display: inherit;
 }
+.tsd-tooltip {
+    fill: black;
+    color: white;
+}
 /***********************************************************************/
 .tsd-sidebar-param {
     margin-bottom:10px;

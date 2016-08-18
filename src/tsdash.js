@@ -899,8 +899,12 @@ TsDashboard.prototype.drawColumnChart = function (config) {
         .attr("y", function (d) { return y(p.yaccessor(d)); })
         .attr("height", function (d) { return height - y(p.yaccessor(d)); })
         .attr("width", x.rangeBand())
-        .on("mouseover", function () { tooltip.style("display", null); })
-        .on("mouseout", function () { /*tooltip.style("display", "none");*/ })
+        .on("mouseover", function () {
+            tooltip.style("display", null);
+        })
+        .on("mouseout", function () {
+            tooltip.style("display", "none");
+        })
         .on("mousemove", function (d) {
             var xPosition = d3.mouse(this)[0] - 15;
             var yPosition = d3.mouse(this)[1] - 25;
@@ -910,8 +914,8 @@ TsDashboard.prototype.drawColumnChart = function (config) {
 
     // Prep the tooltip bits, initial display is hidden
     var tooltip = chart.append("g")
-        .attr("class", "tooltip")
-        .style("display", null /*"none"*/);
+        .attr("class", "tsd-tooltip")
+        .style("display", "none");
 
     tooltip.append("rect")
         .attr("width", 30)
@@ -925,192 +929,8 @@ TsDashboard.prototype.drawColumnChart = function (config) {
         .style("text-anchor", "middle")
         .attr("font-size", "12px")
         .attr("font-weight", "bold");
-
 }
 
-
-/*
-TsDashboard.prototype.drawColumnChart = function (options) {
-    var self = this;
-    // Default parameters.
-    var p = {
-        chart_div: "#someChart",
-        data: null,
-        height: 100,
-        xaccessor: function (x) { return x.epoch; },
-        yaccessor: function (x) { return x.val; },
-        xdomain: null,
-        xdomain_min: null,
-        xdomain_max: null,
-        ydomain: null,
-        ydomain_min: null,
-        ydomain_max: null,
-        xcaption: null,
-        ycaptions: null,
-        series_style_indices: null,
-        handle_clicks: false,
-        show_grid: true,
-        x_axis_label: null,
-        y_axis_label: null,
-        graph_css: 'area',
-        xAxisFontSize: '14px',
-        yAxisFontSize: '14px',
-        xAxisTicks: 7,
-        yFormatValue: "s",
-        tickNumber: function (height, yDomainMax) {
-            return Math.min(height < 100 ? 3 : 8, yDomainMax);
-        },
-        markerStroke: 3,
-        markerOpacity: 0.4,
-        markerOpacityHover: 0.8,
-        markerColor: "#ff0000",
-        click_callback: null,
-        timepoints: null,
-        timepoint_callback: null
-    };
-
-    // If we have user-defined parameters, override the defaults.
-    if (config !== "undefined") {
-        for (var prop in config) {
-            p[prop] = config[prop];
-        }
-    }
-
-    var margin = { top: 30, right: 10, bottom: 50, left: 50 },
-        width = 420,
-        height = 420,
-        xRoundBands = 0.2,
-        xValue = function (d) { return d[0]; },
-        yValue = function (d) { return d[1]; },
-        xScale = d3.scale.ordinal(),
-        yScale = d3.scale.linear(),
-        yAxis = d3.svg.axis().scale(yScale).orient("left"),
-        xAxis = d3.svg.axis().scale(xScale);
-
-
-    var selection = p.data;
-    selection.each(function (data) {
-
-        // Convert data to standard representation greedily;
-        // this is needed for nondeterministic accessors.
-        data = data.map(function (d, i) {
-            return [xValue.call(data, d, i), yValue.call(data, d, i)];
-        });
-
-        // Update the x-scale.
-        xScale
-            .domain(data.map(function (d) { return d[0]; }))
-            .rangeRoundBands([0, width - margin.left - margin.right], xRoundBands);
-
-
-        // Update the y-scale.
-        yScale
-            .domain(d3.extent(data.map(function (d) { return d[1]; })))
-            .range([height - margin.top - margin.bottom, 0])
-            .nice();
-
-        // Select the svg element, if it exists.
-        var svg = d3.select(this).selectAll("svg").data([data]);
-
-        // Otherwise, create the skeletal chart.
-        var gEnter = svg.enter().append("svg").append("g");
-        gEnter.append("g").attr("class", "bars");
-        gEnter.append("g").attr("class", "y axis");
-        gEnter.append("g").attr("class", "x axis");
-        gEnter.append("g").attr("class", "x axis zero");
-
-        // Update the outer dimensions.
-        svg.attr("width", width).attr("height", height);
-
-        // Update the inner dimensions.
-        var g = svg.select("g")
-            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-        // Update the bars.
-        var bar = svg.select(".bars").selectAll(".bar").data(data);
-        bar.exit().remove();
-
-        bar.enter().append("g");
-        bar.append("rect").attr("class", function (d, i) { return d[1] < 0 ? "bar negative" : "bar positive"; })
-            .attr("x", function (d) { return X(d); })
-            .attr("y", function (d, i) { return d[1] < 0 ? Y0() : Y(d); })
-            .attr("width", xScale.rangeBand())
-            .attr("height", function (d, i) { return Math.abs(Y(d) - Y0()); });
-
-        bar.append("text")
-            .attr("y", Y0() - 5)
-            .attr("x", function (d) { return X(d); })
-            .attr("dy", ".35em")
-            .text(function (d) { return d[1].toFixed(1); });
-        bar.append("text")
-            .attr("y", (height - margin.bottom))
-            .attr("x", function (d) { return X(d); })
-            .attr("dy", ".35em")
-            .text(function (d) { return d[0]; });
-
-        // x axis at the bottom of the chart
-        //g.select(".x.axis")
-        //    .attr("transform", "translate(0," + (height - margin.top - margin.bottom) + ")")
-        //    .call(xAxis.orient("bottom"));
-
-        // zero line
-        g.select(".x.axis.zero")
-            .attr("transform", "translate(0," + Y0() + ")")
-            .call(xAxis.tickFormat("").tickSize(0));
-
-
-        // Update the y-axis.
-        //g.select(".y.axis").call(yAxis);          
-    });
-
-
-    // The x-accessor for the path generator; xScale ∘ xValue.
-    function X(d) {
-        return xScale(d[0]);
-    }
-
-    function Y0() {
-        return yScale(0);
-    }
-
-    // The x-accessor for the path generator; yScale ∘ yValue.
-    function Y(d) {
-        return yScale(d[1]);
-    }
-
-    chart.margin = function (_) {
-        if (!arguments.length) return margin;
-        margin = _;
-        return chart;
-    };
-
-    chart.width = function (_) {
-        if (!arguments.length) return width;
-        width = _;
-        return chart;
-    };
-
-    chart.height = function (_) {
-        if (!arguments.length) return height;
-        height = _;
-        return chart;
-    };
-
-    chart.x = function (_) {
-        if (!arguments.length) return xValue;
-        xValue = _;
-        return chart;
-    };
-
-    chart.y = function (_) {
-        if (!arguments.length) return yValue;
-        yValue = _;
-        return chart;
-    };
-
-    return chart;
-}
-*/
 /////////////////////////////////////////////////////////////////////////////////////////////
 // Polyfills
 /////////////////////////////////////////////////////////////////////////////////////////////
