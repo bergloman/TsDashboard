@@ -40,18 +40,20 @@ TsDashboardDemoDriver.prototype.getParamValues = function (name, search, callbac
 }
 
 TsDashboardDemoDriver.prototype.getDrawData = function (options, callback) {
-    var length_in_days = 45;
+    var length_in_days = 145;
     var ts = new Date();
     ts = new Date(ts.getTime() - length_in_days * 24 * 60 * 60 * 1000);
 
     var res = {
         timeseries: [],
-        timepoints: []
+        timepoints: [],
+        dataseries: []
     };
 
     var ts1 = [];
     var ts2 = [];
     var ts3 = [];
+    var ds1 = [];
     var tp1 = [];
     var tp2 = [];
     var d = ts.getTime();
@@ -59,7 +61,8 @@ TsDashboardDemoDriver.prototype.getDrawData = function (options, callback) {
     var ts2_curr = 2;
     var ts3_curr = 3;
     for (var i = 0; i <= length_in_days; i++) {
-        d += 24 * 60 * 60 * 1000; // advance single day 
+        //d += 24 * 60 * 60 * 1000; // advance single day 
+        d += 15 * 60 * 1000; // advance 15 min
         ts1.push({ epoch: d, val: ts1_curr });
         ts2.push({ epoch: d, val: ts2_curr });
         ts3.push({ epoch: d, val: ts3_curr });
@@ -77,11 +80,19 @@ TsDashboardDemoDriver.prototype.getDrawData = function (options, callback) {
             tp2.push({ epoch: d - 7 * 60 * 60 * 1000, title: "Event B " + i });
         }
     }
+
+    this.countries.slice(0, 10)
+        .forEach(function (x) {
+            ds1.push({ name: x.name, val: x.name.length });
+        });
+
     res.timeseries.push({ name: "s1", values: ts1 });
     res.timeseries.push({ name: "s2", values: ts2 });
     res.timeseries.push({ name: "s3", values: ts3 });
     res.timepoints.push({ name: "p1", values: tp1 });
     res.timepoints.push({ name: "p2", values: tp2 });
+    res.dataseries.push({ name: "c1", values: ds1 });
+
     callback(res);
 }
 
@@ -147,7 +158,8 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                                 title: "Widget 1",
                                 timeseries: ["s1"],
                                 options: {
-                                    height: 200
+                                    height: 200,
+                                    y_axis_label: "Some label"
                                 }
                             },
                             {
@@ -174,12 +186,14 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                         ]
                     },
                     {
-                        title: "Third panel",
+                        title: "Histogram example",
                         widgets: [
                             {
-                                timeseries: ["s3"],
+                                type: "histogram",
+                                dataseries: ["c1"],
                                 options: {
-                                    height: 328
+                                    height: 328,
+                                    margin_bottom: 100
                                 }
                             }
                         ]

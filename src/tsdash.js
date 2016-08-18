@@ -349,6 +349,7 @@ TsDashboard.prototype.run = function () {
 
                 for (var k in panel.widgets) {
                     var widget = panel.widgets[k];
+                    widget.type = widget.type || "timeseries";
                     widget.timepoints = widget.timepoints || [];
                     var widget_div = $(document.createElement("div"));
                     panel_div.append(widget_div);
@@ -362,46 +363,76 @@ TsDashboard.prototype.run = function () {
                             .attr("id", widget_id)
                             .attr("class", "tsd-widget-sub"));
 
-                    var data_series = [];
-                    data_series = widget.timeseries
-                        .map(function (x) {
-                            for (var series_i in data.timeseries) {
-                                var series = data.timeseries[series_i];
-                                if (series.name === x) {
-                                    return series.values;
+                    if (widget.type == "timeseries") {
+                        var data_series = [];
+                        data_series = widget.timeseries
+                            .map(function (x) {
+                                for (var series_i in data.timeseries) {
+                                    var series = data.timeseries[series_i];
+                                    if (series.name === x) {
+                                        return series.values;
+                                    }
                                 }
-                            }
-                            return null;
-                        })
-                        .filter(function (x) { return x !== null; });
-                    var point_series = [];
-                    point_series = widget.timepoints
-                        .map(function (x) {
-                            for (var points_i in data.timepoints) {
-                                var points = data.timepoints[points_i];
-                                if (points.name === x) {
-                                    return points.values;
+                                return null;
+                            })
+                            .filter(function (x) { return x !== null; });
+                        var point_series = [];
+                        point_series = widget.timepoints
+                            .map(function (x) {
+                                for (var points_i in data.timepoints) {
+                                    var points = data.timepoints[points_i];
+                                    if (points.name === x) {
+                                        return points.values;
+                                    }
                                 }
-                            }
-                            return null;
-                        })
-                        .filter(function (x) { return x !== null; });
+                                return null;
+                            })
+                            .filter(function (x) { return x !== null; });
 
-                    var options = {
-                        chart_div: "#" + widget_id,
-                        data: data_series,
-                        timepoints: point_series,
-                        xdomain: data.timeseries[0].xdomain,
-                        height: widget.height,
-                        handle_clicks: true
+                        var options = {
+                            chart_div: "#" + widget_id,
+                            data: data_series,
+                            timepoints: point_series,
+                            xdomain: data.timeseries[0].xdomain,
+                            height: widget.height,
+                            handle_clicks: true
+                        }
+                        options.click_callback = (function (xoptions) {
+                            return function () { self.showModal(xoptions); }
+                        })(options);
+                        if (widget.options) {
+                            Object.assign(options, widget.options);
+                        }
+                        self.drawTimeSeriesMulti(options);
+                    } else if (widget.type == "histogram") {
+                        var data_series = [];
+                        data_series = widget.dataseries
+                            .map(function (x) {
+                                for (var series_i in data.dataseries) {
+                                    var series = data.dataseries[series_i];
+                                    if (series.name === x) {
+                                        return series.values;
+                                    }
+                                }
+                                return null;
+                            })
+                            .filter(function (x) { return x !== null; });
+                        var options = {
+                            chart_div: "#" + widget_id,
+                            data: data_series[0],
+                            xdomain: data.dataseries[0].xdomain,
+                            height: widget.height,
+                            handle_clicks: true
+                        }
+                        options.click_callback = (function (xoptions) {
+                            return function () { self.showModal(xoptions); }
+                        })(options);
+                        if (widget.options) {
+                            Object.assign(options, widget.options);
+                        }
+                        self.drawColumnChart(options);
+
                     }
-                    options.click_callback = (function (xoptions) {
-                        return function () { self.showModal(xoptions); }
-                    })(options);
-                    if (widget.options) {
-                        Object.assign(options, widget.options);
-                    }
-                    self.drawTimeSeriesMulti(options);
                     widget_counter++;
                 }
             }
@@ -532,8 +563,8 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
     var customTimeFormat = d3.time.format.multi([
         [".%L", function (d) { return d.getMilliseconds(); }],
         [":%S", function (d) { return d.getSeconds(); }],
-        ["%I:%M", function (d) { return d.getMinutes(); }],
-        ["%I:%M", function (d) { return d.getHours(); }],
+        ["%H:%M", function (d) { return d.getMinutes(); }],
+        ["%H:%M", function (d) { return d.getHours(); }],
         ["%d %b", function (d) { return d.getDay() && d.getDate() != 1; }],
         ["%d %b", function (d) { return d.getDate() != 1; }],
         ["%d %b", function (d) { return d.getMonth(); }],
@@ -766,6 +797,293 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
     }
 }
 
+TsDashboard.prototype.drawColumnChart = function (config) {
+    var self = this;
+    // Default parameters.
+    var p = {
+        chart_div: "#someChart",
+        data: null,
+        height: 400,
+        margin_bottom: 60,
+        xaccessor: function (x) { return x.name; },
+        yaccessor: function (x) { return x.val; },
+        xdomain: null,
+        xdomain_min: null,
+        xdomain_max: null,
+        ydomain: null,
+        ydomain_min: null,
+        ydomain_max: null,
+        xcaption: null,
+        ycaptions: null,
+        series_style_indices: null,
+        handle_clicks: false,
+        show_grid: true,
+        x_axis_label: null,
+        y_axis_label: null,
+        graph_css: 'area',
+        xAxisFontSize: '14px',
+        yAxisFontSize: '14px',
+        xAxisTicks: 7,
+        yFormatValue: "s",
+        tickNumber: function (height, yDomainMax) {
+            return Math.min(height < 100 ? 3 : 8, yDomainMax);
+        },
+        markerStroke: 3,
+        markerOpacity: 0.4,
+        markerOpacityHover: 0.8,
+        markerColor: "#ff0000",
+        click_callback: null,
+        timepoints: null,
+        timepoint_callback: null
+    };
+
+    // If we have user-defined parameters, override the defaults.
+    if (config !== "undefined") {
+        for (var prop in config) {
+            p[prop] = config[prop];
+        }
+    }
+
+    var margin = { top: 18, right: 35, bottom: p.margin_bottom, left: 50 };
+    if (p.x_axis_label) {
+        margin.bottom += 20;
+    }
+
+    var width = $(p.chart_div).width() - margin.left - margin.right;
+    var height = p.height - margin.top - margin.bottom;
+
+    var x = d3.scale.ordinal()
+        .rangeRoundBands([0, width], .1);
+
+    var y = d3.scale.linear()
+        .range([height, 0]);
+
+    var xAxis = d3.svg.axis()
+        .scale(x)
+        .orient("bottom");
+
+    var yAxis = d3.svg.axis()
+        .scale(y)
+        .orient("left");
+
+    var chart = d3.select(p.chart_div)
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    var data = p.data;
+    x.domain(data.map(p.xaccessor));
+    y.domain([0, d3.max(data, p.yaccessor)]);
+
+    chart.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis)
+        .selectAll("text")  
+            .style("text-anchor", "end")
+            .attr("dx", "-.8em")
+            .attr("dy", ".15em")
+            .attr("transform", "rotate(-45)" );
+
+    chart.append("g")
+        .attr("class", "y axis")
+        .call(yAxis);
+
+    chart.selectAll(".bar")
+        .data(data)
+        .enter().append("rect")
+        .attr("class", "tsd-bar")
+        .attr("x", function(d) { return x(p.xaccessor(d)); })
+        .attr("y", function(d) { return y(p.yaccessor(d)); })
+        .attr("height", function (d) { return height - y(p.yaccessor(d)); })
+        .attr("width", x.rangeBand());
+}
+
+
+/*
+TsDashboard.prototype.drawColumnChart = function (options) {
+    var self = this;
+    // Default parameters.
+    var p = {
+        chart_div: "#someChart",
+        data: null,
+        height: 100,
+        xaccessor: function (x) { return x.epoch; },
+        yaccessor: function (x) { return x.val; },
+        xdomain: null,
+        xdomain_min: null,
+        xdomain_max: null,
+        ydomain: null,
+        ydomain_min: null,
+        ydomain_max: null,
+        xcaption: null,
+        ycaptions: null,
+        series_style_indices: null,
+        handle_clicks: false,
+        show_grid: true,
+        x_axis_label: null,
+        y_axis_label: null,
+        graph_css: 'area',
+        xAxisFontSize: '14px',
+        yAxisFontSize: '14px',
+        xAxisTicks: 7,
+        yFormatValue: "s",
+        tickNumber: function (height, yDomainMax) {
+            return Math.min(height < 100 ? 3 : 8, yDomainMax);
+        },
+        markerStroke: 3,
+        markerOpacity: 0.4,
+        markerOpacityHover: 0.8,
+        markerColor: "#ff0000",
+        click_callback: null,
+        timepoints: null,
+        timepoint_callback: null
+    };
+
+    // If we have user-defined parameters, override the defaults.
+    if (config !== "undefined") {
+        for (var prop in config) {
+            p[prop] = config[prop];
+        }
+    }
+
+    var margin = { top: 30, right: 10, bottom: 50, left: 50 },
+        width = 420,
+        height = 420,
+        xRoundBands = 0.2,
+        xValue = function (d) { return d[0]; },
+        yValue = function (d) { return d[1]; },
+        xScale = d3.scale.ordinal(),
+        yScale = d3.scale.linear(),
+        yAxis = d3.svg.axis().scale(yScale).orient("left"),
+        xAxis = d3.svg.axis().scale(xScale);
+
+
+    var selection = p.data;
+    selection.each(function (data) {
+
+        // Convert data to standard representation greedily;
+        // this is needed for nondeterministic accessors.
+        data = data.map(function (d, i) {
+            return [xValue.call(data, d, i), yValue.call(data, d, i)];
+        });
+
+        // Update the x-scale.
+        xScale
+            .domain(data.map(function (d) { return d[0]; }))
+            .rangeRoundBands([0, width - margin.left - margin.right], xRoundBands);
+
+
+        // Update the y-scale.
+        yScale
+            .domain(d3.extent(data.map(function (d) { return d[1]; })))
+            .range([height - margin.top - margin.bottom, 0])
+            .nice();
+
+        // Select the svg element, if it exists.
+        var svg = d3.select(this).selectAll("svg").data([data]);
+
+        // Otherwise, create the skeletal chart.
+        var gEnter = svg.enter().append("svg").append("g");
+        gEnter.append("g").attr("class", "bars");
+        gEnter.append("g").attr("class", "y axis");
+        gEnter.append("g").attr("class", "x axis");
+        gEnter.append("g").attr("class", "x axis zero");
+
+        // Update the outer dimensions.
+        svg.attr("width", width).attr("height", height);
+
+        // Update the inner dimensions.
+        var g = svg.select("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        // Update the bars.
+        var bar = svg.select(".bars").selectAll(".bar").data(data);
+        bar.exit().remove();
+
+        bar.enter().append("g");
+        bar.append("rect").attr("class", function (d, i) { return d[1] < 0 ? "bar negative" : "bar positive"; })
+            .attr("x", function (d) { return X(d); })
+            .attr("y", function (d, i) { return d[1] < 0 ? Y0() : Y(d); })
+            .attr("width", xScale.rangeBand())
+            .attr("height", function (d, i) { return Math.abs(Y(d) - Y0()); });
+
+        bar.append("text")
+            .attr("y", Y0() - 5)
+            .attr("x", function (d) { return X(d); })
+            .attr("dy", ".35em")
+            .text(function (d) { return d[1].toFixed(1); });
+        bar.append("text")
+            .attr("y", (height - margin.bottom))
+            .attr("x", function (d) { return X(d); })
+            .attr("dy", ".35em")
+            .text(function (d) { return d[0]; });
+
+        // x axis at the bottom of the chart
+        //g.select(".x.axis")
+        //    .attr("transform", "translate(0," + (height - margin.top - margin.bottom) + ")")
+        //    .call(xAxis.orient("bottom"));
+
+        // zero line
+        g.select(".x.axis.zero")
+            .attr("transform", "translate(0," + Y0() + ")")
+            .call(xAxis.tickFormat("").tickSize(0));
+
+
+        // Update the y-axis.
+        //g.select(".y.axis").call(yAxis);          
+    });
+
+
+    // The x-accessor for the path generator; xScale ∘ xValue.
+    function X(d) {
+        return xScale(d[0]);
+    }
+
+    function Y0() {
+        return yScale(0);
+    }
+
+    // The x-accessor for the path generator; yScale ∘ yValue.
+    function Y(d) {
+        return yScale(d[1]);
+    }
+
+    chart.margin = function (_) {
+        if (!arguments.length) return margin;
+        margin = _;
+        return chart;
+    };
+
+    chart.width = function (_) {
+        if (!arguments.length) return width;
+        width = _;
+        return chart;
+    };
+
+    chart.height = function (_) {
+        if (!arguments.length) return height;
+        height = _;
+        return chart;
+    };
+
+    chart.x = function (_) {
+        if (!arguments.length) return xValue;
+        xValue = _;
+        return chart;
+    };
+
+    chart.y = function (_) {
+        if (!arguments.length) return yValue;
+        yValue = _;
+        return chart;
+    };
+
+    return chart;
+}
+*/
 /////////////////////////////////////////////////////////////////////////////////////////////
 // Polyfills
 /////////////////////////////////////////////////////////////////////////////////////////////
