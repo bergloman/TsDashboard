@@ -643,7 +643,7 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
             .text(p.x_axis_label);
     }
 
-    // Add a text label for the X axis
+    // Add a text label for the Y axis
     if (p.y_axis_label != null) {
         svg.append("text")
             .attr("class", "y label")
@@ -891,6 +891,27 @@ TsDashboard.prototype.drawColumnChart = function (config) {
         .attr("class", "y axis")
         .call(yAxis);
 
+    // Add a text label for the X axis
+    if (p.x_axis_label != null) {
+        chart.append("text")
+            .attr("class", "x label")
+            .attr("text-anchor", "end")
+            .attr("x", width - 10)
+            .attr("y", height + margin.top + 16)
+            .text(p.x_axis_label);
+    }
+
+    // Add a text label for the Y axis
+    if (p.y_axis_label != null) {
+        chart.append("text")
+            .attr("class", "y label")
+            .attr("text-anchor", "end")
+            .attr("y", 6)
+            .attr("dy", ".75em")
+            .attr("transform", "rotate(-90)")
+            .text(p.y_axis_label);
+    }
+
     chart.selectAll(".bar")
         .data(data)
         .enter().append("rect")
@@ -919,9 +940,7 @@ TsDashboard.prototype.drawColumnChart = function (config) {
 
     tooltip.append("rect")
         .attr("width", 30)
-        .attr("height", 20)
-        .attr("fill", "white")
-        .style("opacity", 0.5);
+        .attr("height", 20);
 
     tooltip.append("text")
         .attr("x", 15)

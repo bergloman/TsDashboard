@@ -124,9 +124,12 @@ h3{
     color: white;
     display: inherit;
 }
-.tsd-tooltip {
+.tsd-tooltip text{
+    fill: white;
+}
+.tsd-tooltip rect{
     fill: black;
-    color: white;
+    opacity: 0.7;
 }
 /***********************************************************************/
 .tsd-sidebar-param {

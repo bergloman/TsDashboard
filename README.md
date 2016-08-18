@@ -77,11 +77,21 @@ Result should conform to the following schema:
             ]
         },
         ....
+    ],
+    "dataseries" : [
+        { 
+            "name" : "some name",
+            "values: [
+                { "name": ..., val: ... },
+                ...
+            ]
+        },
+        ....
     ]
 }
 ``````
 
-Here, epoch should be valid `Javascript` epoch.
+Here, `epoch` should be a valid `Javascript` epoch (i.e. `Unix` timestamp in milliseconds).
 
 ## Configuration structure
 
@@ -110,7 +120,9 @@ Configuration is given in `javascript` object, which looks like the following `J
                     "widgets": [
                         {
                             "title": ".........",
+                            "type": "timeseries",
                             "timeseries": ["...", ....],
+                            "dataseries": ["...", ....],
                             "timepoints": ["...", ....],
                             "options": {
                                 "height": 100,
@@ -128,13 +140,25 @@ Configuration is given in `javascript` object, which looks like the following `J
     ]
 }
 ```````````
+- All titles (blocks, panels, widgets) are optional.
+
+## Parameter options
+
 - Parameters require `name`, `title` and `type`. Other data is optional.
     - Value `search_min_len` is applicable only to `filter` type. Default is 3.
-- All titles (blocks, panels, widgets) are optional.
-- All widget options are optional. See below for full list with explanations and default values.
 
+## Widget options
 
-## Parameter types
+All widget options are optional.
+
+- `title` - Widget title. Optional.
+- `type` - Widget type, possible values are `timestamp` and `histogram`. Optional, default value is `timestamp`. 
+- `timeseries` - list of timeseries names. View requests these timeseries from the driver and then draws them to GUI. Used only for `timeseries` widget.
+- `dataseries` - list of timeseries names. View requests these timeseries from the driver and then draws them to GUI. Used only for `histogram` widget.
+- `timepoints` - list of timepoint-series names. View requests these timepoints from the driver and then draws them to GUI. Used only for `timeseries` widget.
+- `options` - Options for chart. See bellow for complete list.
+
+### Parameter types
 
 - `string` - simple string, no validation
 - `enum` - string from a fixed list of available values
@@ -143,7 +167,7 @@ Configuration is given in `javascript` object, which looks like the following `J
 - `datetime` - date and time value in `YYYY-MM-DD HH:MM:SS` format
 - `boolean` - simple checkbox
 
-## Time-series chart options
+### Time-series chart options
 
 - `height` - height of chart in pixels. Default is 100.
 - `xdomain_min` - minimal value of X domain (timeseries) - in `javascript` epochs.
@@ -151,11 +175,21 @@ Configuration is given in `javascript` object, which looks like the following `J
 - `ydomain_min` - minimal value of Y domain. If not specified, it is determined dynamicaly.
 - `ydomain_max` - maximal value of Y domain. If not specified, it is determined dynamicaly.
 - `series_style_indices` - array of indices into CSS styles that are used for series. By default 0-based indices are used.
-- `xcaption` - Caption of X axis
-- `ycaptions` - Caption of Y axis series (array of captions)
+- `x_axis_label` - Caption on X axis.
+- `y_axis_label` - Caption on Y axis.
+
+### Histogram chart options
+
+- `height` - height of chart in pixels. Default is 100.
+- `x_axis_label` - Caption on X axis.
+- `y_axis_label` - Caption on Y axis.
+- `margin_bottom` - Margin bellow X axis, where texts are displayed. Increase if texts are clipped. Default 60.
+
 
 ## View interface
-This section describe view interface that can be called from driver.
+
+This section describes view interface that can be called from the driver. 
+A reference to the view instance is passed via `registerView` method.
 
 ### getParamValue(name)
 

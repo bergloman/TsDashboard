@@ -193,7 +193,8 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                                 dataseries: ["c1"],
                                 options: {
                                     height: 328,
-                                    margin_bottom: 100
+                                    margin_bottom: 100,
+                                    y_axis_label: "Some label"
                                 }
                             }
                         ]
