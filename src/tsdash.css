@@ -184,6 +184,9 @@ h3{
 .tsd-bar {
     fill: #147bb1;
 }
+.tsd-bar-highlight {
+    fill: #26a3e4;    
+}
 .modal {
     padding-right: 17px;
 }

@@ -921,9 +921,11 @@ TsDashboard.prototype.drawColumnChart = function (config) {
         .attr("height", function (d) { return height - y(p.yaccessor(d)); })
         .attr("width", x.rangeBand())
         .on("mouseover", function () {
+            d3.select(this).classed("tsd-bar-highlight", true);
             tooltip.style("display", null);
         })
         .on("mouseout", function () {
+            d3.select(this).classed("tsd-bar-highlight", false);
             tooltip.style("display", "none");
         })
         .on("mousemove", function (d) {
