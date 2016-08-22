@@ -425,7 +425,7 @@ TsDashboard.prototype.run = function () {
                             handle_clicks: true
                         }
                         options.click_callback = (function (xoptions) {
-                            return function () { self.showModal(xoptions); }
+                            return function () { self.showModalColumnChart(xoptions); }
                         })(options);
                         if (widget.options) {
                             Object.assign(options, widget.options);
@@ -448,6 +448,18 @@ TsDashboard.prototype.showModal = function (options) {
         options.handle_clicks = true;
         options.click_callback = function () { };
         self.drawTimeSeriesMulti(options);
+    });
+    $('#divModal').modal();
+}
+
+TsDashboard.prototype.showModalColumnChart = function (options) {
+    var self = this;
+    $('#divModal').on('shown.bs.modal', function (e) {
+        options.chart_div = "#divModalChart";
+        options.height = 500;
+        options.handle_clicks = false;
+        options.click_callback = function () { };
+        self.drawColumnChart(options);
     });
     $('#divModal').modal();
 }
@@ -844,6 +856,9 @@ TsDashboard.prototype.drawColumnChart = function (config) {
         }
     }
 
+    // remove the previous drawing
+    $(p.chart_div).empty();
+
     var margin = { top: 18, right: 35, bottom: p.margin_bottom, left: 50 };
     if (p.x_axis_label) {
         margin.bottom += 20;
@@ -950,6 +965,24 @@ TsDashboard.prototype.drawColumnChart = function (config) {
         .style("text-anchor", "middle")
         .attr("font-size", "12px")
         .attr("font-weight", "bold");
+
+    if (p.handle_clicks) {
+        chart.on('click', function () {
+            if (p.click_callback) {
+                p.click_callback();
+            }
+        });
+    }
+
+    if (data.length <= 0) {
+        g.append('text')
+            .attr('x', width / 2)
+            .attr('y', height / 2)
+            .attr('dy', '1em')
+            .attr('text-anchor', 'end')
+            .text("NO DATA!")
+            .attr('class', 'zerolinetext');
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
