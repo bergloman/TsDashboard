@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" type="text/css" href="dep/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="../src/tsdash.css">
+        <!--<link rel="stylesheet" type="text/css" href="../src/tsdash-theme-dark.css">-->
+    </head>
+<body>
+
+<div id="divHistogramBins"></div>
+
+<!--<script src="dep/d3-4.1.1.min.js"></script>-->
+<script src="dep/d3.js"></script>
+<script src="dep/moment.min.js"></script>
+<script src="dep/jquery-3.1.0.min.js"></script>
+<script src="dep/bootstrap.min.js"></script>
+
+<script src="../src/tsdash-utils.js"></script>
+
+<script src="tsdash-demo-driver.js"></script>
+
+<script>
+    // create driver
+    var bins = determineBins(0.455, 4.22, 1500);
+    $("#divHistogramBins").text(JSON.stringify(bins));
+</script>
+
+</body>
+</html>
