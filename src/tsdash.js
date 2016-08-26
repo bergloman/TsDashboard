@@ -27,15 +27,20 @@ TsDashboard.prototype.init = function () {
         self.top = $("#" + self.div_id);
         self.top.addClass("tsd");
 
-        //self.top.append("<div class='tsd-header'></div>");
-        self.top.append("<div class='tsd-sidebar dark-matter'></div>");
-        self.top.append("<div class='tsd-main' id='tsd_main'></div>");
+        if (self.conf.hide_sidebar) {
+            self.top.append("<div class='tsd-main' id='tsd_main'></div>");
+        } else {
+            self.top.append("<div class='tsd-sidebar dark-matter'></div>");
+            self.top.append("<div class='tsd-main' id='tsd_main'></div>");
+            self.conf.sidebar_width = self.conf.sidebar_width || 190;
+            $(".tsd-sidebar").width(self.conf.sidebar_width);
+            $(".tsd-main").css("margin-left", (+self.conf.sidebar_width) + "px");
 
-        self.conf.sidebar_width = self.conf.sidebar_width || 190;
-        $(".tsd-sidebar").width(self.conf.sidebar_width);
-        $(".tsd-main").css("margin-left", (+self.conf.sidebar_width) + "px");
+            $(".tsd-sidebar").append("<h1>" + conf.title + "</h1>");
 
-        $(".tsd-sidebar").append("<h1>" + conf.title + "</h1>");
+            self.initParams();
+        }
+
         $(".tsd-main").append("<div role='alert'' class='tsd-error alert alert-danger'>...</div>");
         $(".tsd-main").append("<div class='tsd-main-content' id='tsd_main_content'></div>");
         $(".tsd-main").append(
@@ -54,8 +59,10 @@ TsDashboard.prototype.init = function () {
                     </div>\
                 </div>\
             </div>");
-
-        self.initParams();
+        
+        if (self.conf.hide_sidebar) {
+            self.run();
+        }
     });
 }
 
