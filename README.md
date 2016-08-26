@@ -72,7 +72,7 @@ Result should conform to the following schema:
         { 
             "name" : "some name",
             "values: [
-                { "epoch": ..., val: ... },
+                { "epoch": ..., "val": ... },
                 ...
             ]
         },
@@ -82,7 +82,17 @@ Result should conform to the following schema:
         { 
             "name" : "some name",
             "values: [
-                { "name": ..., val: ... },
+                { "name": ..., "val": ... },
+                ...
+            ]
+        },
+        ....
+    ],
+    "scatterseries" : [
+        { 
+            "name" : "some name",
+            "values: [
+                { "x": ..., "y": ..., "c": "..." },
                 ...
             ]
         },
@@ -91,12 +101,14 @@ Result should conform to the following schema:
 }
 ``````
 
-Here, `epoch` should be a valid `Javascript` epoch (i.e. `Unix` timestamp in milliseconds).
+- `epoch` should be a valid `Javascript` epoch (i.e. `Unix` timestamp in milliseconds).
+- `c` (meaning category) in `scatterseries` values is optional, but can be supplied and will result is different colors for dots. It will also force display of legend when more than one category is present.
 
 ## Configuration structure
 
 Configuration is given in `javascript` object, which looks like the following `JSON`:
-```````````json
+
+```````````
 {
     "title": "......",
     "hide_sidebar": false,
@@ -155,8 +167,9 @@ Configuration is given in `javascript` object, which looks like the following `J
 All widget options are optional.
 
 - `title` - Widget title. Optional.
-- `type` - Widget type, possible values are `timestamp` and `histogram`. Optional, default value is `timestamp`. 
+- `type` - Widget type, possible values are `timestamp`, `scatterplot` and `histogram`. Optional, default value is `timestamp`. 
 - `timeseries` - list of timeseries names. View requests these timeseries from the driver and then draws them to GUI. Used only for `timeseries` widget.
+- `scatterseries` - list of scatter-plot-series names. View requests these timeseries from the driver and then draws them to GUI. Used only for `scatterplot` widget.
 - `dataseries` - list of timeseries names. View requests these timeseries from the driver and then draws them to GUI. Used only for `histogram` widget.
 - `timepoints` - list of timepoint-series names. View requests these timepoints from the driver and then draws them to GUI. Used only for `timeseries` widget.
 - `options` - Options for chart. See bellow for complete list.
@@ -188,6 +201,11 @@ All widget options are optional.
 - `y_axis_label` - Caption on Y axis.
 - `margin_bottom` - Margin bellow X axis, where texts are displayed. Increase if texts are clipped. Default 60.
 
+### Scatter-plot chart options
+
+- `height` - height of chart in pixels. Default is 400.
+- `x_axis_label` - Caption on X axis.
+- `y_axis_label` - Caption on Y axis.
 
 ## View interface
 
