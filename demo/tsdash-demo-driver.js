@@ -47,6 +47,7 @@ TsDashboardDemoDriver.prototype.getDrawData = function (options, callback) {
     var res = {
         timeseries: [],
         timepoints: [],
+        scatterseries: [],
         dataseries: []
     };
 
@@ -54,6 +55,7 @@ TsDashboardDemoDriver.prototype.getDrawData = function (options, callback) {
     var ts2 = [];
     var ts3 = [];
     var ds1 = [];
+    var r1 = [];
     var tp1 = [];
     var tp2 = [];
     var d = ts.getTime();
@@ -79,6 +81,7 @@ TsDashboardDemoDriver.prototype.getDrawData = function (options, callback) {
         if (i % 6 == 2) {
             tp2.push({ epoch: d - 7 * 60 * 60 * 1000, title: "Event B " + i });
         }
+        r1.push({ x: ts1_curr, y: ts2_curr });
     }
 
     this.countries.slice(0, 10)
@@ -92,6 +95,7 @@ TsDashboardDemoDriver.prototype.getDrawData = function (options, callback) {
     res.timepoints.push({ name: "p1", values: tp1 });
     res.timepoints.push({ name: "p2", values: tp2 });
     res.dataseries.push({ name: "c1", values: ds1 });
+    res.scatterseries.push({ name: "r1", values: r1 });
 
     callback(res);
 }
@@ -178,9 +182,19 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                                 title: "Widget with fixed y-domain",
                                 timeseries: ["s1", "s2"],
                                 options: {
-                                    height: 328,
+                                    height: 200,
                                     ydomain_min: 0,
                                     ydomain_max: 10
+                                }
+                            },
+                            {
+                                type: "scatterplot",
+                                title: "Scatter plot",
+                                scatterseries: ["r1"],
+                                options: {
+                                    height: 200,
+                                    x_axis_label: "Random X",
+                                    y_axis_label: "Random Y"
                                 }
                             }
                         ]

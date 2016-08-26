@@ -61,7 +61,7 @@ TsDashboard.prototype.init = function () {
                     </div>\
                 </div>\
             </div>");
-        
+
         if (self.conf.hide_sidebar) {
             self.run();
         }
@@ -413,6 +413,7 @@ TsDashboard.prototype.run = function () {
                             Object.assign(options, widget.options);
                         }
                         self.drawTimeSeriesMulti(options);
+
                     } else if (widget.type == "histogram") {
                         var data_series = [];
                         data_series = widget.dataseries
@@ -441,6 +442,32 @@ TsDashboard.prototype.run = function () {
                         }
                         self.drawColumnChart(options);
 
+                    } else if (widget.type == "scatterplot") {
+                        var data_series = [];
+                        data_series = widget.scatterseries
+                            .map(function (x) {
+                                for (var series_i in data.scatterseries) {
+                                    var series = data.scatterseries[series_i];
+                                    if (series.name === x) {
+                                        return series.values;
+                                    }
+                                }
+                                return null;
+                            })
+                            .filter(function (x) { return x !== null; });
+                        var options = {
+                            chart_div: "#" + widget_id,
+                            data: data_series[0],
+                            height: widget.height,
+                            handle_clicks: true
+                        }
+                        options.click_callback = (function (xoptions) {
+                            return function () { self.showModalScatterPlot(xoptions); }
+                        })(options);
+                        if (widget.options) {
+                            Object.assign(options, widget.options);
+                        }
+                        self.drawScatterPlot(options);
                     }
                     widget_counter++;
                 }
@@ -469,6 +496,18 @@ TsDashboard.prototype.showModalColumnChart = function (options) {
         options.handle_clicks = false;
         options.click_callback = function () { };
         self.drawColumnChart(options);
+    });
+    $('#divModal').modal();
+}
+
+TsDashboard.prototype.showModalScatterPlot = function (options) {
+    var self = this;
+    $('#divModal').on('shown.bs.modal', function (e) {
+        options.chart_div = "#divModalChart";
+        options.height = 500;
+        options.handle_clicks = false;
+        options.click_callback = function () { };
+        self.drawScatterPlot(options);
     });
     $('#divModal').modal();
 }
@@ -983,6 +1022,188 @@ TsDashboard.prototype.drawColumnChart = function (config) {
         });
     }
 
+    if (data.length <= 0) {
+        g.append('text')
+            .attr('x', width / 2)
+            .attr('y', height / 2)
+            .attr('dy', '1em')
+            .attr('text-anchor', 'end')
+            .text("NO DATA!")
+            .attr('class', 'zerolinetext');
+    }
+}
+
+TsDashboard.prototype.drawScatterPlot = function (config) {
+    var self = this;
+    // Default parameters.
+    var p = {
+        chart_div: "#someChart",
+        data: null,
+        height: 400,
+        xaccessor: function (x) { return x.x; },
+        yaccessor: function (x) { return x.y; },
+        caccessor: function (x) { return x.c || ""; },
+        xdomain: null,
+        xdomain_min: null,
+        xdomain_max: null,
+        ydomain: null,
+        ydomain_min: null,
+        ydomain_max: null,
+        ycaptions: null,
+        handle_clicks: false,
+        show_grid: true,
+        x_axis_label: null,
+        y_axis_label: null,
+        graph_css: 'area',
+        xAxisFontSize: '14px',
+        yAxisFontSize: '14px',
+        xAxisTicks: 7,
+        yFormatValue: "s",
+        tickNumber: function (height, yDomainMax) {
+            return Math.min(height < 100 ? 3 : 8, yDomainMax);
+        },
+        markerStroke: 3,
+        markerOpacity: 0.4,
+        markerOpacityHover: 0.8,
+        markerColor: "#ff0000",
+        click_callback: null
+    };
+
+    // If we have user-defined parameters, override the defaults.
+    if (config !== "undefined") {
+        for (var prop in config) {
+            p[prop] = config[prop];
+        }
+    }
+
+    // remove the previous drawing
+    $(p.chart_div).empty();
+
+    var margin = { top: 18, right: 35, bottom: 30, left: 50 };
+
+    var width = $(p.chart_div).width() - margin.left - margin.right;
+    var height = p.height - margin.top - margin.bottom;
+
+    /* 
+     * value accessor - returns the value to encode for a given data object.
+     * scale - maps value to a visual display encoding, such as a pixel position.
+     * map function - maps from data value to display value
+     * axis - sets up axis
+     */
+
+    // setup x 
+    var xValue = p.xaccessor, // data -> value
+        xScale = d3.scale.linear().range([0, width]), // value -> display
+        xMap = function (d) { return xScale(xValue(d)); }, // data -> display
+        xAxis = d3.svg.axis().scale(xScale).orient("bottom");
+
+    // setup y
+    var yValue = p.yaccessor, // data -> value
+        yScale = d3.scale.linear().range([height, 0]), // value -> display
+        yMap = function (d) { return yScale(yValue(d)); }, // data -> display
+        yAxis = d3.svg.axis().scale(yScale).orient("left");
+
+    // setup fill color
+    var cValue = p.caccessor,
+        color = d3.scale.category10();
+
+    // add the graph canvas to the body of the webpage
+    var svg = d3.select(p.chart_div).append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    // add the tooltip area to the webpage
+    var tooltip = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
+
+    var data = p.data;
+
+    // don't want dots overlapping axis, so add in buffer to data domain
+    //xScale.domain([d3.min(data, xValue) - 1, d3.max(data, xValue) + 1]);
+    //yScale.domain([d3.min(data, yValue) - 1, d3.max(data, yValue) + 1]);
+    xScale.domain([
+        d3.min(data, xValue),
+        d3.max(data, xValue)
+    ]);
+    yScale.domain([
+        d3.min(data, yValue),
+        d3.max(data, yValue)
+    ]);
+
+    // x-axis
+    svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis)
+        .append("text")
+        .attr("class", "label")
+        .attr("x", width)
+        .attr("y", -6)
+        .style("text-anchor", "end")
+        .text(p.x_axis_label);
+
+    // y-axis
+    svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxis)
+        .append("text")
+        .attr("class", "label")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 6)
+        .attr("dy", ".71em")
+        .style("text-anchor", "end")
+        .text(p.y_axis_label);
+
+    // draw dots
+    svg.selectAll(".dot")
+        .data(data)
+        .enter().append("circle")
+        .attr("class", "dot")
+        .attr("r", 3.5)
+        .attr("cx", xMap)
+        .attr("cy", yMap)
+        .style("fill", function (d) { return color(cValue(d)); })
+        .on("mouseover", function (d) {
+            tooltip.transition()
+                .duration(200)
+                .style("opacity", .9);
+            tooltip.html(cValue(d) + "<br/> (" + xValue(d)
+                + ", " + yValue(d) + ")")
+                .style("left", (d3.event.pageX + 5) + "px")
+                .style("top", (d3.event.pageY - 28) + "px");
+        })
+        .on("mouseout", function (d) {
+            tooltip.transition()
+                .duration(500)
+                .style("opacity", 0);
+        });
+
+    // draw legend
+    if (color.domain.length > 1) {
+        var legend = svg.selectAll(".legend")
+            .data(color.domain())
+            .enter().append("g")
+            .attr("class", "legend")
+            .attr("transform", function (d, i) { return "translate(0," + i * 20 + ")"; });
+
+        // draw legend colored rectangles
+        legend.append("rect")
+            .attr("x", width - 18)
+            .attr("width", 18)
+            .attr("height", 18)
+            .style("fill", color);
+
+        // draw legend text
+        legend.append("text")
+            .attr("x", width - 24)
+            .attr("y", 9)
+            .attr("dy", ".35em")
+            .style("text-anchor", "end")
+            .text(function (d) { return d; })
+    }
     if (data.length <= 0) {
         g.append('text')
             .attr('x', width / 2)
