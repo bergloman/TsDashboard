@@ -99,6 +99,7 @@ Configuration is given in `javascript` object, which looks like the following `J
 ```````````json
 {
     "title": "......",
+    "hide_sidebar": false,
     "sidebar_width": 250,
     "parameters": [
         {
@@ -140,7 +141,9 @@ Configuration is given in `javascript` object, which looks like the following `J
     ]
 }
 ```````````
-- All titles (blocks, panels, widgets) are optional.
+- `hide_sidebar` - if true doesn't generate and display sidebar with parameters. It just executes dashboard. This is useful if driver doesn't need user's input parameters. Default is `false`.
+- `sidebar_width` - width of sidebar in pixes. Default is 190px.
+- All titles (root, blocks, panels, widgets) are optional.
 
 ## Parameter options
 

@@ -36,7 +36,9 @@ TsDashboard.prototype.init = function () {
             $(".tsd-sidebar").width(self.conf.sidebar_width);
             $(".tsd-main").css("margin-left", (+self.conf.sidebar_width) + "px");
 
-            $(".tsd-sidebar").append("<h1>" + conf.title + "</h1>");
+            if (conf.title) {
+                $(".tsd-sidebar").append("<h1>" + conf.title + "</h1>");
+            }
 
             self.initParams();
         }
