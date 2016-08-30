@@ -1216,6 +1216,27 @@ TsDashboard.prototype.drawScatterPlot = function (config) {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
+// Simple dummy driver that is already given all data and definitions
+function TsDashboardDummyDriver(view_definition, data) {
+    this.view_definition = view_definition;
+    this.data = data;
+    this.view_object = null;
+    this.prepareListOfCountries();
+    this.prepareViewDefinition();
+}
+TsDashboardDummyDriver.prototype.getParamValues = function (name, search, callback) {}
+TsDashboardDummyDriver.prototype.onParamChange = function (name) {}
+TsDashboardDummyDriver.prototype.registerView = function (view) {
+    this.view_object = view;
+}
+TsDashboardDummyDriver.prototype.getViewDefinition = function (callback) {
+    callback(this.view_definition);
+}
+TsDashboardDummyDriver.prototype.getDrawData = function (options, callback) {
+    callback(this.data);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
 // Polyfills
 /////////////////////////////////////////////////////////////////////////////////////////////
 
