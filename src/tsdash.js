@@ -1221,8 +1221,6 @@ function TsDashboardDummyDriver(view_definition, data) {
     this.view_definition = view_definition;
     this.data = data;
     this.view_object = null;
-    this.prepareListOfCountries();
-    this.prepareViewDefinition();
 }
 TsDashboardDummyDriver.prototype.getParamValues = function (name, search, callback) {}
 TsDashboardDummyDriver.prototype.onParamChange = function (name) {}
