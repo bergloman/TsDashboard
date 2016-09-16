@@ -150,7 +150,15 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                                 options: {
                                     height: 100
                                 }
-                            }
+                            },
+                            {
+                                type: "table",
+                                title: "Table 3",
+                                timeseries: ["s2"],
+                                options: {
+                                    height: 100
+                                }
+                            }    
                         ]
                     },
                 ]

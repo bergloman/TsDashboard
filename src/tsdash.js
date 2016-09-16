@@ -469,6 +469,50 @@ TsDashboard.prototype.run = function () {
                         }
                         self.drawScatterPlot(options);
                     }
+                    else if(widget.type == "table") {
+                        console.log('type was table');
+                        var data_series = [];
+                        data_series = widget.timeseries
+                            .map(function (x) {
+                                for (var series_i in data.timeseries) {
+                                    var series = data.timeseries[series_i];
+                                    if (series.name === x) {
+                                        return series.values;
+                                    }
+                                }
+                                return null;
+                            })
+                            .filter(function (x) { return x !== null; });
+                        var point_series = [];
+                        point_series = widget.timepoints
+                            .map(function (x) {
+                                for (var points_i in data.timepoints) {
+                                    var points = data.timepoints[points_i];
+                                    if (points.name === x) {
+                                        return points.values;
+                                    }
+                                }
+                                return null;
+                            })
+                            .filter(function (x) { return x !== null; });
+
+                        var options = {
+                            chart_div: "#" + widget_id,
+                            data: data_series,
+                            timepoints: point_series,
+                            xdomain: data.timeseries[0].xdomain,
+                            height: widget.height,
+                            handle_clicks: true
+                        }
+                        options.click_callback = (function (xoptions) {
+                            return function () { self.showModal(xoptions); }
+                        })(options);
+                        if (widget.options) {
+                            Object.assign(options, widget.options);
+                        }
+                        self.drawMyTable(options);
+
+                    }
                     widget_counter++;
                 }
             }
@@ -855,6 +899,62 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
             .text("NO DATA!")
             .attr('class', 'zerolinetext');
     }
+}
+
+TsDashboard.prototype.drawMyTable = function (config) {
+
+    var self = this;
+    // Default parameters.
+    var p = {
+        chart_div: "#someChart",
+        data: null,
+        height: 400,
+        margin_bottom: 60,
+        xaccessor: function (x) { return x.name; },
+        yaccessor: function (x) { return x.val; },
+        xdomain: null,
+        xdomain_min: null,
+        xdomain_max: null,
+        ydomain: null,
+        ydomain_min: null,
+        ydomain_max: null,
+        xcaption: null,
+        ycaptions: null,
+        series_style_indices: null,
+        handle_clicks: false,
+        show_grid: true,
+        x_axis_label: null,
+        y_axis_label: null,
+        graph_css: 'area',
+        xAxisFontSize: '14px',
+        yAxisFontSize: '14px',
+        xAxisTicks: 7,
+        yFormatValue: "s",
+        tickNumber: function (height, yDomainMax) {
+            return Math.min(height < 100 ? 3 : 8, yDomainMax);
+        },
+        markerStroke: 3,
+        markerOpacity: 0.4,
+        markerOpacityHover: 0.8,
+        markerColor: "#ff0000",
+        click_callback: null,
+        timepoints: null,
+        timepoint_callback: null
+    };
+    
+
+    // If we have user-defined parameters, override the defaults.
+    if (config !== "undefined") {
+        for (var prop in config) {
+            p[prop] = config[prop];
+        }
+    }
+
+
+    console.log('DrawMyTable');
+    // remove the previous drawing
+    $(p.chart_div).empty();
+    $(p.chart_div).append("tralalala");
 }
 
 TsDashboard.prototype.drawColumnChart = function (config) {
