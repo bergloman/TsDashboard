@@ -470,7 +470,6 @@ TsDashboard.prototype.run = function () {
                         self.drawScatterPlot(options);
                     }
                     else if(widget.type == "table") {
-                        console.log('type was table');
                         var data_series = [];
                         data_series = widget.timeseries
                             .map(function (x) {
@@ -951,10 +950,15 @@ TsDashboard.prototype.drawMyTable = function (config) {
     }
 
 
-    console.log('DrawMyTable');
     // remove the previous drawing
     $(p.chart_div).empty();
     $(p.chart_div).append("tralalala");
+
+    var data = p.data[0];
+    
+    for (let n of data) {
+        $(p.chart_div).append(n.val+" "+n.epoch+"<br />");
+    }
 }
 
 TsDashboard.prototype.drawColumnChart = function (config) {
