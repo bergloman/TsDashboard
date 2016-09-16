@@ -237,7 +237,7 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                                 title: "Table for ts",
                                 timeseries: ["s1"],
                                 options: {
-                                    height: 100
+                                    height: 300
                                 }
                             }
                         ]

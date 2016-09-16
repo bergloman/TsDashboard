@@ -921,11 +921,14 @@ TsDashboard.prototype.drawMyTable = function (config) {
 
     // remove the previous drawing
     $(p.chart_div).empty();
+    $(p.chart_div).css('overflow', 'auto');
+    $(p.chart_div).css('height', p.height);
+    console.log(p.height);
+
     var data = p.data[0];
 
     // generate table node
     var table = $("<table class=\"table\"></div>");
-
     // fill table header
     var thead = $("<thead></thead>");
     var theadtr = $("<tr></tr>");
