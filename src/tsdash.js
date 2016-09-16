@@ -909,39 +909,9 @@ TsDashboard.prototype.drawMyTable = function (config) {
         data: null,
         height: 400,
         margin_bottom: 60,
-        xaccessor: function (x) { return x.name; },
-        yaccessor: function (x) { return x.val; },
-        xdomain: null,
-        xdomain_min: null,
-        xdomain_max: null,
-        ydomain: null,
-        ydomain_min: null,
-        ydomain_max: null,
-        xcaption: null,
-        ycaptions: null,
-        series_style_indices: null,
-        handle_clicks: false,
-        show_grid: true,
-        x_axis_label: null,
-        y_axis_label: null,
-        graph_css: 'area',
-        xAxisFontSize: '14px',
-        yAxisFontSize: '14px',
-        xAxisTicks: 7,
-        yFormatValue: "s",
-        tickNumber: function (height, yDomainMax) {
-            return Math.min(height < 100 ? 3 : 8, yDomainMax);
-        },
-        markerStroke: 3,
-        markerOpacity: 0.4,
-        markerOpacityHover: 0.8,
-        markerColor: "#ff0000",
-        click_callback: null,
-        timepoints: null,
-        timepoint_callback: null
+        header: ["epoch", "value"]
     };
     
-
     // If we have user-defined parameters, override the defaults.
     if (config !== "undefined") {
         for (var prop in config) {
@@ -949,16 +919,29 @@ TsDashboard.prototype.drawMyTable = function (config) {
         }
     }
 
-
     // remove the previous drawing
     $(p.chart_div).empty();
-    $(p.chart_div).append("tralalala");
-
     var data = p.data[0];
-    
-    for (let n of data) {
-        $(p.chart_div).append(n.val+" "+n.epoch+"<br />");
+
+    // generate table node
+    var table = $("<table class=\"table\"></div>");
+
+    // fill table header
+    var thead = $("<thead></thead>");
+    var theadtr = $("<tr></tr>");
+    var header = p.header;
+    for (let h of header) {
+        theadtr.append("<td>"+h+"</td>");
     }
+    table.append(thead.append(theadtr)); 
+
+    // fill table body 
+    var tbody = $("<tbody></tbody>");
+    for (let n of data) {
+        tbody.append("<tr><td>"+n.epoch+"</td><td>"+n.val+"</td></tr>");
+    }
+    $(p.chart_div).append(table.append(tbody));
+
 }
 
 TsDashboard.prototype.drawColumnChart = function (config) {

@@ -213,6 +213,8 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                             }
                         ]
                     }
+                    ,
+
                 ]
             },
             {
@@ -228,6 +230,14 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                                 options: {
                                     height: 200,
                                     series_style_indices: [5, 6, 7]
+                                }
+                            },
+                            {   
+                                type: "table",
+                                title: "Table for ts",
+                                timeseries: ["s1"],
+                                options: {
+                                    height: 100
                                 }
                             }
                         ]
