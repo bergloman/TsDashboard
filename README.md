@@ -207,6 +207,11 @@ All widget options are optional.
 - `x_axis_label` - Caption on X axis.
 - `y_axis_label` - Caption on Y axis.
 
+### Table options
+
+- `height` - height of chart in pixels. Default is 400.
+- `header` - An array of strings that will be used as table headers.
+
 ## View interface
 
 This section describes view interface that can be called from the driver. 
