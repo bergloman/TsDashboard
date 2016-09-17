@@ -471,10 +471,14 @@ TsDashboard.prototype.run = function () {
                     }
                     else if(widget.type == "table") {
                         var data_series = [];
-                        data_series = widget.timeseries
+                        var data_type = "timeseries";
+                        if (widget.dataseries) {
+                            data_type = "dataseries";
+                        } 
+                        data_series = widget[data_type]
                             .map(function (x) {
-                                for (var series_i in data.timeseries) {
-                                    var series = data.timeseries[series_i];
+                                for (var series_i in data[data_type]) {
+                                    var series = data[data_type][series_i];
                                     if (series.name === x) {
                                         return series.values;
                                     }
@@ -482,23 +486,9 @@ TsDashboard.prototype.run = function () {
                                 return null;
                             })
                             .filter(function (x) { return x !== null; });
-                        var point_series = [];
-                        point_series = widget.timepoints
-                            .map(function (x) {
-                                for (var points_i in data.timepoints) {
-                                    var points = data.timepoints[points_i];
-                                    if (points.name === x) {
-                                        return points.values;
-                                    }
-                                }
-                                return null;
-                            })
-                            .filter(function (x) { return x !== null; });
-
                         var options = {
                             chart_div: "#" + widget_id,
                             data: data_series,
-                            timepoints: point_series,
                             xdomain: data.timeseries[0].xdomain,
                             height: widget.height,
                             handle_clicks: true
@@ -509,7 +499,7 @@ TsDashboard.prototype.run = function () {
                         if (widget.options) {
                             Object.assign(options, widget.options);
                         }
-                        self.drawMyTable(options);
+                        self.drawTable(options);
 
                     }
                     widget_counter++;
@@ -900,7 +890,7 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
     }
 }
 
-TsDashboard.prototype.drawMyTable = function (config) {
+TsDashboard.prototype.drawTable = function (config) {
 
     var self = this;
     // Default parameters.
@@ -908,8 +898,7 @@ TsDashboard.prototype.drawMyTable = function (config) {
         chart_div: "#someChart",
         data: null,
         height: 400,
-        margin_bottom: 60,
-        header: ["epoch", "value"]
+        margin_bottom: 60
     };
     
     // If we have user-defined parameters, override the defaults.
@@ -926,6 +915,7 @@ TsDashboard.prototype.drawMyTable = function (config) {
     console.log(p.height);
 
     var data = p.data[0];
+    console.log(JSON.stringify(data));
 
     // generate table node
     var table = $("<table class=\"table\"></div>");
@@ -933,7 +923,7 @@ TsDashboard.prototype.drawMyTable = function (config) {
     var thead = $("<thead></thead>");
     var theadtr = $("<tr></tr>");
     var header = p.header;
-    for (let h of header) {
+    for (let h in data[0]) {
         theadtr.append("<td>"+h+"</td>");
     }
     table.append(thead.append(theadtr)); 
@@ -941,7 +931,13 @@ TsDashboard.prototype.drawMyTable = function (config) {
     // fill table body 
     var tbody = $("<tbody></tbody>");
     for (let n of data) {
-        tbody.append("<tr><td>"+n.epoch+"</td><td>"+n.val+"</td></tr>");
+        // create row
+        var row = $("<tr></tr>");
+        // add columns
+        for (att in n) {
+            row.append("<td>"+n[att]+"</td>");
+        }
+        tbody.append(row);
     }
     $(p.chart_div).append(table.append(tbody));
 

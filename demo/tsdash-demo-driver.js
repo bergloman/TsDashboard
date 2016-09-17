@@ -251,6 +251,14 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                                 options: {
                                     height: 328
                                 }
+                            },
+                            {
+                                type: "table",
+                                title: "Table for data",
+                                dataseries: ["c1"],
+                                options: {
+                                    height: 300
+                                }
                             }
                         ]
                     }
