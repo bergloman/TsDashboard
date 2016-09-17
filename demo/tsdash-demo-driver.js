@@ -213,8 +213,6 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                             }
                         ]
                     }
-                    ,
-
                 ]
             },
             {
