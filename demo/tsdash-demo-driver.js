@@ -232,10 +232,10 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                             },
                             {   
                                 type: "table",
-                                title: "Table for ts",
-                                timeseries: ["s1"],
+                                title: "Table with time-series data",
+                                timeseries: ["s2", "s1"],
                                 options: {
-                                    height: 300
+                                    height: 200
                                 }
                             }
                         ]
@@ -252,7 +252,7 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                             },
                             {
                                 type: "table",
-                                title: "Table for data",
+                                title: "Table with data objects",
                                 dataseries: ["c1"],
                                 options: {
                                     height: 200,

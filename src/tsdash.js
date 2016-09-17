@@ -471,10 +471,10 @@ TsDashboard.prototype.run = function () {
                     }
                     else if(widget.type == "table") {
                         var data_series = [];
-                        var data_type = "timeseries";
-                        if (widget.dataseries) {
-                            data_type = "dataseries";
-                        } 
+                        var data_type = "dataseries";
+                        if (widget.timeseries) {
+                            data_type = "timeseries";
+                        }
                         data_series = widget[data_type]
                             .map(function (x) {
                                 for (var series_i in data[data_type]) {
@@ -489,9 +489,8 @@ TsDashboard.prototype.run = function () {
                         var options = {
                             chart_div: "#" + widget_id,
                             data: data_series,
-                            xdomain: data.timeseries[0].xdomain,
                             height: widget.height,
-                            handle_clicks: true
+                            handle_clicks: false
                         }
                         options.click_callback = (function (xoptions) {
                             return function () { self.showModal(xoptions); }
@@ -911,19 +910,20 @@ TsDashboard.prototype.drawTable = function (config) {
 
     // remove the previous drawing
     $(p.chart_div).empty();
+
+    // set style
     $(p.chart_div).css('overflow', 'auto');
     $(p.chart_div).css('height', p.height);
-    console.log(p.height);
-
+    $(p.chart_div).css('margin-bottom', p.margin_bottom);
+    
     var data = p.data[0];
-    console.log(JSON.stringify(data));
 
     // generate table node
     var table = $("<table class=\"table\"></div>");
+    
     // fill table header
     var thead = $("<thead></thead>");
     var theadtr = $("<tr></tr>");
-    
     header = p.header;
     if (!header) {
         header = [];
@@ -931,7 +931,6 @@ TsDashboard.prototype.drawTable = function (config) {
             header.push(att);
         }
     }
-    console.log(JSON.stringify(header));
     for (let h of header) {
         theadtr.append("<td>"+h+"</td>");
     }
