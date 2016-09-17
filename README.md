@@ -210,7 +210,7 @@ All widget options are optional.
 ### Table options
 
 - `height` - height of chart in pixels. Default is 400.
-- `headers` - An array of strings that will be used as table headers.
+- `header` - An array of strings that will be used as table headers.
 
 ## View interface
 
