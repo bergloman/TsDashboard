@@ -897,6 +897,7 @@ TsDashboard.prototype.drawTable = function (config) {
     var p = {
         chart_div: "#someChart",
         data: null,
+        header: null,
         height: 400,
         margin_bottom: 60
     };
@@ -922,8 +923,16 @@ TsDashboard.prototype.drawTable = function (config) {
     // fill table header
     var thead = $("<thead></thead>");
     var theadtr = $("<tr></tr>");
-    var header = p.header;
-    for (let h in data[0]) {
+    
+    header = p.header;
+    if (!header) {
+        header = [];
+        for (let att in data[0]) {
+            header.push(att);
+        }
+    }
+    console.log(JSON.stringify(header));
+    for (let h of header) {
         theadtr.append("<td>"+h+"</td>");
     }
     table.append(thead.append(theadtr)); 

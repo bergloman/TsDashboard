@@ -257,7 +257,8 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                                 title: "Table for data",
                                 dataseries: ["c1"],
                                 options: {
-                                    height: 300
+                                    height: 200,
+                                    header: ["Country", "Count"]
                                 }
                             }
                         ]
