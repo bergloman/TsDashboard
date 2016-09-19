@@ -468,8 +468,8 @@ TsDashboard.prototype.run = function () {
                             Object.assign(options, widget.options);
                         }
                         self.drawScatterPlot(options);
-                    }
-                    else if(widget.type == "table") {
+
+                    } else if (widget.type == "table") {
                         var data_series = [];
                         var data_type = "dataseries";
                         if (widget.timeseries) {
@@ -901,7 +901,7 @@ TsDashboard.prototype.drawTable = function (config) {
         margin_bottom: 60,
         column_widths: null
     };
-    
+
     // If we have user-defined parameters, override the defaults.
     if (config !== "undefined") {
         for (var prop in config) {
@@ -917,12 +917,12 @@ TsDashboard.prototype.drawTable = function (config) {
     $(p.chart_div).css('height', p.height);
     $(p.chart_div).css('margin-bottom', p.margin_bottom);
     var column_widths = p.column_widths;
-    
+
     var data = p.data[0];
 
     // generate table html node
     var table = $("<table class=\"table\"></div>");
-    
+
     // fill table header
     var thead = $("<thead></thead>");
     var theadtr = $("<tr></tr>");
@@ -934,9 +934,9 @@ TsDashboard.prototype.drawTable = function (config) {
         }
     }
     for (let h of header) {
-        theadtr.append("<th>"+h+"</th>");
+        theadtr.append("<th>" + h + "</th>");
     }
-    table.append(thead.append(theadtr)); 
+    table.append(thead.append(theadtr));
 
     // fill table body 
     var tbody = $("<tbody></tbody>");
@@ -945,7 +945,7 @@ TsDashboard.prototype.drawTable = function (config) {
         var row = $("<tr></tr>");
         // add columns
         for (att in n) {
-            var td = $("<td>"+n[att]+"</td>");
+            var td = $("<td>" + n[att] + "</td>");
             if (column_widths) {
                 td.css('width', column_widths[att]);
             }
@@ -1322,8 +1322,8 @@ function TsDashboardDummyDriver(view_definition, data) {
     this.data = data;
     this.view_object = null;
 }
-TsDashboardDummyDriver.prototype.getParamValues = function (name, search, callback) {}
-TsDashboardDummyDriver.prototype.onParamChange = function (name) {}
+TsDashboardDummyDriver.prototype.getParamValues = function (name, search, callback) { }
+TsDashboardDummyDriver.prototype.onParamChange = function (name) { }
 TsDashboardDummyDriver.prototype.registerView = function (view) {
     this.view_object = view;
 }
