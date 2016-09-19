@@ -469,6 +469,38 @@ TsDashboard.prototype.run = function () {
                         }
                         self.drawScatterPlot(options);
                     }
+                    else if(widget.type == "table") {
+                        var data_series = [];
+                        var data_type = "dataseries";
+                        if (widget.timeseries) {
+                            data_type = "timeseries";
+                        }
+                        data_series = widget[data_type]
+                            .map(function (x) {
+                                for (var series_i in data[data_type]) {
+                                    var series = data[data_type][series_i];
+                                    if (series.name === x) {
+                                        return series.values;
+                                    }
+                                }
+                                return null;
+                            })
+                            .filter(function (x) { return x !== null; });
+                        var options = {
+                            chart_div: "#" + widget_id,
+                            data: data_series,
+                            height: widget.height,
+                            handle_clicks: false
+                        }
+                        options.click_callback = (function (xoptions) {
+                            return function () { self.showModal(xoptions); }
+                        })(options);
+                        if (widget.options) {
+                            Object.assign(options, widget.options);
+                        }
+                        self.drawTable(options);
+
+                    }
                     widget_counter++;
                 }
             }
@@ -855,6 +887,74 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
             .text("NO DATA!")
             .attr('class', 'zerolinetext');
     }
+}
+
+TsDashboard.prototype.drawTable = function (config) {
+
+    var self = this;
+    // Default parameters.
+    var p = {
+        chart_div: "#someChart",
+        data: null,
+        header: null,
+        height: 400,
+        margin_bottom: 60,
+        column_widths: null
+    };
+    
+    // If we have user-defined parameters, override the defaults.
+    if (config !== "undefined") {
+        for (var prop in config) {
+            p[prop] = config[prop];
+        }
+    }
+
+    // remove the previous drawing
+    $(p.chart_div).empty();
+
+    // set style
+    $(p.chart_div).css('overflow', 'auto');
+    $(p.chart_div).css('height', p.height);
+    $(p.chart_div).css('margin-bottom', p.margin_bottom);
+    var column_widths = p.column_widths;
+    
+    var data = p.data[0];
+
+    // generate table html node
+    var table = $("<table class=\"table\"></div>");
+    
+    // fill table header
+    var thead = $("<thead></thead>");
+    var theadtr = $("<tr></tr>");
+    header = p.header;
+    if (!header) {
+        header = [];
+        for (let att in data[0]) {
+            header.push(att);
+        }
+    }
+    for (let h of header) {
+        theadtr.append("<td>"+h+"</td>");
+    }
+    table.append(thead.append(theadtr)); 
+
+    // fill table body 
+    var tbody = $("<tbody></tbody>");
+    for (let n of data) {
+        // create row
+        var row = $("<tr></tr>");
+        // add columns
+        for (att in n) {
+            var td = $("<td>"+n[att]+"</td>");
+            if (column_widths) {
+                td.css('width', column_widths[att]);
+            }
+            row.append(td);
+        }
+        tbody.append(row);
+    }
+    $(p.chart_div).append(table.append(tbody));
+
 }
 
 TsDashboard.prototype.drawColumnChart = function (config) {

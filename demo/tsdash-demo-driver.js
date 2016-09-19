@@ -229,6 +229,14 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                                     height: 200,
                                     series_style_indices: [5, 6, 7]
                                 }
+                            },
+                            {   
+                                type: "table",
+                                title: "Table with time-series data",
+                                timeseries: ["s2", "s1"],
+                                options: {
+                                    height: 200
+                                }
                             }
                         ]
                     },
@@ -240,6 +248,16 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                                 timepoints: ["p1", "p2"],
                                 options: {
                                     height: 328
+                                }
+                            },
+                            {
+                                type: "table",
+                                title: "Table with data objects",
+                                dataseries: ["c1"],
+                                options: {
+                                    height: 150,
+                                    header: ["Country", "Count"],
+                                    column_widths: {'epoch': '70%', 'val':'30%'}
                                 }
                             }
                         ]
