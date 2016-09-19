@@ -898,7 +898,8 @@ TsDashboard.prototype.drawTable = function (config) {
         data: null,
         header: null,
         height: 400,
-        margin_bottom: 60
+        margin_bottom: 60,
+        column_widths: null
     };
     
     // If we have user-defined parameters, override the defaults.
@@ -915,10 +916,11 @@ TsDashboard.prototype.drawTable = function (config) {
     $(p.chart_div).css('overflow', 'auto');
     $(p.chart_div).css('height', p.height);
     $(p.chart_div).css('margin-bottom', p.margin_bottom);
+    var column_widths = p.column_widths;
     
     var data = p.data[0];
 
-    // generate table node
+    // generate table html node
     var table = $("<table class=\"table\"></div>");
     
     // fill table header
@@ -943,7 +945,11 @@ TsDashboard.prototype.drawTable = function (config) {
         var row = $("<tr></tr>");
         // add columns
         for (att in n) {
-            row.append("<td>"+n[att]+"</td>");
+            var td = $("<td>"+n[att]+"</td>");
+            if (column_widths) {
+                td.css('width', column_widths[att]);
+            }
+            row.append(td);
         }
         tbody.append(row);
     }

@@ -255,8 +255,9 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                                 title: "Table with data objects",
                                 dataseries: ["c1"],
                                 options: {
-                                    height: 200,
-                                    header: ["Country", "Count"]
+                                    height: 150,
+                                    header: ["Country", "Count"],
+                                    column_widths: {'epoch': '70%', 'val':'30%'}
                                 }
                             }
                         ]
