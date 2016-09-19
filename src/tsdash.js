@@ -949,7 +949,7 @@ TsDashboard.prototype.drawTable = function (config) {
         // create row
         var row = $("<tr></tr>");
         // add columns
-        for (att in n) {
+        for (att of column_order) {
             var td = $("<td>" + n[att] + "</td>");
             if (column_widths) {
                 td.css('width', column_widths[att]);
