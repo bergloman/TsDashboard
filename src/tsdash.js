@@ -468,8 +468,8 @@ TsDashboard.prototype.run = function () {
                             Object.assign(options, widget.options);
                         }
                         self.drawScatterPlot(options);
-                    }
-                    else if(widget.type == "table") {
+
+                    } else if (widget.type == "table") {
                         var data_series = [];
                         var data_type = "dataseries";
                         if (widget.timeseries) {
@@ -902,7 +902,7 @@ TsDashboard.prototype.drawTable = function (config) {
         column_widths: null,
         column_order: null
     };
-    
+
     // If we have user-defined parameters, override the defaults.
     if (config !== "undefined") {
         for (var prop in config) {
@@ -919,7 +919,7 @@ TsDashboard.prototype.drawTable = function (config) {
     var data = p.data[0];
 
     // set column order  
-    if (column_order === null) {
+    if (!column_order) {
         column_order = [];
         for (let col in data[0]) { 
             column_order.push(col);
@@ -927,6 +927,8 @@ TsDashboard.prototype.drawTable = function (config) {
     }
     
     // set column custom headers
+    var thead = $("<thead></thead>");
+    var theadtr = $("<tr></tr>");
     if (!header) {
         header = {};
         for (let att of column_order) {
@@ -938,7 +940,7 @@ TsDashboard.prototype.drawTable = function (config) {
     var thead = $("<thead></thead>");
     var theadtr = $("<tr></tr>"); 
     for (let h of column_order) {
-        theadtr.append("<td>"+header[h]+"</td>");
+        theadtr.append("<th>" + header[h] + "</th>");
     }
 
     // create body 
@@ -947,8 +949,8 @@ TsDashboard.prototype.drawTable = function (config) {
         // create row
         var row = $("<tr></tr>");
         // add columns
-        for (att of column_order) {
-            var td = $("<td>"+n[att]+"</td>");
+        for (att in n) {
+            var td = $("<td>" + n[att] + "</td>");
             if (column_widths) {
                 td.css('width', column_widths[att]);
             }
@@ -1336,8 +1338,8 @@ function TsDashboardDummyDriver(view_definition, data) {
     this.data = data;
     this.view_object = null;
 }
-TsDashboardDummyDriver.prototype.getParamValues = function (name, search, callback) {}
-TsDashboardDummyDriver.prototype.onParamChange = function (name) {}
+TsDashboardDummyDriver.prototype.getParamValues = function (name, search, callback) { }
+TsDashboardDummyDriver.prototype.onParamChange = function (name) { }
 TsDashboardDummyDriver.prototype.registerView = function (view) {
     this.view_object = view;
 }
