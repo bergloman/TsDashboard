@@ -899,7 +899,8 @@ TsDashboard.prototype.drawTable = function (config) {
         header: null,
         height: 400,
         margin_bottom: 60,
-        column_widths: null
+        column_widths: null,
+        column_order: null
     };
     
     // If we have user-defined parameters, override the defaults.
@@ -912,39 +913,41 @@ TsDashboard.prototype.drawTable = function (config) {
     // remove the previous drawing
     $(p.chart_div).empty();
 
-    // set style
-    $(p.chart_div).css('overflow', 'auto');
-    $(p.chart_div).css('height', p.height);
-    $(p.chart_div).css('margin-bottom', p.margin_bottom);
     var column_widths = p.column_widths;
-    
+    var column_order = p.column_order;
+    var header = p.header;
     var data = p.data[0];
 
-    // generate table html node
-    var table = $("<table class=\"table\"></div>");
-    
-    // fill table header
-    var thead = $("<thead></thead>");
-    var theadtr = $("<tr></tr>");
-    header = p.header;
-    if (!header) {
-        header = [];
-        for (let att in data[0]) {
-            header.push(att);
+    // set column order  
+    if (column_order === null) {
+        column_order = [];
+        for (let col in data[0]) { 
+            column_order.push(col);
         }
     }
-    for (let h of header) {
-        theadtr.append("<td>"+h+"</td>");
+    
+    // set column custom headers
+    if (!header) {
+        header = {};
+        for (let att of column_order) {
+            header[att] = att;
+        }
     }
-    table.append(thead.append(theadtr)); 
+ 
+    // create header
+    var thead = $("<thead></thead>");
+    var theadtr = $("<tr></tr>"); 
+    for (let h of column_order) {
+        theadtr.append("<td>"+header[h]+"</td>");
+    }
 
-    // fill table body 
+    // create body 
     var tbody = $("<tbody></tbody>");
     for (let n of data) {
         // create row
         var row = $("<tr></tr>");
         // add columns
-        for (att in n) {
+        for (att of column_order) {
             var td = $("<td>"+n[att]+"</td>");
             if (column_widths) {
                 td.css('width', column_widths[att]);
@@ -953,7 +956,18 @@ TsDashboard.prototype.drawTable = function (config) {
         }
         tbody.append(row);
     }
-    $(p.chart_div).append(table.append(tbody));
+
+    // combine into a table
+    var table = $("<table class=\"table\"></div>");
+    thead.append(theadtr);
+    table.append(thead);
+    table.append(tbody);
+    $(p.chart_div).append(table);
+
+    // style
+    $(p.chart_div).css('overflow', 'auto');
+    $(p.chart_div).css('height', p.height);
+    $(p.chart_div).css('margin-bottom', p.margin_bottom);
 
 }
 
