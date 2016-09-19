@@ -934,7 +934,7 @@ TsDashboard.prototype.drawTable = function (config) {
         }
     }
     for (let h of header) {
-        theadtr.append("<td>"+h+"</td>");
+        theadtr.append("<th>"+h+"</th>");
     }
     table.append(thead.append(theadtr)); 
 
