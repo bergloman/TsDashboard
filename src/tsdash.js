@@ -313,6 +313,25 @@ TsDashboard.prototype.collectParameterValues = function () {
     return param_values;
 }
 
+function getFriendlyTimeSlotLabel(slot_length) {
+    if (slot_length != null) {
+        var ylab_i = 0;
+        var units = [
+                     {n: 1000, t: "sec"},
+                     {n: 60 * 1000, t: "min"},
+                     {n: 60 * 60 * 1000, t: "h"},
+                     {n: 24 * 60 * 60 * 1000, t: "day"},
+                     ];
+        while (ylab_i < units.length && slot_length / units[ylab_i].n >= 1) {
+            ylab_i++;
+        }
+        ylab_i--;
+        ylab_i = Math.max(0, ylab_i);
+        y_label = "per " + (slot_length / units[ylab_i].n) + " " + units[ylab_i].t;
+        return y_label;
+    } else { return null}
+}
+
 TsDashboard.prototype.run = function () {
     var self = this;
 
@@ -404,7 +423,8 @@ TsDashboard.prototype.run = function () {
                             timepoints: point_series,
                             xdomain: data.timeseries[0].xdomain,
                             height: widget.height,
-                            handle_clicks: true
+                            handle_clicks: true,
+                            y_axis_label: getFriendlyTimeSlotLabel(data.timeseries[0].slot_length)
                         }
                         options.click_callback = (function (xoptions) {
                             return function () { self.showModal(xoptions); }
