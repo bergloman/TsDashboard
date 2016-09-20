@@ -212,6 +212,7 @@ All widget options are optional.
 - `height` - height of chart in pixels. Default is 400.
 - `header` - An array of strings that will be used as table headers.
 - `column_widths` - Object that defines column widths.
+- `column_order` - Array that sets column order.
 
 ## View interface
 

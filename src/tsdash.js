@@ -899,7 +899,9 @@ TsDashboard.prototype.drawTable = function (config) {
         header: null,
         height: 400,
         margin_bottom: 60,
-        column_widths: null
+        column_widths: null,
+        column_order: null,
+        columns: null
     };
 
     // If we have user-defined parameters, override the defaults.
@@ -912,48 +914,54 @@ TsDashboard.prototype.drawTable = function (config) {
     // remove the previous drawing
     $(p.chart_div).empty();
 
-    // set style
-    $(p.chart_div).css('overflow', 'auto');
-    $(p.chart_div).css('height', p.height);
-    $(p.chart_div).css('margin-bottom', p.margin_bottom);
-    var column_widths = p.column_widths;
-
     var data = p.data[0];
+    var columns = p.columns;
+    if (!columns) {
+        columns = [];
+        for (var d in data[0]) {
+            columns.push({source: d});
+        }   
+    }
 
-    // generate table html node
-    var table = $("<table class=\"table\"></div>");
-
-    // fill table header
+    // create header
     var thead = $("<thead></thead>");
-    var theadtr = $("<tr></tr>");
-    header = p.header;
-    if (!header) {
-        header = [];
-        for (let att in data[0]) {
-            header.push(att);
+    var theadtr = $("<tr></tr>"); 
+    for (let column of columns) {
+        if (column.caption) {
+            theadtr.append("<th>" + column.caption + "</th>");
+        }
+        else {
+            theadtr.append("<th>" + column.source + "</th>");
         }
     }
-    for (let h of header) {
-        theadtr.append("<th>" + h + "</th>");
-    }
-    table.append(thead.append(theadtr));
 
-    // fill table body 
+    // create body 
     var tbody = $("<tbody></tbody>");
-    for (let n of data) {
+    for (let data_row of data) {
         // create row
         var row = $("<tr></tr>");
         // add columns
-        for (att in n) {
-            var td = $("<td>" + n[att] + "</td>");
-            if (column_widths) {
-                td.css('width', column_widths[att]);
+        for (column of columns) {
+            var td = $("<td>" + data_row[column.source] + "</td>");
+            if (column.width) {
+                td.css('width', column.width);
             }
             row.append(td);
         }
         tbody.append(row);
     }
-    $(p.chart_div).append(table.append(tbody));
+
+    // combine into a table
+    var table = $("<table class=\"table\"></div>");
+    thead.append(theadtr);
+    table.append(thead);
+    table.append(tbody);
+    $(p.chart_div).append(table);
+
+    // style
+    $(p.chart_div).css('overflow', 'auto');
+    $(p.chart_div).css('height', p.height);
+    $(p.chart_div).css('margin-bottom', p.margin_bottom);
 
 }
 
