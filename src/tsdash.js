@@ -900,7 +900,8 @@ TsDashboard.prototype.drawTable = function (config) {
         height: 400,
         margin_bottom: 60,
         column_widths: null,
-        column_order: null
+        column_order: null,
+        columns: null
     };
 
     // If we have user-defined parameters, override the defaults.
@@ -913,46 +914,37 @@ TsDashboard.prototype.drawTable = function (config) {
     // remove the previous drawing
     $(p.chart_div).empty();
 
-    var column_widths = p.column_widths;
-    var column_order = p.column_order;
-    var header = p.header;
     var data = p.data[0];
+    var columns = p.columns;
+    if (!columns) {
+        columns = [];
+        for (var d in data[0]) {
+            columns.push({source: d});
+        }   
+    }
 
-    // set column order  
-    if (!column_order) {
-        column_order = [];
-        for (let col in data[0]) { 
-            column_order.push(col);
-        }
-    }
-    
-    // set column custom headers
-    var thead = $("<thead></thead>");
-    var theadtr = $("<tr></tr>");
-    if (!header) {
-        header = {};
-        for (let att of column_order) {
-            header[att] = att;
-        }
-    }
- 
     // create header
     var thead = $("<thead></thead>");
     var theadtr = $("<tr></tr>"); 
-    for (let h of column_order) {
-        theadtr.append("<th>" + header[h] + "</th>");
+    for (let column of columns) {
+        if (column.caption) {
+            theadtr.append("<th>" + column.caption + "</th>");
+        }
+        else {
+            theadtr.append("<th>" + column.source + "</th>");
+        }
     }
 
     // create body 
     var tbody = $("<tbody></tbody>");
-    for (let n of data) {
+    for (let data_row of data) {
         // create row
         var row = $("<tr></tr>");
         // add columns
-        for (att of column_order) {
-            var td = $("<td>" + n[att] + "</td>");
-            if (column_widths) {
-                td.css('width', column_widths[att]);
+        for (column of columns) {
+            var td = $("<td>" + data_row[column.source] + "</td>");
+            if (column.width) {
+                td.css('width', column.width);
             }
             row.append(td);
         }
