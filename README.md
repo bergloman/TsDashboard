@@ -211,6 +211,9 @@ All widget options are optional.
 
 - `height` - height of chart in pixels. Default is 400.
 - `columns` - array of column objects with optional caption and width attributes. Order of the objects defines order of columns.
+    - `source` - column identifier
+    - `caption` - column caption
+    - `width` - column width
 
 ## View interface
 

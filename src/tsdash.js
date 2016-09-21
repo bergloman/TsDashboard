@@ -949,25 +949,25 @@ TsDashboard.prototype.drawTable = function (config) {
     // create header
     var thead = $("<thead></thead>");
     var theadtr = $("<tr></tr>"); 
-    for (let column of columns) {
-        if (column.caption) {
-            theadtr.append("<th>" + column.caption + "</th>");
+    for (var i = 0; i < columns.length; i++) {
+        if (columns[i].caption) {
+            theadtr.append("<th>" + columns[i].caption + "</th>");
         }
         else {
-            theadtr.append("<th>" + column.source + "</th>");
+            theadtr.append("<th>" + columns[i].source + "</th>");
         }
     }
 
     // create body 
     var tbody = $("<tbody></tbody>");
-    for (let data_row of data) {
+    for (var i = 0; i < data.length; i++) {
         // create row
         var row = $("<tr></tr>");
         // add columns
-        for (column of columns) {
-            var td = $("<td>" + data_row[column.source] + "</td>");
-            if (column.width) {
-                td.css('width', column.width);
+        for (var j = 0; j < columns.length; j++) {
+            var td = $("<td>" + data[i][columns[j].source] + "</td>");
+            if (columns[j].width) {
+                td.css('width', columns[j].width);
             }
             row.append(td);
         }
