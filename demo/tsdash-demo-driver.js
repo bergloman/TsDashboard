@@ -48,7 +48,8 @@ TsDashboardDemoDriver.prototype.getDrawData = function (options, callback) {
         timeseries: [],
         timepoints: [],
         scatterseries: [],
-        dataseries: []
+        dataseries: [],
+        graphs: []
     };
 
     var ts1 = [];
@@ -62,6 +63,8 @@ TsDashboardDemoDriver.prototype.getDrawData = function (options, callback) {
     var ts1_curr = 1;
     var ts2_curr = 2;
     var ts3_curr = 3;
+    var nodes = {};
+    var edges = [];
     for (var i = 0; i <= length_in_days; i++) {
         //d += 24 * 60 * 60 * 1000; // advance single day 
         d += 15 * 60 * 1000; // advance 15 min
@@ -84,11 +87,26 @@ TsDashboardDemoDriver.prototype.getDrawData = function (options, callback) {
         r1.push({ x: ts1_curr, y: ts2_curr });
     }
 
+    for (var i = 0; i < 20; i++) {
+        var n1 = Math.floor((Math.random() * length_in_days) + 1);
+        var n2 = Math.floor((Math.random() * length_in_days) + 1);
+        if (n1 != n2) {
+            if (n1 < n2) {
+                edges.push({ size: Math.random(), n1: n1, n2: n2 });
+            } else {
+                edges.push({ size: Math.random(), n1: n2, n2: n1 });
+            }
+            nodes[n1] = {size: Math.random(), epoch: i, x: i, y: i%5};
+            nodes[n2] = {size: Math.random(), epoch: i%5, x: i%5, y: i%6}; 
+        }
+    }
+
     this.countries.slice(0, 10)
         .forEach(function (x) {
             ds1.push({ name: x.name, val: x.name.length });
         });
 
+    
     res.timeseries.push({ name: "s1", values: ts1 });
     res.timeseries.push({ name: "s2", values: ts2 });
     res.timeseries.push({ name: "s3", values: ts3 });
@@ -96,6 +114,15 @@ TsDashboardDemoDriver.prototype.getDrawData = function (options, callback) {
     res.timepoints.push({ name: "p2", values: tp2 });
     res.dataseries.push({ name: "c1", values: ds1 });
     res.scatterseries.push({ name: "r1", values: r1 });
+    res.graphs.push({name: "g1", values: {nodes: nodes, edges: edges}}); 
+    /*
+    // load graph from file
+    $.getJSON("./test.json", function(json) {
+        console.log(json);
+        res.graphs.push({name: "g2", values: json});
+        callback(res);
+    });
+    */
 
     callback(res);
 }
@@ -259,6 +286,26 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                                     columns : [{source: "val", caption: "Count", width: "30%"}, {source: "name", caption: "Country", width: "70%"}]
                                 }
                             }
+                        ]
+                    }
+                ]
+            },
+            {
+                title: "Third block",
+                panels: [
+                    {
+                        title: "Big picture wide panel",
+                        widgets: [
+                            {
+                                type: "graph",
+                                title: "Temporal graph",
+                                graphs: ["g1"],
+                                options: {
+                                    duration: 10000,
+                                    height: 600
+                                }
+                            }
+
                         ]
                     }
                 ]
