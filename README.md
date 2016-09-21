@@ -167,11 +167,12 @@ Configuration is given in `javascript` object, which looks like the following `J
 All widget options are optional.
 
 - `title` - Widget title. Optional.
-- `type` - Widget type, possible values are `timestamp`, `scatterplot` and `histogram`. Optional, default value is `timestamp`. 
+- `type` - Widget type, possible values are `timestamp`, `scatterplot`, `histogram`, `table` and `graph`. Optional, default value is `timestamp`. 
 - `timeseries` - list of timeseries names. View requests these timeseries from the driver and then draws them to GUI. Used only for `timeseries` widget.
 - `scatterseries` - list of scatter-plot-series names. View requests these timeseries from the driver and then draws them to GUI. Used only for `scatterplot` widget.
 - `dataseries` - list of timeseries names. View requests these timeseries from the driver and then draws them to GUI. Used only for `histogram` widget.
 - `timepoints` - list of timepoint-series names. View requests these timepoints from the driver and then draws them to GUI. Used only for `timeseries` widget.
+- `graphs` - list of graph names. View requests these timepoints from the driver and then draws them to GUI. Used only for `graph` widget.
 - `options` - Options for chart. See bellow for complete list.
 
 ### Parameter types
@@ -214,6 +215,22 @@ All widget options are optional.
     - `source` - column identifier
     - `caption` - column caption
     - `width` - column width
+
+### Temporal graph options
+- `height` - height of the temporal graph.
+- `min_node_size` - minimal node size.
+- `max_node_size` - maximal node size.
+- `min_edge_size` - minimal edge width.
+- `max_edge_size` - maximal edge width.
+- `node_color` - node color.
+- `edge_color` - edge color.
+- `node_opacity` - node opacity.
+- `default_node_size` - default node size.
+- `default_edge_size` - default edge size.
+- `side_margin` - side margin of the chart.
+- `duration` - duration of animation in miliseconds.
+- `unselected_opacity` - opacity of unselected edges.
+- `x_pos_att` - node attribute used for positioning on x axis.
 
 ## View interface
 
