@@ -1103,6 +1103,14 @@ TsDashboard.prototype.drawTemporalGraph = function (config) {
         .on("mouseout", function(e, i) {
             svg.selectAll("path").style("stroke-opacity", p.node_opacity)
         })
+
+    svg.selectAll("path")
+        .on("mouseover", function(e, i) {
+            svg.selectAll('path').style("stroke-opacity", function(d) { if ((e.n1 == d.n1 && e.n2 == d.n2) || (e.n1 == d.n1 && e.n1 == d.n2)) { return p.selected_opacity; } else { return p.unselected_opacity; } })
+        })
+        .on("mouseout", function(e, i) {
+            svg.selectAll("path").style("stroke-opacity", p.node_opacity)
+        })
 }
 
 TsDashboard.prototype.drawColumnChart = function (config) {
