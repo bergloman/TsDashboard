@@ -74,7 +74,7 @@ TsDashboard.prototype.getParamValue = function (name) {
 
 TsDashboard.prototype.setParamValue = function (name, value) {
     var self = this;
-    for (var ii = 0; ii < self.conf.parameters.length; ii++) (function (i) {
+    for (var ii in self.conf.parameters) (function (i) {
         var par = self.conf.parameters[i];
 
         if (par.name != name) {
@@ -121,7 +121,7 @@ TsDashboard.prototype.getDateString = function (d) {
 TsDashboard.prototype.initParams = function () {
     var self = this;
     var sidebar = $(".tsd-sidebar");
-    for (var ii in self.conf.parameters) (function (i) {
+    for (var ii = 0; ii < self.conf.parameters.length; ii++) (function (i) {
         var par = self.conf.parameters[i];
 
         var label = $(document.createElement("div"));
@@ -1016,15 +1016,16 @@ TsDashboard.prototype.drawTemporalGraph = function (config) {
         data: null,
         height: 400,
         min_node_size: 2,
-        max_node_size: 6,
-        min_edge_size: 4,
-        max_edge_size: 12,
-        node_color: "black",
-        edge_color: "red", 
-        node_opacity: 0.5,
-        default_node_size: 2,
-        default_edge_size: 4,
-        side_margin:20,
+        max_node_size: 4,
+        min_edge_size: 2,
+        max_edge_size: 6,
+        node_color: "yellow",
+        edge_color: "white", 
+        node_opacity: 0.3,
+        node_stroke: "white",
+        default_node_size: 1,
+        default_edge_size: 2,
+        side_margin: 20,
         duration: 0,
         unselected_opacity: 0.1,
         x_pos_att: "epoch"
@@ -1092,7 +1093,7 @@ TsDashboard.prototype.drawTemporalGraph = function (config) {
         .transition()
         .delay(function(d) { return p.duration * (1-((d3.max(timepoints)-nodes[d.n2].epoch)/(d3.max(timepoints)-d3.min(timepoints)))); })
         .style("fill", "none")
-        .style("stroke", function(d) { if (d.color) { return d.color; } else { return p.edge_color; } })
+        .style("stroke", function(d) { if (d.color) { return /*d.color;*/ "white" } else { return /*p.edge_color;*/ "white" } })
         .style("stroke-width", function(d) { if (d.size) return scaleEdge(d.size); else { return p.default_edge_size } })
         .style("stroke-opacity", function(d) { if (d.node_opacity) { return d.node_opacity; } else { return p.node_opacity } } )
    
@@ -1111,6 +1112,9 @@ TsDashboard.prototype.drawTemporalGraph = function (config) {
         .attr("r", function(d) { if (d.options.size) { return scaleNode(d.options.size); } else { return p.default_node_size; } })
         .attr("cx", function(d) { return scaleX(d.options[x_pos_att]); })
         .attr("cy", function(d) { return scaleY(d.options.y); })
+        .attr("fill", "white")
+        .attr("fill-opacity", p.node_opacity)
+        .attr("stroke", p.node_stroke)
     
     svg.selectAll("circle")
         .append("svg:title")
