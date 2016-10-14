@@ -313,6 +313,25 @@ TsDashboard.prototype.collectParameterValues = function () {
     return param_values;
 }
 
+function getFriendlyTimeSlotLabel(slot_length) {
+    if (slot_length != null) {
+        var ylab_i = 0;
+        var units = [
+                     {n: 1000, t: "sec"},
+                     {n: 60 * 1000, t: "min"},
+                     {n: 60 * 60 * 1000, t: "h"},
+                     {n: 24 * 60 * 60 * 1000, t: "day"},
+                     ];
+        while (ylab_i < units.length && slot_length / units[ylab_i].n >= 1) {
+            ylab_i++;
+        }
+        ylab_i--;
+        ylab_i = Math.max(0, ylab_i);
+        y_label = "per " + (slot_length / units[ylab_i].n) + " " + units[ylab_i].t;
+        return y_label;
+    } else { return null}
+}
+
 TsDashboard.prototype.run = function () {
     var self = this;
 
@@ -404,7 +423,8 @@ TsDashboard.prototype.run = function () {
                             timepoints: point_series,
                             xdomain: data.timeseries[0].xdomain,
                             height: widget.height,
-                            handle_clicks: true
+                            handle_clicks: true,
+                            y_axis_label: getFriendlyTimeSlotLabel(data.timeseries[0].slot_length)
                         }
                         options.click_callback = (function (xoptions) {
                             return function () { self.showModal(xoptions); }
@@ -468,6 +488,61 @@ TsDashboard.prototype.run = function () {
                             Object.assign(options, widget.options);
                         }
                         self.drawScatterPlot(options);
+
+                    } else if (widget.type == "table") {
+                        var data_series = [];
+                        var data_type = "dataseries";
+                        if (widget.timeseries) {
+                            data_type = "timeseries";
+                        }
+                        data_series = widget[data_type]
+                            .map(function (x) {
+                                for (var series_i in data[data_type]) {
+                                    var series = data[data_type][series_i];
+                                    if (series.name === x) {
+                                        return series.values;
+                                    }
+                                }
+                                return null;
+                            })
+                            .filter(function (x) { return x !== null; });
+                        var options = {
+                            chart_div: "#" + widget_id,
+                            data: data_series,
+                            height: widget.height,
+                            handle_clicks: false
+                        }
+                        options.click_callback = (function (xoptions) {
+                            return function () { self.showModal(xoptions); }
+                        })(options);
+                        if (widget.options) {
+                            Object.assign(options, widget.options);
+                        }
+                        self.drawTable(options);
+
+                    } else if (widget.type == "graph") {
+                        var graph = {};
+                        var data_type = "graphs";
+                        graph = widget[data_type]
+                            .map(function (x) {
+                                for (var series_i in data[data_type]) {
+                                    var series = data[data_type][series_i];
+                                    if (series.name === x) {
+                                        return series.values;
+                                    }
+                                }
+                                return null;
+                            })
+                            .filter(function (x) { return x !== null; });
+                        var options = {
+                            chart_div: "#" + widget_id,
+                            data: graph,
+                            handle_clicks: false
+                        }
+                        if (widget.options) {
+                            Object.assign(options, widget.options);
+                        }
+                        self.drawTemporalGraph(options);
                     }
                     widget_counter++;
                 }
@@ -857,6 +932,207 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
     }
 }
 
+TsDashboard.prototype.drawTable = function (config) {
+
+    var self = this;
+    // Default parameters.
+    var p = {
+        chart_div: "#someChart",
+        data: null,
+        header: null,
+        height: 400,
+        margin_bottom: 60,
+        column_widths: null,
+        column_order: null,
+        columns: null
+    };
+
+    // If we have user-defined parameters, override the defaults.
+    if (config !== "undefined") {
+        for (var prop in config) {
+            p[prop] = config[prop];
+        }
+    }
+
+    // remove the previous drawing
+    $(p.chart_div).empty();
+
+    var data = p.data[0];
+    var columns = p.columns;
+    if (!columns) {
+        columns = [];
+        for (var d in data[0]) {
+            columns.push({source: d});
+        }   
+    }
+
+    // create header
+    var thead = $("<thead></thead>");
+    var theadtr = $("<tr></tr>"); 
+    for (var i = 0; i < columns.length; i++) {
+        if (columns[i].caption) {
+            theadtr.append("<th>" + columns[i].caption + "</th>");
+        }
+        else {
+            theadtr.append("<th>" + columns[i].source + "</th>");
+        }
+    }
+
+    // create body 
+    var tbody = $("<tbody></tbody>");
+    for (var i = 0; i < data.length; i++) {
+        // create row
+        var row = $("<tr></tr>");
+        // add columns
+        for (var j = 0; j < columns.length; j++) {
+            var td = $("<td>" + data[i][columns[j].source] + "</td>");
+            if (columns[j].width) {
+                td.css('width', columns[j].width);
+            }
+            row.append(td);
+        }
+        tbody.append(row);
+    }
+
+    // combine into a table
+    var table = $("<table class=\"table\"></div>");
+    thead.append(theadtr);
+    table.append(thead);
+    table.append(tbody);
+    $(p.chart_div).append(table);
+
+    // style
+    $(p.chart_div).css('overflow', 'auto');
+    $(p.chart_div).css('height', p.height);
+    $(p.chart_div).css('margin-bottom', p.margin_bottom);
+
+}
+
+TsDashboard.prototype.drawTemporalGraph = function (config) {
+    var self = this;
+    // Default parameters.
+    var p = {
+        chart_div: "#someChart",
+        data: null,
+        height: 400,
+        min_node_size: 2,
+        max_node_size: 6,
+        min_edge_size: 4,
+        max_edge_size: 12,
+        node_color: "black",
+        edge_color: "red", 
+        node_opacity: 0.5,
+        default_node_size: 2,
+        default_edge_size: 4,
+        side_margin:20,
+        duration: 0,
+        unselected_opacity: 0.1,
+        x_pos_att: "epoch"
+    };
+
+    // If we have user-defined parameters, override the defaults.
+    if (config !== "undefined") {
+        for (var prop in config) {
+            console.log(prop, config[prop]);
+            p[prop] = config[prop];
+        }
+    }
+
+    // remove the previous drawing
+    $(p.chart_div).empty();
+    $(p.chart_div).css("height", p.height);
+    var svg = d3.select(p.chart_div)
+        .append("svg").attr("x", 0).attr("y", 0)
+        .attr("width", $(p.chart_div).width())
+        .attr("height", p.height);
+
+    // data
+    var data = p.data[0];
+    var nodes = data.nodes;
+    var edges = data.edges;
+    var x_pos_att = p.x_pos_att;
+    // timepoints - inserted into arrays so d3.min and d3.max can be used
+    var xpoints = [];
+    var ypoints = [];
+    var timepoints = [];
+    var nodes_arr = [];
+    var node_sizes = [];
+    var edge_sizes = [];
+    for (var node in nodes) {
+        xpoints.push(nodes[node][x_pos_att]);
+        ypoints.push(nodes[node].y);
+        timepoints.push(nodes[node].epoch);
+        node_sizes.push(nodes[node].size);
+        nodes_arr.push({id: node, options: nodes[node]});
+    }
+    for (var i = 0; i < edges.length; i++) {
+        edge_sizes.push(edges[i].size);
+    }
+
+    // scales
+    var scaleX = d3.scale.linear().domain([d3.min(xpoints),d3.max(xpoints)]).range([p.side_margin, $(p.chart_div).width() - p.side_margin]);
+    var scaleY = d3.scale.linear().domain([d3.min(ypoints),d3.max(ypoints)]).range([p.side_margin, $(p.chart_div).height() - p.side_margin]);
+    var scaleNode = d3.scale.linear().domain([d3.min(node_sizes),d3.max(node_sizes)]).range([p.min_node_size, p.max_node_size]);
+    var scaleEdge = d3.scale.linear().domain([d3.min(edge_sizes),d3.max(edge_sizes)]).range([p.min_edge_size, p.max_edge_size]);
+    // Draw edges
+    var lines = svg.selectAll("lines")
+        .data(edges)
+    
+    lines.enter()
+        .append("path")
+        .attr("d", function (d) {
+            var t1x = scaleX(nodes[d.n1][x_pos_att]);
+            var t2x = scaleX(nodes[d.n2][x_pos_att]);
+            var t1y = scaleY(nodes[d.n1].y);
+            var t2y = scaleY(nodes[d.n2].y);
+            var tx = parseInt(t1x)+parseInt((t2x-t1x)/2);
+            return "M"+t1x+","+t1y+"C"+tx+","+t1y+" "+tx+","+t2y+" "+t2x+","+t2y;
+
+        })
+        .transition()
+        .delay(function(d) { return p.duration * (1-((d3.max(timepoints)-nodes[d.n2].epoch)/(d3.max(timepoints)-d3.min(timepoints)))); })
+        .style("fill", "none")
+        .style("stroke", function(d) { if (d.color) { return d.color; } else { return p.edge_color; } })
+        .style("stroke-width", function(d) { if (d.size) return scaleEdge(d.size); else { return p.default_edge_size } })
+        .style("stroke-opacity", function(d) { if (d.node_opacity) { return d.node_opacity; } else { return p.node_opacity } } )
+   
+    svg.selectAll("path")
+        .append("svg:title")
+        .text(function(d) { return d.n1 +"-"+ d.n2 })
+
+    // Draw nodes
+    var circles = svg.selectAll("circles")
+        .data(nodes_arr);
+
+    circles.enter()
+        .append("circle")
+        .transition()
+        .delay(function(d) { return p.duration * (1-((d3.max(timepoints)-d.options.epoch)/(d3.max(timepoints)-d3.min(timepoints)))); })
+        .attr("r", function(d) { if (d.options.size) { return scaleNode(d.options.size); } else { return p.default_node_size; } })
+        .attr("cx", function(d) { return scaleX(d.options[x_pos_att]); })
+        .attr("cy", function(d) { return scaleY(d.options.y); })
+    
+    svg.selectAll("circle")
+        .append("svg:title")
+        .text(function(d) { return d.id+"\n"+d.options.epoch; });
+
+    svg.selectAll("circle")
+        .on("mouseover", function(e, i) {
+            svg.selectAll('path').style("stroke-opacity", function(d) { if (e.id != d.n1 && e.id != d.n2) { return p.unselected_opacity; } else { return p.node_opacity; } })
+        })
+        .on("mouseout", function(e, i) {
+            svg.selectAll("path").style("stroke-opacity", p.node_opacity)
+        })
+
+    svg.selectAll("path")
+        .on("mouseover", function(e, i) {
+            svg.selectAll('path').style("stroke-opacity", function(d) { if ((e.n1 == d.n1 && e.n2 == d.n2) || (e.n1 == d.n1 && e.n1 == d.n2)) { return p.selected_opacity; } else { return p.unselected_opacity; } })
+        })
+        .on("mouseout", function(e, i) {
+            svg.selectAll("path").style("stroke-opacity", p.node_opacity)
+        })
+}
+
 TsDashboard.prototype.drawColumnChart = function (config) {
     var self = this;
     // Default parameters.
@@ -1222,8 +1498,8 @@ function TsDashboardDummyDriver(view_definition, data) {
     this.data = data;
     this.view_object = null;
 }
-TsDashboardDummyDriver.prototype.getParamValues = function (name, search, callback) {}
-TsDashboardDummyDriver.prototype.onParamChange = function (name) {}
+TsDashboardDummyDriver.prototype.getParamValues = function (name, search, callback) { }
+TsDashboardDummyDriver.prototype.onParamChange = function (name) { }
 TsDashboardDummyDriver.prototype.registerView = function (view) {
     this.view_object = view;
 }
