@@ -65,6 +65,7 @@ TsDashboardDemoDriver.prototype.getDrawData = function (options, callback) {
     var ts3_curr = 3;
     var nodes = {};
     var edges = [];
+    var alerts = [{"type": "db", "ts":1476704004495}, {"type": "events", "ts":1476704004535}, {"type": "events", "ts":1476704004695}, {"type": "blalalalaaaa", "ts":1476704004995}];
     for (var i = 0; i <= length_in_days; i++) {
         //d += 24 * 60 * 60 * 1000; // advance single day 
         d += 15 * 60 * 1000; // advance 15 min
@@ -114,15 +115,8 @@ TsDashboardDemoDriver.prototype.getDrawData = function (options, callback) {
     res.timepoints.push({ name: "p2", values: tp2 });
     res.dataseries.push({ name: "c1", values: ds1 });
     res.scatterseries.push({ name: "r1", values: r1 });
-    res.graphs.push({name: "g1", values: {nodes: nodes, edges: edges}}); 
-    /*
-    // load graph from file
-    $.getJSON("./test.json", function(json) {
-        console.log(json);
-        res.graphs.push({name: "g2", values: json});
-        callback(res);
-    });
-    */
+    res.graphs.push({ name: "g1", values: { nodes: nodes, edges: edges } }); 
+    res.dataseries.push({ name:"alerts", values: alerts });
 
     callback(res);
 }
@@ -304,10 +298,17 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                                     duration: 10000,
                                     height: 600
                                 }
+                            },
+                            {
+                                type: "swimlane",
+                                title: "Swimlane chart",
+                                dataseries: ["alerts"],
+                                options: {
+                                }
                             }
-
                         ]
                     }
+
                 ]
             }
         ]

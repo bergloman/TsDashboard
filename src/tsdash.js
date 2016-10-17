@@ -543,6 +543,29 @@ TsDashboard.prototype.run = function () {
                             Object.assign(options, widget.options);
                         }
                         self.drawTemporalGraph(options);
+                    } else if (widget.type == "swimlane") {
+                        console.log(widget);
+                        var data_series = [];
+                        data_series = widget.dataseries
+                            .map(function (x) {
+                                for (var series_i in data.dataseries) {
+                                    var series = data.dataseries[series_i];
+                                    if (series.name === x) {
+                                        return series.values;
+                                    }
+                                }
+                                return null;
+                            })
+                            .filter(function (x) { return x !== null; });
+                        var options = {
+                            chart_div: "#" + widget_id,
+                            data: data_series,
+                            handle_clicks: false
+                        }
+                        if (widget.options) {
+                            Object.assign(options, widget.options);
+                        }
+                        self.drawSwimlaneChart(options);
                     }
                     widget_counter++;
                 }
@@ -1019,10 +1042,10 @@ TsDashboard.prototype.drawTemporalGraph = function (config) {
         max_node_size: 4,
         min_edge_size: 2,
         max_edge_size: 6,
-        node_color: "yellow",
-        edge_color: "white", 
+        node_color: "red",
+        edge_color: "blue", 
         node_opacity: 0.3,
-        node_stroke: "white",
+        node_stroke: "red",
         default_node_size: 1,
         default_edge_size: 2,
         side_margin: 20,
@@ -1039,6 +1062,8 @@ TsDashboard.prototype.drawTemporalGraph = function (config) {
         }
     }
 
+    console.log(data);
+    console.log(p);
     // remove the previous drawing
     $(p.chart_div).empty();
     $(p.chart_div).css("height", p.height);
@@ -1093,7 +1118,7 @@ TsDashboard.prototype.drawTemporalGraph = function (config) {
         .transition()
         .delay(function(d) { return p.duration * (1-((d3.max(timepoints)-nodes[d.n2].epoch)/(d3.max(timepoints)-d3.min(timepoints)))); })
         .style("fill", "none")
-        .style("stroke", function(d) { if (d.color) { return /*d.color;*/ "white" } else { return /*p.edge_color;*/ "white" } })
+        .style("stroke", function(d) { if (d.color) { return d.color; } else { return p.edge_color; } })
         .style("stroke-width", function(d) { if (d.size) return scaleEdge(d.size); else { return p.default_edge_size } })
         .style("stroke-opacity", function(d) { if (d.node_opacity) { return d.node_opacity; } else { return p.node_opacity } } )
    
@@ -1135,6 +1160,168 @@ TsDashboard.prototype.drawTemporalGraph = function (config) {
         .on("mouseout", function(e, i) {
             svg.selectAll("path").style("stroke-opacity", p.node_opacity)
         })
+}
+
+TsDashboard.prototype.drawSwimlaneChart = function (config) {
+    var self = this;
+    
+    // If we have user-defined parameters, override the defaults.
+    var p = {
+        "start": 1476704004295,
+        "end": 1476704005295,
+        "side_margin": 10, 
+        "chart_div": "#divTarget",
+        "alert_color": "white",
+        "lanes_color": "#444",
+        "master_lane_color": "#444",
+        "lane_opacity": 0.4,
+        "lane_selected_opacity": 0.8,
+        "lane_height": 20,
+        "alert_radius": 5,
+        "alert_over_radius": 10,
+        "ticks": 10
+    };
+
+    // If we have user-defined parameters, override the defaults.
+    if (config !== "undefined") {
+        for (var prop in config) {
+            p[prop] = config[prop];
+        }
+    }
+
+    console.log(p)
+    var data = p.data[0];
+    var alerts = data.alerts;
+    var start = data.start;
+    var end = data.end;
+
+    // remove the previous drawing
+    $(p.chart_div).empty();
+    
+    // alerts - get this from input parameter
+    var alerts = [{"type": "db", "ts":1476704004495}, {"type": "events", "ts":1476704004535}, {"type": "events", "ts":1476704004695}, {"type": "blalalalaaaa", "ts":1476704004995}];
+    
+    // x axis scaler
+    var scaleX = d3.scale.linear().domain([p.start, p.end]).range([p.side_margin, $(p.chart_div).width() - p.side_margin]);
+    
+    // find out how many different alert types is there
+    var alertTypes = [];
+    var alertTypesDict = {};
+    for (var i = 0; i < alerts.length; i++) { 
+        if (alerts[i].type in alertTypesDict) {
+            alertTypesDict[alerts[i].type] += 1;
+        }
+        else {
+            alertTypesDict[alerts[i].type] = 1;
+        }
+    }   
+
+    for (var type in alertTypesDict) {
+        alertTypes.push(type);
+    }
+
+    // define click action
+    function clickAction() { 
+        for (var i = 0; i < alertTypes.length; i++) { 
+            if (toggle) {
+                lanes[alertTypes[i]].attr("display", "none");
+            }
+            else {
+                lanes[alertTypes[i]].attr("display", "inline");
+            }
+        }
+        if (toggle) {
+            toggle = false;
+        }
+        else {
+            toggle = true;
+        }
+        $(p.chart_div).css("width", "100%");
+    }
+
+    // define the master lane
+    var masterSvd = d3.select(p.chart_div)
+        .append("svg")
+        .attr("width", $(p.chart_div)
+        .width())
+        .attr("height", p.lane_height);
+
+    var masterLane = masterSvd.append("rect")
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("width", $(p.chart_div)
+        .width())
+        .attr("height", p.lane_height)
+        .attr("fill", p.master_lane_color)
+        .attr("fill-opacity", p.lane_opacity)
+        .on("mouseover", function(d){d3.select(this).attr("fill-opacity", p.lane_selected_opacity)})
+        .on("mouseout", function(d){d3.select(this).attr("fill-opacity", p.lane_opacity)});
+
+    masterSvd.selectAll("circle")
+        .data(alerts)
+        .enter()
+        .append("circle")
+        .attr("cy", p.lane_height/2)
+        .attr("cx", function(d) { return scaleX(d.ts); })
+        .attr("r", p.alert_radius)
+        .attr("fill", p.alert_color)
+        .on("mouseover", function(d){d3.select(this).attr("r", p.alert_over_radius)})
+        .on("mouseout", function(d){d3.select(this).attr("r", p.alert_radius)})
+        .append("svg:title").text(function(d, i) { return "My type is: " + d.type; });
+
+    masterLane.on("click", function() {
+        clickAction();
+        d3.event.stopPropagation();
+    });
+
+    // define alert type associated lanes
+    var toggle = true;
+    var lanes = {};
+    for (var i = 0; i < alertTypes.length; i++) {
+
+        // generate svg element for each lane
+        lanes[alertTypes[i]] = d3.select(p.chart_div)
+            .append("svg")
+            .attr("width", $(p.chart_div)
+            .width())
+            .attr("height", p.lane_height);
+
+        // draw rectangle for each lane
+        lanes[alertTypes[i]].append("rect")
+            .attr("x", 0)
+            .attr("y", 0)
+            .attr("width", $(p.chart_div).width())
+            .attr("height", p.lane_height)
+            .attr("fill", p.lanes_color)
+            .attr("fill-opacity", p.lane_opacity)
+            .on("mouseover", function(d){d3.select(this).attr("fill-opacity", p.lane_selected_opacity)})
+            .on("mouseout", function(d){d3.select(this).attr("fill-opacity", p.lane_opacity)})
+            .append("svg:title")
+            .text(function(d) { return alertTypes[i]; });
+    }
+
+    for (var i = 0; i < alertTypes.length; i++) {
+
+        // draw alert markers filtered by alert type
+        lanes[alertTypes[i]].selectAll("circle")
+            .data(alerts.filter( function(d) { return d.type == alertTypes[i] } ))
+            .enter().append("circle").attr("cy", p.lane_height/2)
+            .attr("cx", function(d) { return scaleX(d.ts); }).attr("r", p.alert_radius).attr("fill", p.alert_color)
+            .on("mouseover", function(d){d3.select(this).attr("r", p.alert_over_radius)})
+            .on("mouseout", function(d){d3.select(this).attr("r", p.alert_radius)})
+            .append("svg:title")
+            .text(function(d, i) { return "My type is: " + d.type; });
+    }
+   
+    // time scaler
+    var scaleTime = d3.time.scale().domain([new Date(p.start), new Date(p.end)]).nice(d3.time.hour).range([0, $(p.chart_div).width()]);
+
+    // append svd for time axis
+    var timeSvd = d3.select(p.chart_div).append("svg").attr("width", $(p.chart_div).width()).attr("height", p.lane_height);
+
+    // append time axis
+    timeSvd.append("g").attr("class", "x axis").call(d3.svg.axis().scale(scaleTime).orient("bottom").ticks(p.ticks)).style("stroke", "none");
+
 }
 
 TsDashboard.prototype.drawColumnChart = function (config) {
