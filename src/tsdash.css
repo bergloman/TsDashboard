@@ -279,8 +279,13 @@ path2 {
 .tick {
     stroke: lightgrey;
     stroke-opacity: 0.4;
-  stroke-dasharray: 5,5;
+    stroke-dasharray: 5,5;
     shape-rendering: crispEdges;
+}
+
+.tick text {
+    stroke: none;
+    stroke-dasharray: 0;
 }
 
 .overlay {
