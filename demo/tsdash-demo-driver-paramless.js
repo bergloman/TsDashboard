@@ -55,6 +55,7 @@ ParamlessDemoDriver.prototype.getDrawData = function (options, callback) {
     var ts2 = [];
     var ts3 = [];
     var ds1 = [];
+    var ds2 = [];
     var r1 = [];
     var tp1 = [];
     var tp2 = [];
@@ -88,6 +89,9 @@ ParamlessDemoDriver.prototype.getDrawData = function (options, callback) {
         .forEach(function (x) {
             ds1.push({ name: x.name, val: x.name.length });
         });
+    ds2.push({ name: "Total", val: 100, status: "ok" });
+    ds2.push({ name: "New", val: 0, status: "ok" });
+    ds2.push({ name: "Errors", val: 5, status: "warning" });
 
     res.timeseries.push({ name: "s1", values: ts1 });
     res.timeseries.push({ name: "s2", values: ts2 });
@@ -95,6 +99,7 @@ ParamlessDemoDriver.prototype.getDrawData = function (options, callback) {
     res.timepoints.push({ name: "p1", values: tp1 });
     res.timepoints.push({ name: "p2", values: tp2 });
     res.dataseries.push({ name: "c1", values: ds1 });
+    res.dataseries.push({ name: "c2", values: ds2 });
     res.scatterseries.push({ name: "r1", values: r1 });
 
     callback(res);

@@ -520,6 +520,29 @@ TsDashboard.prototype.run = function () {
                         }
                         self.drawTable(options);
 
+                    } else if (widget.type == "kpi") {
+                        var data_series = widget.dataseries
+                            .map(function (x) {
+                                for (var series_i in data.dataseries) {
+                                    var series = data.dataseries[series_i];
+                                    if (series.name === x) {
+                                        return series.values;
+                                    }
+                                }
+                                return null;
+                            })
+                            .filter(function (x) { return x !== null; });
+                        var options = {
+                            kpi_div: "#" + widget_id,
+                            data: data_series,
+                            height: widget.height,
+                            handle_clicks: false
+                        }
+                        if (widget.options) {
+                            Object.assign(options, widget.options);
+                        }
+                        self.drawKpi(options);
+
                     } else if (widget.type == "graph") {
                         var graph = {};
                         var data_type = "graphs";
@@ -614,6 +637,8 @@ TsDashboard.prototype.toNiceDateTime = function (s) {
     if (!s) return "-";
     return moment(s).format("YYYY-MM-DD HH:mm:ss");
 }
+
+
 
 TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
     var self = this;
@@ -1029,6 +1054,81 @@ TsDashboard.prototype.drawTable = function (config) {
     $(p.chart_div).css('height', p.height);
     $(p.chart_div).css('margin-bottom', p.margin_bottom);
 
+}
+
+TsDashboard.prototype.drawKpi = function (config) {
+
+    var self = this;
+    // Default parameters.
+    var p = {
+        chart_div: "#someKpi",
+        data: null,
+        header: null,
+        height: 100,
+        margin_bottom: 0,
+        column_widths: null,
+        column_order: null,
+        filter: null
+    };
+
+    // If we have user-defined parameters, override the defaults.
+    if (config !== "undefined") {
+        for (var prop in config) {
+            p[prop] = config[prop];
+        }
+    }
+
+    // remove the previous drawing
+    $(p.chart_div).empty();
+
+    var data = p.data[0];
+    // var columns = p.filter;
+    // if (!columns) {
+    //     columns = [];
+    //     for (var d in data[0]) {
+    //         columns.push({source: d});
+    //     }   
+    // }
+
+    // // create header
+    // var thead = $("<thead></thead>");
+    // var theadtr = $("<tr></tr>"); 
+    // for (var i = 0; i < columns.length; i++) {
+    //     if (columns[i].caption) {
+    //         theadtr.append("<th>" + columns[i].caption + "</th>");
+    //     }
+    //     else {
+    //         theadtr.append("<th>" + columns[i].source + "</th>");
+    //     }
+    // }
+
+    // // create body 
+    // var tbody = $("<tbody></tbody>");
+    // for (var i = 0; i < data.length; i++) {
+    //     // create row
+    //     var row = $("<tr></tr>");
+    //     // add columns
+    //     for (var j = 0; j < columns.length; j++) {
+    //         var td = $("<td>" + data[i][columns[j].source] + "</td>");
+    //         if (columns[j].width) {
+    //             td.css('width', columns[j].width);
+    //         }
+    //         row.append(td);
+    //     }
+    //     tbody.append(row);
+    // }
+
+    // combine into a table
+    var table = $("<table></div>");
+    thead.append(theadtr);
+    // table.append(thead);
+    // table.append(tbody);
+    $(p.chart_div).append(table);
+
+    // // style
+    // $(p.chart_div).css('overflow', 'auto');
+    // $(p.chart_div).css('height', p.height);
+    // $(p.chart_div).css('margin-bottom', p.margin_bottom);
 }
 
 TsDashboard.prototype.drawTemporalGraph = function (config) {

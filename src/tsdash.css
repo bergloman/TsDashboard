@@ -196,6 +196,31 @@ h3{
     padding: 0;
 }
 
+.tsd-kpi-tile {
+    color:white;
+    font-size: 14px;
+    padding: 10px;
+    text-align: center;
+    min-width: 80px;
+    height: 80px;
+}
+.tsd-kpi-tile-ok {
+    background-color: mediumseagreen;
+}
+.tsd-kpi-tile-warning {
+    background-color: darkorange;
+}
+.tsd-kpi-tile-error {
+    background-color: red;
+}
+.tsd-kpi-tile-inactive {
+    background-color: dimgray;
+}
+.tsd-kpi-tile-title{
+    font-size: 18px;
+    font-weight: bold;
+}
+
 .modal-content {
     height: 100%;
     border-radius: 0;

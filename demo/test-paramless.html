@@ -1,40 +1,64 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8">
-        <link rel="stylesheet" type="text/css" href="dep/bootstrap.min.css">
-        <link rel="stylesheet" type="text/css" href="../src/tsdash.css">
-        <!--<link rel="stylesheet" type="text/css" href="../src/tsdash-theme-dark.css">-->
-    </head>
+
+<head>
+	<meta charset="utf-8">
+	<link rel="stylesheet" type="text/css" href="dep/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="../src/tsdash.css">
+	<!--<link rel="stylesheet" type="text/css" href="../src/tsdash-theme-dark.css">-->
+</head>
+
 <body>
 
-<div class="container">
-    <div class="row">
-        <div class="col-md-4">
-            <h1> Some title</h1>
-        </div>
-        <div class="col-md-4">
-            <h1> Middle stitle</h1>
-            <div id="divTarget"></div>
-        </div>
-        <div class="col-md-4">
-            <h1> Right title</h1>
-        </div>
-    </div>
-</div>
+	<div class="container">
+		<div class="row">
+			<div class="col-md-4">
+				<h1> Some title</h1>
+				<div>
+					<table>
+                        <tr>
+                            <td class="tsd-kpi-tile tsd-kpi-tile-ok">
+                                <div class="tsd-kpi-tile-title">Total</div>
+                                <div class="tsd-kpi-tile-value">123</div>
+                            </td>
+                            <td class="tsd-kpi-tile tsd-kpi-tile-warning">
+                                <div class="tsd-kpi-tile-title">New</div>
+                                <div class="tsd-kpi-tile-value">123</div>
+                            </td>
+                            <td class="tsd-kpi-tile tsd-kpi-tile-error">
+                                <div class="tsd-kpi-tile-title">Error</div>
+                                <div class="tsd-kpi-tile-value">123</div>
+                            </td>
+                            <td class="tsd-kpi-tile tsd-kpi-tile-inactive">
+                                <div class="tsd-kpi-tile-title">Inact</div>
+                                <div class="tsd-kpi-tile-value">123</div>
+                            </td>
+                        </tr>
+					</table>
+				</div>
+			</div>
+			<div class="col-md-4">
+				<h1> Middle stitle</h1>
+				<div id="divTarget"></div>
+			</div>
+			<div class="col-md-4">
+				<h1> Right title</h1>
+			</div>
+		</div>
+	</div>
 
-<!--<script src="dep/d3-4.1.1.min.js"></script>-->
-<script src="dep/d3.js"></script>
-<script src="dep/moment.min.js"></script>
-<script src="dep/jquery-3.1.0.min.js"></script>
-<script src="dep/bootstrap.min.js"></script>
+	<!--<script src="dep/d3-4.1.1.min.js"></script>-->
+	<script src="dep/d3.js"></script>
+	<script src="dep/moment.min.js"></script>
+	<script src="dep/jquery-3.1.0.min.js"></script>
+	<script src="dep/bootstrap.min.js"></script>
 
-<script src="../src/tsdash.js"></script>
-<!--<script src="../build/tsdash.min.js"></script>-->
+	<script src="../src/tsdash.js"></script>
+	<!--<script src="../build/tsdash.min.js"></script>-->
 
-<script src="tsdash-demo-driver-paramless.js"></script>
+	<script src="tsdash-demo-driver-paramless.js"></script>
 
-<script>
+	<script>
     // create driver
     var driver = new ParamlessDemoDriver();
 
@@ -43,4 +67,5 @@
 </script>
 
 </body>
+
 </html>
