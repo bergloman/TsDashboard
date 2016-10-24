@@ -317,11 +317,11 @@ function getFriendlyTimeSlotLabel(slot_length) {
     if (slot_length != null) {
         var ylab_i = 0;
         var units = [
-                     {n: 1000, t: "sec"},
-                     {n: 60 * 1000, t: "min"},
-                     {n: 60 * 60 * 1000, t: "h"},
-                     {n: 24 * 60 * 60 * 1000, t: "day"},
-                     ];
+            { n: 1000, t: "sec" },
+            { n: 60 * 1000, t: "min" },
+            { n: 60 * 60 * 1000, t: "h" },
+            { n: 24 * 60 * 60 * 1000, t: "day" },
+        ];
         while (ylab_i < units.length && slot_length / units[ylab_i].n >= 1) {
             ylab_i++;
         }
@@ -329,7 +329,7 @@ function getFriendlyTimeSlotLabel(slot_length) {
         ylab_i = Math.max(0, ylab_i);
         y_label = "per " + (slot_length / units[ylab_i].n) + " " + units[ylab_i].t;
         return y_label;
-    } else { return null}
+    } else { return null }
 }
 
 TsDashboard.prototype.run = function () {
@@ -534,7 +534,7 @@ TsDashboard.prototype.run = function () {
                             .filter(function (x) { return x !== null; });
                         var options = {
                             kpi_div: "#" + widget_id,
-                            data: data_series,
+                            data: data_series[0],
                             height: widget.height,
                             handle_clicks: false
                         }
@@ -1010,13 +1010,13 @@ TsDashboard.prototype.drawTable = function (config) {
     if (!columns) {
         columns = [];
         for (var d in data[0]) {
-            columns.push({source: d});
-        }   
+            columns.push({ source: d });
+        }
     }
 
     // create header
     var thead = $("<thead></thead>");
-    var theadtr = $("<tr></tr>"); 
+    var theadtr = $("<tr></tr>");
     for (var i = 0; i < columns.length; i++) {
         if (columns[i].caption) {
             theadtr.append("<th>" + columns[i].caption + "</th>");
@@ -1061,7 +1061,7 @@ TsDashboard.prototype.drawKpi = function (config) {
     var self = this;
     // Default parameters.
     var p = {
-        chart_div: "#someKpi",
+        kpi_div: "#someKpi",
         data: null,
         header: null,
         height: 100,
@@ -1079,56 +1079,30 @@ TsDashboard.prototype.drawKpi = function (config) {
     }
 
     // remove the previous drawing
-    $(p.chart_div).empty();
+    $(p.kpi_div).empty();
+    var data = p.data;
 
-    var data = p.data[0];
-    // var columns = p.filter;
-    // if (!columns) {
-    //     columns = [];
-    //     for (var d in data[0]) {
-    //         columns.push({source: d});
-    //     }   
-    // }
+    // create body 
+    var tbody = $("<tbody></tbody>");
+    var row = $("<tr></tr>");
+    for (var i = 0; i < data.length; i++) {
+        var dd = data[i];
+        var td = $("<td class='tsd-kpi-tile tsd-kpi-tile-ok' />");
+        switch (dd.status) {
+            case "ok": td.addClass("tsd-kpi-tile-ok"); break;
+            case "error": td.addClass("tsd-kpi-tile-error"); break;
+            case "warning": td.addClass("tsd-kpi-tile-warning"); break;
+            default: td.addClass("tsd-kpi-tile-inactive"); break;
+        }
+        td.append("<div class='tsd-kpi-tile-title'></div>").text(dd.name);
+        td.append("<div class='tsd-kpi-tile-value'></div>").text(dd.value);
+        row.append(td);
+    }
+    tbody.append(row);
 
-    // // create header
-    // var thead = $("<thead></thead>");
-    // var theadtr = $("<tr></tr>"); 
-    // for (var i = 0; i < columns.length; i++) {
-    //     if (columns[i].caption) {
-    //         theadtr.append("<th>" + columns[i].caption + "</th>");
-    //     }
-    //     else {
-    //         theadtr.append("<th>" + columns[i].source + "</th>");
-    //     }
-    // }
-
-    // // create body 
-    // var tbody = $("<tbody></tbody>");
-    // for (var i = 0; i < data.length; i++) {
-    //     // create row
-    //     var row = $("<tr></tr>");
-    //     // add columns
-    //     for (var j = 0; j < columns.length; j++) {
-    //         var td = $("<td>" + data[i][columns[j].source] + "</td>");
-    //         if (columns[j].width) {
-    //             td.css('width', columns[j].width);
-    //         }
-    //         row.append(td);
-    //     }
-    //     tbody.append(row);
-    // }
-
-    // combine into a table
-    var table = $("<table></div>");
-    thead.append(theadtr);
-    // table.append(thead);
-    // table.append(tbody);
-    $(p.chart_div).append(table);
-
-    // // style
-    // $(p.chart_div).css('overflow', 'auto');
-    // $(p.chart_div).css('height', p.height);
-    // $(p.chart_div).css('margin-bottom', p.margin_bottom);
+    var table = $("<table></table>");
+    table.append(tbody);
+    $(p.kpi_div).append(table);
 }
 
 TsDashboard.prototype.drawTemporalGraph = function (config) {
@@ -1143,7 +1117,7 @@ TsDashboard.prototype.drawTemporalGraph = function (config) {
         min_edge_size: 2,
         max_edge_size: 6,
         node_color: "red",
-        edge_color: "blue", 
+        edge_color: "blue",
         node_opacity: 0.3,
         node_stroke: "red",
         default_node_size: 1,
@@ -1189,21 +1163,21 @@ TsDashboard.prototype.drawTemporalGraph = function (config) {
         ypoints.push(nodes[node].y);
         timepoints.push(nodes[node].epoch);
         node_sizes.push(nodes[node].size);
-        nodes_arr.push({id: node, options: nodes[node]});
+        nodes_arr.push({ id: node, options: nodes[node] });
     }
     for (var i = 0; i < edges.length; i++) {
         edge_sizes.push(edges[i].size);
     }
 
     // scales
-    var scaleX = d3.scale.linear().domain([d3.min(xpoints),d3.max(xpoints)]).range([p.side_margin, $(p.chart_div).width() - p.side_margin]);
-    var scaleY = d3.scale.linear().domain([d3.min(ypoints),d3.max(ypoints)]).range([p.side_margin, $(p.chart_div).height() - p.side_margin]);
-    var scaleNode = d3.scale.linear().domain([d3.min(node_sizes),d3.max(node_sizes)]).range([p.min_node_size, p.max_node_size]);
-    var scaleEdge = d3.scale.linear().domain([d3.min(edge_sizes),d3.max(edge_sizes)]).range([p.min_edge_size, p.max_edge_size]);
+    var scaleX = d3.scale.linear().domain([d3.min(xpoints), d3.max(xpoints)]).range([p.side_margin, $(p.chart_div).width() - p.side_margin]);
+    var scaleY = d3.scale.linear().domain([d3.min(ypoints), d3.max(ypoints)]).range([p.side_margin, $(p.chart_div).height() - p.side_margin]);
+    var scaleNode = d3.scale.linear().domain([d3.min(node_sizes), d3.max(node_sizes)]).range([p.min_node_size, p.max_node_size]);
+    var scaleEdge = d3.scale.linear().domain([d3.min(edge_sizes), d3.max(edge_sizes)]).range([p.min_edge_size, p.max_edge_size]);
     // Draw edges
     var lines = svg.selectAll("lines")
         .data(edges)
-    
+
     lines.enter()
         .append("path")
         .attr("d", function (d) {
@@ -1211,20 +1185,20 @@ TsDashboard.prototype.drawTemporalGraph = function (config) {
             var t2x = scaleX(nodes[d.n2][x_pos_att]);
             var t1y = scaleY(nodes[d.n1].y);
             var t2y = scaleY(nodes[d.n2].y);
-            var tx = parseInt(t1x)+parseInt((t2x-t1x)/2);
-            return "M"+t1x+","+t1y+"C"+tx+","+t1y+" "+tx+","+t2y+" "+t2x+","+t2y;
+            var tx = parseInt(t1x) + parseInt((t2x - t1x) / 2);
+            return "M" + t1x + "," + t1y + "C" + tx + "," + t1y + " " + tx + "," + t2y + " " + t2x + "," + t2y;
 
         })
         .transition()
-        .delay(function(d) { return p.duration * (1-((d3.max(timepoints)-nodes[d.n2].epoch)/(d3.max(timepoints)-d3.min(timepoints)))); })
+        .delay(function (d) { return p.duration * (1 - ((d3.max(timepoints) - nodes[d.n2].epoch) / (d3.max(timepoints) - d3.min(timepoints)))); })
         .style("fill", "none")
-        .style("stroke", function(d) { if (d.color) { return d.color; } else { return p.edge_color; } })
-        .style("stroke-width", function(d) { if (d.size) return scaleEdge(d.size); else { return p.default_edge_size } })
-        .style("stroke-opacity", function(d) { if (d.node_opacity) { return d.node_opacity; } else { return p.node_opacity } } )
-   
+        .style("stroke", function (d) { if (d.color) { return d.color; } else { return p.edge_color; } })
+        .style("stroke-width", function (d) { if (d.size) return scaleEdge(d.size); else { return p.default_edge_size } })
+        .style("stroke-opacity", function (d) { if (d.node_opacity) { return d.node_opacity; } else { return p.node_opacity } })
+
     svg.selectAll("path")
         .append("svg:title")
-        .text(function(d) { return d.n1 +"-"+ d.n2 })
+        .text(function (d) { return d.n1 + "-" + d.n2 })
 
     // Draw nodes
     var circles = svg.selectAll("circles")
@@ -1233,43 +1207,43 @@ TsDashboard.prototype.drawTemporalGraph = function (config) {
     circles.enter()
         .append("circle")
         .transition()
-        .delay(function(d) { return p.duration * (1-((d3.max(timepoints)-d.options.epoch)/(d3.max(timepoints)-d3.min(timepoints)))); })
-        .attr("r", function(d) { if (d.options.size) { return scaleNode(d.options.size); } else { return p.default_node_size; } })
-        .attr("cx", function(d) { return scaleX(d.options[x_pos_att]); })
-        .attr("cy", function(d) { return scaleY(d.options.y); })
+        .delay(function (d) { return p.duration * (1 - ((d3.max(timepoints) - d.options.epoch) / (d3.max(timepoints) - d3.min(timepoints)))); })
+        .attr("r", function (d) { if (d.options.size) { return scaleNode(d.options.size); } else { return p.default_node_size; } })
+        .attr("cx", function (d) { return scaleX(d.options[x_pos_att]); })
+        .attr("cy", function (d) { return scaleY(d.options.y); })
         .attr("fill", "white")
         .attr("fill-opacity", p.node_opacity)
         .attr("stroke", p.node_stroke)
-    
-    svg.selectAll("circle")
-        .append("svg:title")
-        .text(function(d) { return d.id+"\n"+d.options.epoch; });
 
     svg.selectAll("circle")
-        .on("mouseover", function(e, i) {
-            svg.selectAll('path').style("stroke-opacity", function(d) { if (e.id != d.n1 && e.id != d.n2) { return p.unselected_opacity; } else { return p.node_opacity; } })
+        .append("svg:title")
+        .text(function (d) { return d.id + "\n" + d.options.epoch; });
+
+    svg.selectAll("circle")
+        .on("mouseover", function (e, i) {
+            svg.selectAll('path').style("stroke-opacity", function (d) { if (e.id != d.n1 && e.id != d.n2) { return p.unselected_opacity; } else { return p.node_opacity; } })
         })
-        .on("mouseout", function(e, i) {
+        .on("mouseout", function (e, i) {
             svg.selectAll("path").style("stroke-opacity", p.node_opacity)
         })
 
     svg.selectAll("path")
-        .on("mouseover", function(e, i) {
-            svg.selectAll('path').style("stroke-opacity", function(d) { if ((e.n1 == d.n1 && e.n2 == d.n2) || (e.n1 == d.n1 && e.n1 == d.n2)) { return p.selected_opacity; } else { return p.unselected_opacity; } })
+        .on("mouseover", function (e, i) {
+            svg.selectAll('path').style("stroke-opacity", function (d) { if ((e.n1 == d.n1 && e.n2 == d.n2) || (e.n1 == d.n1 && e.n1 == d.n2)) { return p.selected_opacity; } else { return p.unselected_opacity; } })
         })
-        .on("mouseout", function(e, i) {
+        .on("mouseout", function (e, i) {
             svg.selectAll("path").style("stroke-opacity", p.node_opacity)
         })
 }
 
 TsDashboard.prototype.drawSwimlaneChart = function (config) {
     var self = this;
-    
+
     // If we have user-defined parameters, override the defaults.
     var p = {
         "start": 1476704004295,
         "end": 1476704005295,
-        "side_margin": 10, 
+        "side_margin": 10,
         "chart_div": "#divTarget",
         "alert_color": "white",
         "lanes_color": "#444",
@@ -1297,32 +1271,32 @@ TsDashboard.prototype.drawSwimlaneChart = function (config) {
 
     // remove the previous drawing
     $(p.chart_div).empty();
-    
+
     // alerts - get this from input parameter
-    var alerts = [{"type": "db", "ts":1476704004495}, {"type": "events", "ts":1476704004535}, {"type": "events", "ts":1476704004695}, {"type": "blalalalaaaa", "ts":1476704004995}];
-    
+    var alerts = [{ "type": "db", "ts": 1476704004495 }, { "type": "events", "ts": 1476704004535 }, { "type": "events", "ts": 1476704004695 }, { "type": "blalalalaaaa", "ts": 1476704004995 }];
+
     // x axis scaler
     var scaleX = d3.scale.linear().domain([p.start, p.end]).range([p.side_margin, $(p.chart_div).width() - p.side_margin]);
-    
+
     // find out how many different alert types is there
     var alertTypes = [];
     var alertTypesDict = {};
-    for (var i = 0; i < alerts.length; i++) { 
+    for (var i = 0; i < alerts.length; i++) {
         if (alerts[i].type in alertTypesDict) {
             alertTypesDict[alerts[i].type] += 1;
         }
         else {
             alertTypesDict[alerts[i].type] = 1;
         }
-    }   
+    }
 
     for (var type in alertTypesDict) {
         alertTypes.push(type);
     }
 
     // define click action
-    function clickAction() { 
-        for (var i = 0; i < alertTypes.length; i++) { 
+    function clickAction() {
+        for (var i = 0; i < alertTypes.length; i++) {
             if (toggle) {
                 lanes[alertTypes[i]].attr("display", "none");
             }
@@ -1343,33 +1317,33 @@ TsDashboard.prototype.drawSwimlaneChart = function (config) {
     var masterSvd = d3.select(p.chart_div)
         .append("svg")
         .attr("width", $(p.chart_div)
-        .width())
+            .width())
         .attr("height", p.lane_height);
 
     var masterLane = masterSvd.append("rect")
         .attr("x", 0)
         .attr("y", 0)
         .attr("width", $(p.chart_div)
-        .width())
+            .width())
         .attr("height", p.lane_height)
         .attr("fill", p.master_lane_color)
         .attr("fill-opacity", p.lane_opacity)
-        .on("mouseover", function(d){d3.select(this).attr("fill-opacity", p.lane_selected_opacity)})
-        .on("mouseout", function(d){d3.select(this).attr("fill-opacity", p.lane_opacity)});
+        .on("mouseover", function (d) { d3.select(this).attr("fill-opacity", p.lane_selected_opacity) })
+        .on("mouseout", function (d) { d3.select(this).attr("fill-opacity", p.lane_opacity) });
 
     masterSvd.selectAll("circle")
         .data(alerts)
         .enter()
         .append("circle")
-        .attr("cy", p.lane_height/2)
-        .attr("cx", function(d) { return scaleX(d.ts); })
+        .attr("cy", p.lane_height / 2)
+        .attr("cx", function (d) { return scaleX(d.ts); })
         .attr("r", p.alert_radius)
         .attr("fill", p.alert_color)
-        .on("mouseover", function(d){d3.select(this).attr("r", p.alert_over_radius)})
-        .on("mouseout", function(d){d3.select(this).attr("r", p.alert_radius)})
-        .append("svg:title").text(function(d, i) { return "My type is: " + d.type; });
+        .on("mouseover", function (d) { d3.select(this).attr("r", p.alert_over_radius) })
+        .on("mouseout", function (d) { d3.select(this).attr("r", p.alert_radius) })
+        .append("svg:title").text(function (d, i) { return "My type is: " + d.type; });
 
-    masterLane.on("click", function() {
+    masterLane.on("click", function () {
         clickAction();
         d3.event.stopPropagation();
     });
@@ -1383,7 +1357,7 @@ TsDashboard.prototype.drawSwimlaneChart = function (config) {
         lanes[alertTypes[i]] = d3.select(p.chart_div)
             .append("svg")
             .attr("width", $(p.chart_div)
-            .width())
+                .width())
             .attr("height", p.lane_height);
 
         // draw rectangle for each lane
@@ -1394,25 +1368,25 @@ TsDashboard.prototype.drawSwimlaneChart = function (config) {
             .attr("height", p.lane_height)
             .attr("fill", p.lanes_color)
             .attr("fill-opacity", p.lane_opacity)
-            .on("mouseover", function(d){d3.select(this).attr("fill-opacity", p.lane_selected_opacity)})
-            .on("mouseout", function(d){d3.select(this).attr("fill-opacity", p.lane_opacity)})
+            .on("mouseover", function (d) { d3.select(this).attr("fill-opacity", p.lane_selected_opacity) })
+            .on("mouseout", function (d) { d3.select(this).attr("fill-opacity", p.lane_opacity) })
             .append("svg:title")
-            .text(function(d) { return alertTypes[i]; });
+            .text(function (d) { return alertTypes[i]; });
     }
 
     for (var i = 0; i < alertTypes.length; i++) {
 
         // draw alert markers filtered by alert type
         lanes[alertTypes[i]].selectAll("circle")
-            .data(alerts.filter( function(d) { return d.type == alertTypes[i] } ))
-            .enter().append("circle").attr("cy", p.lane_height/2)
-            .attr("cx", function(d) { return scaleX(d.ts); }).attr("r", p.alert_radius).attr("fill", p.alert_color)
-            .on("mouseover", function(d){d3.select(this).attr("r", p.alert_over_radius)})
-            .on("mouseout", function(d){d3.select(this).attr("r", p.alert_radius)})
+            .data(alerts.filter(function (d) { return d.type == alertTypes[i] }))
+            .enter().append("circle").attr("cy", p.lane_height / 2)
+            .attr("cx", function (d) { return scaleX(d.ts); }).attr("r", p.alert_radius).attr("fill", p.alert_color)
+            .on("mouseover", function (d) { d3.select(this).attr("r", p.alert_over_radius) })
+            .on("mouseout", function (d) { d3.select(this).attr("r", p.alert_radius) })
             .append("svg:title")
-            .text(function(d, i) { return "My type is: " + d.type; });
+            .text(function (d, i) { return "My type is: " + d.type; });
     }
-   
+
     // time scaler
     var scaleTime = d3.time.scale().domain([new Date(p.start), new Date(p.end)]).nice(d3.time.hour).range([0, $(p.chart_div).width()]);
 

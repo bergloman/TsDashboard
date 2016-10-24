@@ -118,6 +118,13 @@ ParamlessDemoDriver.prototype.prepareViewDefinition = function (callback) {
                     {
                         widgets: [
                             {
+                                type: "kpi",
+                                title: "Widget KPI",
+                                dataseries: ["c2"],
+                                options: {
+                                }
+                            },
+                            {
                                 title: "Widget 1",
                                 timeseries: ["s1"],
                                 options: {
