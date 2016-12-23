@@ -66,7 +66,7 @@ This method fetches required data to draw. The `options` parameter must contain 
 
 Callback receives `err` and optionaly result object. Result should conform to the following schema:
 
-```json
+`````````````
 {
     "timeseries" : [
         {
@@ -108,7 +108,7 @@ Callback receives `err` and optionaly result object. Result should conform to th
 
 Configuration is given in `javascript` object, which looks like the following `JSON`:
 
-```json
+````````````````````
 {
     "title": "......",
     "hide_sidebar": false,
