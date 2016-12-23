@@ -64,7 +64,7 @@ ParamlessDemoDriver.prototype.getDrawData = function (options, callback) {
     var ts2_curr = 2;
     var ts3_curr = 3;
     for (var i = 0; i <= length_in_days; i++) {
-        //d += 24 * 60 * 60 * 1000; // advance single day 
+        //d += 24 * 60 * 60 * 1000; // advance single day
         d += 15 * 60 * 1000; // advance 15 min
         ts1.push({ epoch: d, val: ts1_curr });
         ts2.push({ epoch: d, val: ts2_curr });
@@ -102,7 +102,7 @@ ParamlessDemoDriver.prototype.getDrawData = function (options, callback) {
     res.dataseries.push({ name: "c2", values: ds2 });
     res.scatterseries.push({ name: "r1", values: r1 });
 
-    callback(res);
+    callback(null, res);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////

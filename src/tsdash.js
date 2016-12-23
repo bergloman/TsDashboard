@@ -101,6 +101,14 @@ TsDashboard.prototype.showErrorMsg = function (msg) {
     $(".tsd-error").addClass("tsd-error-visible");
 }
 
+TsDashboard.prototype.showError = function (e) {
+    var self = this;
+
+    var message = e.message;
+
+    self.showErrorMsg(message);
+}
+
 TsDashboard.prototype.getToday = function () {
     return moment({ hour: 0 }).toDate();
 }
@@ -214,12 +222,22 @@ TsDashboard.prototype.initParams = function () {
                 $("#in" + par.name).val(par.default);
             }
 
-        } else if (par.type === "enum") {
+        } else if (par.type === "enum" || par.type === "dropdown") {
             label.append("<select id='in" + par.name + "'></select >");
             self.driver.getParamValues(par.name, null, function (options) {
                 for (var i = 0; i < options.length; i++) {
                     var option = options[i];
-                    $("#in" + par.name).append("<option value='" + option.value + "'>" + option.caption + "</option>");
+
+                    var value, name;
+                    if (par.type == "enum") {
+                        value = option.value;
+                        name = option.caption;
+                    } else {
+                        value = option.name;
+                        name = option.name;
+                    }
+
+                    $("#in" + par.name).append("<option value='" + value + "'>" + name + "</option>");
                 }
                 if (par.default) {
                     $("#in" + par.name).val(par.default);
@@ -302,6 +320,12 @@ TsDashboard.prototype.collectParameterValues = function () {
                 return null;
             }
 
+        } else if (par.type === "dropdown") {
+            par_value.value = $("#in" + par.name).val();
+            if (par_value.value === null) {
+                self.showErrorMsg("Missing non-optional parameter: " + par.title);
+                return null;
+            }
         } else if (par.type === "boolean") {
             par_value.value = false;
             if ($("#cb" + par.name).attr('checked')) {
@@ -347,9 +371,17 @@ TsDashboard.prototype.run = function () {
         conf: self.conf,
         params: params
     }
-    self.driver.getDrawData(options, function (data) {
+    self.driver.getDrawData(options, function (err, data) {
+        if (err != null) {
+            self.showError(err);
+        }
+        if (data == undefined) {
+            self.showErrorMsg("No data available.");
+            return;
+        }
+
         var widget_counter = 1;
-        for (var i in self.conf.blocks) {
+        for (var i = 0; i < self.conf.blocks.length; i++) {
             var block = self.conf.blocks[i];
             var block_div = $(document.createElement("div"));
             main.append(block_div);
@@ -365,7 +397,7 @@ TsDashboard.prototype.run = function () {
 
             var col_class = "tsd-col-1-" + block.panels.length;
 
-            for (var j in block.panels) {
+            for (var j = 0; j < block.panels.length; j++) {
                 var panel = block.panels[j];
                 var panel_div = $(document.createElement("div"));
                 block_div2.append(panel_div);
@@ -375,9 +407,9 @@ TsDashboard.prototype.run = function () {
                     panel_div.append($(document.createElement("h3")).text(panel.title));
                 }
 
-                for (var k in panel.widgets) {
+                for (var k = 0; k < panel.widgets.length; k++) {
                     var widget = panel.widgets[k];
-                    widget.type = widget.type || "timeseries";
+                    widget.type = widget.type || "timeseries"; //- this causes strane behaviour - unexisting timeseries widget wants to be drawn
                     widget.timepoints = widget.timepoints || [];
                     var widget_div = $(document.createElement("div"));
                     panel_div.append(widget_div);
@@ -390,24 +422,30 @@ TsDashboard.prototype.run = function () {
                         $(document.createElement("div"))
                             .attr("id", widget_id)
                             .attr("class", "tsd-widget-sub"));
-
+                    widget_counter++;
                     if (widget.type == "timeseries") {
+                        if (data == undefined || data.timeseries == undefined || data.timeseries.length == 0) {
+                            self.showErrorMsg("Time series data not available.");
+                            continue;
+                        }
                         var data_series = [];
-                        data_series = widget.timeseries
-                            .map(function (x) {
-                                for (var series_i in data.timeseries) {
-                                    var series = data.timeseries[series_i];
-                                    if (series.name === x) {
-                                        return series.values;
-                                    }
+                        var mapped = widget.timeseries.map(function (x) {
+                            for (var series_i = 0; series_i < data.timeseries.length; series_i++) {
+                                var series = data.timeseries[series_i];
+                                if (series.name === x) {
+                                    return series.values;
                                 }
-                                return null;
-                            })
-                            .filter(function (x) { return x !== null; });
+                            }
+                            return null;
+                        }
+                        );
+                        data_series = mapped.filter(function (x) {
+                            return x !== null;
+                        });
                         var point_series = [];
                         point_series = widget.timepoints
                             .map(function (x) {
-                                for (var points_i in data.timepoints) {
+                                for (var points_i = 0; points_i < data.timepoints.length; points_i++) {
                                     var points = data.timepoints[points_i];
                                     if (points.name === x) {
                                         return points.values;
@@ -435,10 +473,14 @@ TsDashboard.prototype.run = function () {
                         self.drawTimeSeriesMulti(options);
 
                     } else if (widget.type == "histogram") {
+                        if (data == undefined || data.dataseries == undefined || data.dataseries.length == 0) {
+                            self.showErrorMsg("Histogram data not available.");
+                            continue;
+                        }
                         var data_series = [];
                         data_series = widget.dataseries
                             .map(function (x) {
-                                for (var series_i in data.dataseries) {
+                                for (var series_i = 0; series_i < data.dataseries.length; series_i++) {
                                     var series = data.dataseries[series_i];
                                     if (series.name === x) {
                                         return series.values;
@@ -464,9 +506,13 @@ TsDashboard.prototype.run = function () {
 
                     } else if (widget.type == "scatterplot") {
                         var data_series = [];
+                        if (data == undefined || data.scatterseries == undefined || data.scatterseries.length == 0) {
+                            self.showErrorMsg("Scatter plot data not available.");
+                            continue;
+                        }
                         data_series = widget.scatterseries
                             .map(function (x) {
-                                for (var series_i in data.scatterseries) {
+                                for (var series_i = 0; series_i < data.scatterseries.length; series_i++) {
                                     var series = data.scatterseries[series_i];
                                     if (series.name === x) {
                                         return series.values;
@@ -495,9 +541,14 @@ TsDashboard.prototype.run = function () {
                         if (widget.timeseries) {
                             data_type = "timeseries";
                         }
+
+                        if (data == undefined || data[data_type] == undefined || data[data_type].length == 0) {
+                            self.showErrorMsg("Table data not available.");
+                            continue;
+                        }
                         data_series = widget[data_type]
                             .map(function (x) {
-                                for (var series_i in data[data_type]) {
+                                for (var series_i = 0; series_i < data[data_type].length; series_i++) {
                                     var series = data[data_type][series_i];
                                     if (series.name === x) {
                                         return series.values;
@@ -557,9 +608,33 @@ TsDashboard.prototype.run = function () {
                                 return null;
                             })
                             .filter(function (x) { return x !== null; });
+                        if (data == undefined || data[data_type] == undefined || data[data_type].length == 0) {
+                            self.showErrorMsg("Graph data not available.");
+                            continue;
+                        }
+                        var alerts = [];
+                        data_type = "dataseries";
+                        if (widget[data_type]) {
+                            alerts = widget[data_type]
+                                .map(function (x) {
+                                    for (var series_i in data[data_type]) {
+                                        var series = data[data_type][series_i];
+                                        if (series.name === x) {
+                                            return series.values;
+                                        }
+                                    }
+                                    return null;
+                                })
+                                .filter(function (x) { return x !== null; });
+                        }
+                        var nodes = graph[0].nodes;
                         var options = {
                             chart_div: "#" + widget_id,
-                            data: graph,
+                            pred: alerts,
+                            graph: graph,
+                            alerts: alerts,
+                            start: data["graphs"][0].d1,
+                            end: data["graphs"][0].d2,
                             handle_clicks: false
                         }
                         if (widget.options) {
@@ -567,12 +642,11 @@ TsDashboard.prototype.run = function () {
                         }
                         self.drawTemporalGraph(options);
                     } else if (widget.type == "swimlane") {
-                        console.log(widget);
-                        var data_series = [];
-                        data_series = widget.dataseries
+                        var data_type = "dataseries";
+                        dataseries = widget[data_type]
                             .map(function (x) {
-                                for (var series_i in data.dataseries) {
-                                    var series = data.dataseries[series_i];
+                                for (var series_i in data[data_type]) {
+                                    var series = data[data_type][series_i];
                                     if (series.name === x) {
                                         return series.values;
                                     }
@@ -580,20 +654,58 @@ TsDashboard.prototype.run = function () {
                                 return null;
                             })
                             .filter(function (x) { return x !== null; });
+
+                        if (data == undefined || data[data_type] == undefined || data[data_type].length == 0) {
+                            self.showErrorMsg("Swimlane data not available.");
+                            continue;
+                        }
                         var options = {
                             chart_div: "#" + widget_id,
-                            data: data_series,
+                            data: dataseries,
+                            start: data[data_type][0].d1,
+                            end: data[data_type][0].d2,
                             handle_clicks: false
                         }
                         if (widget.options) {
                             Object.assign(options, widget.options);
                         }
                         self.drawSwimlaneChart(options);
+                    } else if (widget.type == "sparkline") {
+                        if (data == undefined || data.timeseries == undefined || data.timeseries.length == 0) {
+                            self.showErrorMsg("Sparkline data not available.");
+                            continue;
+                        }
+
+                        var data_series = [];
+                        for (var sparkline_i = 0; sparkline_i < widget.sparklines.length; sparkline_i++) {
+                            for (var series_i = 0; series_i < data.timeseries.length; series_i++) {
+                                var series = data.timeseries[series_i];
+                                if (series.name === widget.sparklines[sparkline_i]) {
+                                    data_series.push(series);
+                                }
+                            }
+                        }
+
+                        data_series.sort(function (x, y) { return x.idx > y.idx; });
+
+                        var options = {
+                            chart_div: "#" + widget_id,
+                            data: data_series,
+                            handle_clicks: true
+                        }
+                        options.click_callback = (function (xoptions) {
+                            return function () { self.showModal(xoptions); }
+                        })(options);
+                        if (widget.options) {
+                            Object.assign(options, widget.options);
+                        }
+                        self.drawSparklineTable(options);
+                    } else {
+                        console.log('Widget type is not defined: ' + widget.type);
                     }
-                    widget_counter++;
                 }
             }
-        };
+        }
     });
 }
 
@@ -638,17 +750,22 @@ TsDashboard.prototype.toNiceDateTime = function (s) {
     return moment(s).format("YYYY-MM-DD HH:mm:ss");
 }
 
-
-
 TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
     var self = this;
     // Default parameters.
     var p = {
         chart_div: "#someChart",
         data: null,
+        bands: null,
         height: 100,
-        xaccessor: function (x) { return x.epoch; },
-        yaccessor: function (x) { return x.val; },
+        xaccessor: function (x) {
+            if (x == null) return null;
+            return x.epoch;
+        },
+        yaccessor: function (x) {
+            if (x == null) return null;
+            return x.val;
+        },
         xdomain: null,
         xdomain_min: null,
         xdomain_max: null,
@@ -666,7 +783,8 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
         xAxisFontSize: '14px',
         yAxisFontSize: '14px',
         xAxisTicks: 7,
-        yFormatValue: "s",
+        yFormatValue: ".2s",
+        yAxisTicks: null,
         tickNumber: function (height, yDomainMax) {
             return Math.min(height < 100 ? 3 : 8, yDomainMax);
         },
@@ -676,7 +794,11 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
         markerColor: "#ff0000",
         click_callback: null,
         timepoints: null,
-        timepoint_callback: null
+        timepoint_callback: null,
+        margin_top: 18,
+        margin_right: 35,
+        margin_bottom: 20,
+        margin_left: 50
     };
 
     // If we have user-defined parameters, override the defaults.
@@ -726,7 +848,7 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
     $(p.chart_div).empty();
 
     // Set the dimensions of the canvas / graph
-    var margin = { top: 18, right: 35, bottom: 20, left: 50 };
+    var margin = { top: p.margin_top, right: p.margin_right, bottom: p.margin_bottom, left: p.margin_left };
     if (p.x_axis_label) {
         margin.bottom += 20;
     }
@@ -769,12 +891,18 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
 
     var formatValue = d3.format(p.yFormatValue);
     var ticks = p.tickNumber(height, p.ydomain[1]);
+    if (p.yAxisTicks != null) { ticks = p.yAxisTicks; }
+
+    var tickArr = [];
+    for (var i = 1; i <= ticks; i++) {
+        tickArr.push(p.ydomain[0] + (i * (p.ydomain[1] - p.ydomain[0]) / (ticks + 1)));
+    }
 
     var yAxis = d3.svg.axis()
         .scale(y)
+        .tickValues(tickArr)
+        .tickFormat(function (d) { return formatValue(d); })
         .orient("left")
-        .ticks(ticks)
-        .tickFormat(function (d) { return formatValue(d); });
     if (p.show_grid) {
         yAxis
             .innerTickSize(-width)
@@ -787,6 +915,12 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
         .x(function (d) { return x(p.xaccessor(d)); })
         .y(function (d) { return y(p.yaccessor(d)); });
 
+    // Bands area
+    var bandsarea = d3.svg.area()
+        .x(function (d) { return x(p.xaccessor(d)); })
+        .y0(function (d) { return y(d.val0); })
+        .y1(function (d) { return y(d.val1); });
+
     // Add the svg canvas
     var svg = d3.select(p.chart_div)
         .append("svg")
@@ -795,6 +929,28 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+    // Add error bands
+    if (p.bands) {
+        for (var i = 0; i < p.bands.length; i++) {
+            var band = [];
+            var series = p.data[p.bands[i].ref]
+            var series0 = p.data[p.bands[i].lower];
+            var series1 = p.data[p.bands[i].upper];
+            var bandColor = p.series_style_indices[p.bands[i].ref];
+            for (var j = 0; j < series0.length; j++) {
+                band.push({ val0: series0[j].val, val1: series1[j].val, epoch: series0[j].epoch });
+            }
+            // Add band area
+            svg.append("path")
+                .style("fill", "white")
+                .style("fill-opacity", 0.2)
+                .style("stroke", "none")
+                .attr("fill", "white")
+                .attr("d", bandsarea(band));
+        };
+    }
+
+    // Add value lines
     for (var i = 0; i < p.data.length; i++) {
         var series = p.data[i];
         // Add the valueline path.
@@ -847,18 +1003,38 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
         var getNearbyRecord = function (_func) {
             var mouse = d3.mouse(_func);
             var mouseDate = x.invert(mouse[0]);
+            var mouseY = y.invert(mouse[1]);
+            var result = null;
+            var result_y_best = null;
 
-            var bisect = d3.bisector(p.xaccessor).left;
-            var i = bisect(p.data[0], mouseDate); // returns the index to the current data item
+            for (var ii = 0; ii < p.data.length; ii++) {
+                var bisect = d3.bisector(p.xaccessor).left;
+                var i = bisect(p.data[ii], mouseDate); // returns the index to the current data item
 
-            var d0 = p.data[0][i - 1];
-            var d1 = p.data[0][i];
-            if (i == 0) { d0 = d1; }
-            if (i >= p.data[0].length) { d1 = d0; }
+                var d0;
+                var d1 = p.data[ii][i];
 
-            // work out which date value is closest to the mouse
-            return mouseDate.getTime() - p.xaccessor(d0) > p.xaccessor(d1) - mouseDate.getTime() ? d1 : d0;
+                if (i == 0 || p.data[ii].length == 1 || i >= p.data[ii].length) {
+                    d0 = d1;
+                } else {
+                    d0 = p.data[ii][i - 1];
+                }
 
+                var xaccessor0;
+                var xaccessor1;
+
+                if (d0 != null) { xaccessor0 = p.xaccessor(d0); }
+                if (d1 != null) { xaccessor1 = p.xaccessor(d1); }
+
+                // work out which date value is closest to the mouse
+                var result_x = mouseDate.getTime() - xaccessor0 > xaccessor1 - mouseDate.getTime() ? d1 : d0;
+                var result_y = p.yaccessor(result_x);
+                if (!result_y_best || Math.abs(result_y_best - mouseY) > Math.abs(result_y - mouseY)) {
+                    result_y_best = result_y;
+                    result = result_x;
+                }
+            }
+            return result;
         };
 
         g.on('click', function () {
@@ -897,6 +1073,8 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
             })
             .on('mousemove', function () {
                 var d = getNearbyRecord(this);
+
+                if (d == null) return;
 
                 var xx = x(new Date(p.xaccessor(d)));
                 var yy = y(p.yaccessor(d));
@@ -992,7 +1170,9 @@ TsDashboard.prototype.drawTable = function (config) {
         margin_bottom: 60,
         column_widths: null,
         column_order: null,
-        columns: null
+        columns: null,
+        sort_by_column: null,
+        sort_asc: true
     };
 
     // If we have user-defined parameters, override the defaults.
@@ -1025,8 +1205,16 @@ TsDashboard.prototype.drawTable = function (config) {
             theadtr.append("<th>" + columns[i].source + "</th>");
         }
     }
-
-    // create body 
+    if (p.sort_by_column !== null) {
+        if (!(p.sort_by_column in data[0])) {
+            self.showErrorMsg("Cannot sort tabel by column: " + p.sort_by_column);
+        } else {
+            data.sort(function (x, y) {
+                return p.sort_asc ? x[p.sort_by_column] > y[p.sort_by_column] : x[p.sort_by_column] < y[p.sort_by_column];
+            });
+        }
+    }
+    // create body
     var tbody = $("<tbody></tbody>");
     for (var i = 0; i < data.length; i++) {
         // create row
@@ -1082,7 +1270,7 @@ TsDashboard.prototype.drawKpi = function (config) {
     $(p.kpi_div).empty();
     var data = p.data;
 
-    // create body 
+    // create body
     var tbody = $("<tbody></tbody>");
     var row = $("<tr></tr>");
     for (var i = 0; i < data.length; i++) {
@@ -1110,34 +1298,43 @@ TsDashboard.prototype.drawTemporalGraph = function (config) {
     // Default parameters.
     var p = {
         chart_div: "#someChart",
-        data: null,
+        graph: null,
+        alerts: null,
+        start: null,
+        end: null,
         height: 400,
-        min_node_size: 2,
-        max_node_size: 4,
-        min_edge_size: 2,
-        max_edge_size: 6,
-        node_color: "red",
-        edge_color: "blue",
-        node_opacity: 0.3,
-        node_stroke: "red",
-        default_node_size: 1,
-        default_edge_size: 2,
+        min_node_size: 5,
+        max_node_size: 5,
+        min_edge_size: 20,
+        max_edge_size: 20,
+        node_color: "black",
+        edge_color: "white",
+        edge_off_color: "white",
+        edge_opacity: 0.4,
+        edge_off_opacity: 0.1,
+        edge_selected_opacity: 0.8,
+        node_opacity: 0.8,
+        node_alert_opacity: 1.0,
+        node_off_opacity: 0.1,
+        node_stroke: "white",
+        default_node_size: 5,
+        default_edge_size: 3,
         side_margin: 20,
-        duration: 0,
+        duration: 10000,
+        step_duration: 200,
         unselected_opacity: 0.1,
-        x_pos_att: "epoch"
+        x_pos_att: "epoch",
+        alert_node_opacity: 1.0,
+        alert_node_color: "red"
     };
 
     // If we have user-defined parameters, override the defaults.
     if (config !== "undefined") {
         for (var prop in config) {
-            console.log(prop, config[prop]);
             p[prop] = config[prop];
         }
     }
 
-    console.log(data);
-    console.log(p);
     // remove the previous drawing
     $(p.chart_div).empty();
     $(p.chart_div).css("height", p.height);
@@ -1147,7 +1344,9 @@ TsDashboard.prototype.drawTemporalGraph = function (config) {
         .attr("height", p.height);
 
     // data
-    var data = p.data[0];
+    var data = p.graph.length > 0 ? p.graph[0] : [];
+    var alertsAll = p.alerts.length > 0 ? p.alerts[0] : [];
+
     var nodes = data.nodes;
     var edges = data.edges;
     var x_pos_att = p.x_pos_att;
@@ -1158,6 +1357,38 @@ TsDashboard.prototype.drawTemporalGraph = function (config) {
     var nodes_arr = [];
     var node_sizes = [];
     var edge_sizes = [];
+
+    // itterate alerts and change colors of nodes
+    for (var node in nodes) {
+        nodes[node].color = p.node_color;
+        nodes[node].color = p.node_opacity;
+    }
+
+    var alerts = [];
+    var pred = [];
+
+    // iterate alerts and change colors of nodes
+    for (var i = 0; i < alertsAll.length; i++) {
+        if (alertsAll[i].src == "event_prediction" || alertsAll[i].src == "event_predictionalert") {
+            alertsAll[i].ts = Date.parse(alertsAll[i].ts);
+            pred.push(alertsAll[i]);
+        }
+        else {
+            alerts.push(alertsAll[i]);
+        }
+    }
+
+    // iterate alerts and change colors of nodes
+    for (var i = 0; i < alerts.length; i++) {
+        if (alerts[i].src == "event") {
+            var eventName = alerts[i]["title"].split(' ')[0];
+            if (eventName in nodes) {
+                nodes[eventName].color = p.alert_node_color;
+                nodes[eventName].opacity = p.node_alert_opacity;
+            }
+        }
+    }
+
     for (var node in nodes) {
         xpoints.push(nodes[node][x_pos_att]);
         ypoints.push(nodes[node].y);
@@ -1171,15 +1402,42 @@ TsDashboard.prototype.drawTemporalGraph = function (config) {
 
     // scales
     var scaleX = d3.scale.linear().domain([d3.min(xpoints), d3.max(xpoints)]).range([p.side_margin, $(p.chart_div).width() - p.side_margin]);
+    if (p.start != null && p.end != null) {
+        scaleX = d3.scale.linear().domain([p.start, p.end]).range([p.side_margin, $(p.chart_div).width() - p.side_margin]);
+    }
     var scaleY = d3.scale.linear().domain([d3.min(ypoints), d3.max(ypoints)]).range([p.side_margin, $(p.chart_div).height() - p.side_margin]);
     var scaleNode = d3.scale.linear().domain([d3.min(node_sizes), d3.max(node_sizes)]).range([p.min_node_size, p.max_node_size]);
     var scaleEdge = d3.scale.linear().domain([d3.min(edge_sizes), d3.max(edge_sizes)]).range([p.min_edge_size, p.max_edge_size]);
+    var scaleTime = d3.scale.linear().domain([p.start, p.end]).range([0, p.duration]);
+
     // Draw edges
     var lines = svg.selectAll("lines")
         .data(edges)
 
+    // edge helper structs
+    var lineIdArr = [];
+    var lineCoordinates = {}
+
     lines.enter()
         .append("path")
+        .attr("id", function (d, i) { lineIdArr.push('edge-' + d.n1 + '-' + d.n2); return 'edge-' + d.n1 + '-' + d.n2; })
+        .attr("class", "edge")
+        .attr("d", function (d) {
+            var t1x = 0; // starting position is 0 not scaleX(nodes[d.n1][x_pos_att]);
+            var t2x = 0; // starting positions is 0 not scaleX(nodes[d.n2][x_pos_att]);
+            var t1y = scaleY(nodes[d.n1].y);
+            var t2y = scaleY(nodes[d.n2].y);
+            var tx = parseInt(t1x) + parseInt((t2x - t1x) / 2);
+            lineCoordinates['edge-' + d.n1 + '-' + d.n2] = { x1: t1x, x2: t2x, y1: t1y, y2: t2y };
+            return "M" + t1x + "," + t1y + "C" + tx + "," + t1y + " " + tx + "," + t2y + " " + t2x + "," + t2y;
+
+        })
+        .style("fill", "none")
+        .style("stroke-opacity", 0.1)
+        .style("stroke", p.edge_off_color)
+        .style("stroke-width", p.default_edge_size)
+        .transition()
+        .delay(function (d) { return scaleTime(nodes[d.n2].epoch) })
         .attr("d", function (d) {
             var t1x = scaleX(nodes[d.n1][x_pos_att]);
             var t2x = scaleX(nodes[d.n2][x_pos_att]);
@@ -1187,16 +1445,9 @@ TsDashboard.prototype.drawTemporalGraph = function (config) {
             var t2y = scaleY(nodes[d.n2].y);
             var tx = parseInt(t1x) + parseInt((t2x - t1x) / 2);
             return "M" + t1x + "," + t1y + "C" + tx + "," + t1y + " " + tx + "," + t2y + " " + t2x + "," + t2y;
-
         })
-        .transition()
-        .delay(function (d) { return p.duration * (1 - ((d3.max(timepoints) - nodes[d.n2].epoch) / (d3.max(timepoints) - d3.min(timepoints)))); })
-        .style("fill", "none")
-        .style("stroke", function (d) { if (d.color) { return d.color; } else { return p.edge_color; } })
-        .style("stroke-width", function (d) { if (d.size) return scaleEdge(d.size); else { return p.default_edge_size } })
-        .style("stroke-opacity", function (d) { if (d.node_opacity) { return d.node_opacity; } else { return p.node_opacity } })
 
-    svg.selectAll("path")
+    svg.selectAll(".edge")
         .append("svg:title")
         .text(function (d) { return d.n1 + "-" + d.n2 })
 
@@ -1206,34 +1457,139 @@ TsDashboard.prototype.drawTemporalGraph = function (config) {
 
     circles.enter()
         .append("circle")
-        .transition()
-        .delay(function (d) { return p.duration * (1 - ((d3.max(timepoints) - d.options.epoch) / (d3.max(timepoints) - d3.min(timepoints)))); })
-        .attr("r", function (d) { if (d.options.size) { return scaleNode(d.options.size); } else { return p.default_node_size; } })
-        .attr("cx", function (d) { return scaleX(d.options[x_pos_att]); })
+        .attr("id", function (d, i) { return 'node-' + d.id; })
+        .attr("r", p.default_node_size)
+        .attr("cx", 0)
         .attr("cy", function (d) { return scaleY(d.options.y); })
-        .attr("fill", "white")
-        .attr("fill-opacity", p.node_opacity)
+        .attr("fill", function (d) { return p.node_off_color })
+        .attr("fill-opacity", function (d) { return p.node_off_opacity; })
+        .attr("stroke-width", 2)
+        .attr("stroke-opacity", p.node_off_opacity)
         .attr("stroke", p.node_stroke)
+        .transition()
+        .delay(function (d) { return scaleTime(d.options.epoch); })
+        .attr("cx", function (d) { return scaleX(d.options[x_pos_att]); })
+        .attr("fill-opacity", p.node_opacity)
 
     svg.selectAll("circle")
         .append("svg:title")
-        .text(function (d) { return d.id + "\n" + d.options.epoch; });
+        .text(function (d) { return d.id + "\n" + new Date(d.options.epoch); });
 
+    // node mouse events
     svg.selectAll("circle")
         .on("mouseover", function (e, i) {
-            svg.selectAll('path').style("stroke-opacity", function (d) { if (e.id != d.n1 && e.id != d.n2) { return p.unselected_opacity; } else { return p.node_opacity; } })
+            svg.selectAll(".edge").style("stroke-opacity", function (d) { if (e.id != d.n1 && e.id != d.n2) { return p.edge_off_opacity; } else { return p.edge_selected_opacity; } })
         })
         .on("mouseout", function (e, i) {
-            svg.selectAll("path").style("stroke-opacity", p.node_opacity)
+            svg.selectAll(".edge").style("stroke-opacity", p.edge_opacity)
+        })
+        .on("click", function (e, i) {
+            window.open("/alerts#filter=&d1=" + p.start + "&fd2=" + p.end, "_blank");
         })
 
-    svg.selectAll("path")
+    // edge mouse events
+    svg.selectAll(".edge")
         .on("mouseover", function (e, i) {
-            svg.selectAll('path').style("stroke-opacity", function (d) { if ((e.n1 == d.n1 && e.n2 == d.n2) || (e.n1 == d.n1 && e.n1 == d.n2)) { return p.selected_opacity; } else { return p.unselected_opacity; } })
+            svg.selectAll(".edge").style("stroke-opacity", function (d) { if ((e.n1 == d.n1 && e.n2 == d.n2) || (e.n1 == d.n1 && e.n1 == d.n2)) { return p.edge_selected_opacity; } else { return p.edge_off_opacity; } })
         })
         .on("mouseout", function (e, i) {
-            svg.selectAll("path").style("stroke-opacity", p.node_opacity)
+            svg.selectAll(".edge").style("stroke-opacity", p.edge_opacity)
         })
+
+    // set animations based on predictions
+    for (var i = pred.length - 1; i >= 0; i--) {
+        var predictions = JSON.parse(pred[i].extra_data).predictions;
+        for (var name in predictions) {
+            // move node
+            d3.select("#node-" + name).transition().delay(scaleTime(pred[i].ts)).attr("cx", scaleX(predictions[name])).duration(p.step_duration).ease("linear");
+            // move edge
+            for (var j = 0; j < lineIdArr.length; j++) {
+                if (lineIdArr[j].split('-')[1] == name) {
+                    var edge = d3.select("#" + lineIdArr[j]);
+                    edge.transition().delay(scaleTime(pred[i].ts))
+                        .attr("d", function (d) {
+                            var prev = lineCoordinates[lineIdArr[j]];
+                            var t1x = scaleX(predictions[name]);
+                            var t2x = prev.x2;
+                            var t1y = prev.y1;
+                            var t2y = prev.y2;
+                            var tx = parseInt(t1x) + parseInt((t2x - t1x) / 2);
+                            lineCoordinates[lineIdArr[j]] = { x1: t1x, x2: t2x, y1: t1y, y2: t2y };
+                            return "M" + t1x + "," + t1y + "C" + tx + "," + t1y + " " + tx + "," + t2y + " " + t2x + "," + t2y;
+                        })
+                        .duration(p.step_duration).ease("linear")
+                }
+                if (lineIdArr[j].split('-')[2] == name) {
+                    var edge = d3.select("#" + lineIdArr[j])
+                    edge.transition().delay(scaleTime(pred[i].ts))
+                        .attr("d", function (d) {
+                            var prev = lineCoordinates[lineIdArr[j]];
+                            var t1x = prev.x1;
+                            var t2x = scaleX(predictions[name]);
+                            var t1y = prev.y1;
+                            var t2y = prev.y2;
+                            var tx = parseInt(t1x) + parseInt((t2x - t1x) / 2);
+                            lineCoordinates[lineIdArr[j]] = { x1: t1x, x2: t2x, y1: t1y, y2: t2y };
+                            return "M" + t1x + "," + t1y + "C" + tx + "," + t1y + " " + tx + "," + t2y + " " + t2x + "," + t2y;
+                        }).duration(p.step_duration).ease("linear")
+                }
+            }
+        }
+    }
+
+    // finall state edge
+    for (var i = 0; i < edges.length; i++) {
+        d3.select("#edge-" + edges[i].n1 + "-" + edges[i].n2)
+            .transition()
+            .delay(scaleTime(nodes[edges[i].n2].epoch) + p.step_duration + 1)
+            .style("stroke-opacity", p.edge_opacity)
+            .style("stroke", p.edge_color)
+            //.style("stroke", "red")
+            .attr("d", function (d) {
+                var t1x = scaleX(nodes[edges[i].n1][x_pos_att]);
+                var t2x = scaleX(nodes[edges[i].n2][x_pos_att]);
+                var t1y = scaleY(nodes[edges[i].n1].y);
+                var t2y = scaleY(nodes[edges[i].n2].y);
+                var tx = parseInt(t1x) + parseInt((t2x - t1x) / 2);
+                return "M" + t1x + "," + t1y + "C" + tx + "," + t1y + " " + tx + "," + t2y + " " + t2x + "," + t2y;
+            })
+    }
+
+    // finnal state node
+    for (var i = 0; i < nodes_arr.length; i++) {
+        var time = scaleTime(nodes_arr[i].options.epoch) + p.step_duration + 1;
+        d3.select("#node-" + nodes_arr[i].id)
+            .transition()
+            .delay(time)
+            .attr("stroke-opacity", p.node_opacity)
+            .attr("fill", nodes_arr[i].options.color)
+            .attr("fill-opacity", nodes_arr[i].options.opacity)
+            .attr("cx", scaleX(nodes_arr[i].options.epoch))
+    }
+
+    // time traveling bar
+    var timeTraveler = svg.append("path")
+        .attr("id", "timeTraveler")
+        .attr("d", function (d) {
+            var t1x = scaleX(p.start);
+            var t2x = scaleX(p.start);
+            var t1y = scaleY(d3.min(ypoints));
+            var t2y = scaleY(d3.max(ypoints));
+            var tx = parseInt(t1x) + parseInt((t2x - t1x) / 2);
+            return "M" + t1x + "," + t1y + "C" + tx + "," + t1y + " " + tx + "," + t2y + " " + t2x + "," + t2y;
+
+        })
+        .style("stroke", "white")
+        .transition()
+        .attr("d", function (d) {
+            var t1x = scaleX(p.end);
+            var t2x = scaleX(p.end);
+            var t1y = scaleY(d3.min(ypoints));
+            var t2y = scaleY(d3.max(ypoints));
+            var tx = parseInt(t1x) + parseInt((t2x - t1x) / 2);
+            return "M" + t1x + "," + t1y + "C" + tx + "," + t1y + " " + tx + "," + t2y + " " + t2x + "," + t2y;
+        }).duration(p.duration).ease("linear")
+
 }
 
 TsDashboard.prototype.drawSwimlaneChart = function (config) {
@@ -1241,17 +1597,19 @@ TsDashboard.prototype.drawSwimlaneChart = function (config) {
 
     // If we have user-defined parameters, override the defaults.
     var p = {
-        "start": 1476704004295,
-        "end": 1476704005295,
+        "start": null,
+        "end": null,
         "side_margin": 10,
         "chart_div": "#divTarget",
         "alert_color": "white",
+        "alert_opacity": 0.99,
+        "alert_stroke": "black",
         "lanes_color": "#444",
         "master_lane_color": "#444",
         "lane_opacity": 0.4,
-        "lane_selected_opacity": 0.8,
+        "lane_selected_opacity": 0.5,
         "lane_height": 20,
-        "alert_radius": 5,
+        "alert_radius": 3,
         "alert_over_radius": 10,
         "ticks": 10
     };
@@ -1263,20 +1621,27 @@ TsDashboard.prototype.drawSwimlaneChart = function (config) {
         }
     }
 
-    console.log(p)
-    var data = p.data[0];
-    var alerts = data.alerts;
-    var start = data.start;
-    var end = data.end;
-
     // remove the previous drawing
     $(p.chart_div).empty();
 
-    // alerts - get this from input parameter
-    var alerts = [{ "type": "db", "ts": 1476704004495 }, { "type": "events", "ts": 1476704004535 }, { "type": "events", "ts": 1476704004695 }, { "type": "blalalalaaaa", "ts": 1476704004995 }];
-
     // x axis scaler
     var scaleX = d3.scale.linear().domain([p.start, p.end]).range([p.side_margin, $(p.chart_div).width() - p.side_margin]);
+
+    var alerts1 = p.data[0];
+
+
+    // transform attr names
+    var alerts = [];
+    for (var i = 0; i < alerts1.length; i++) {
+        if (alerts1[i].src != "event_prediction" && alerts1[i].src != "event_prediction_alert") {
+            alerts.push({
+                "type": alerts1[i].src,
+                "ts": new Date(alerts1[i].ts),
+                "ts_str": alerts1[i].ts,
+                "title": alerts1[i].title
+            });
+        }
+    }
 
     // find out how many different alert types is there
     var alertTypes = [];
@@ -1314,39 +1679,44 @@ TsDashboard.prototype.drawSwimlaneChart = function (config) {
     }
 
     // define the master lane
+    /*
     var masterSvd = d3.select(p.chart_div)
         .append("svg")
         .attr("width", $(p.chart_div)
-            .width())
+        .width())
         .attr("height", p.lane_height);
 
     var masterLane = masterSvd.append("rect")
         .attr("x", 0)
         .attr("y", 0)
         .attr("width", $(p.chart_div)
-            .width())
+        .width())
         .attr("height", p.lane_height)
         .attr("fill", p.master_lane_color)
         .attr("fill-opacity", p.lane_opacity)
-        .on("mouseover", function (d) { d3.select(this).attr("fill-opacity", p.lane_selected_opacity) })
-        .on("mouseout", function (d) { d3.select(this).attr("fill-opacity", p.lane_opacity) });
+        .on("mouseover", function(d){d3.select(this).attr("fill-opacity", p.lane_selected_opacity)})
+        .on("mouseout", function(d){d3.select(this).attr("fill-opacity", p.lane_opacity)});
 
     masterSvd.selectAll("circle")
         .data(alerts)
         .enter()
         .append("circle")
         .attr("cy", p.lane_height / 2)
-        .attr("cx", function (d) { return scaleX(d.ts); })
+        .attr("cx", function(d) { return scaleX(d.ts); })
         .attr("r", p.alert_radius)
         .attr("fill", p.alert_color)
-        .on("mouseover", function (d) { d3.select(this).attr("r", p.alert_over_radius) })
-        .on("mouseout", function (d) { d3.select(this).attr("r", p.alert_radius) })
-        .append("svg:title").text(function (d, i) { return "My type is: " + d.type; });
+        .attr("fill-opacity", p.alert_opacity)
+        .style("stroke", p.alert_stroke)
+        .on("mouseover", function(d){ d3.select(this).attr( "r", p.alert_over_radius ) })
+        .on("mouseout", function(d){ d3.select(this).attr( "r", p.alert_radius ) })
+        .on("click", function(e, i) { window.open("/alerts#filter=&d1="+p.start+"&fd2="+p.end, "_blank"); })
+        .append("svg:title").text( function(d, i) { return "source: " + d.type + "\n" + d.title + "\n" + d.ts; });
 
-    masterLane.on("click", function () {
+    masterLane.on("click", function() {
         clickAction();
         d3.event.stopPropagation();
     });
+    */
 
     // define alert type associated lanes
     var toggle = true;
@@ -1380,22 +1750,21 @@ TsDashboard.prototype.drawSwimlaneChart = function (config) {
         lanes[alertTypes[i]].selectAll("circle")
             .data(alerts.filter(function (d) { return d.type == alertTypes[i] }))
             .enter().append("circle").attr("cy", p.lane_height / 2)
+            .style("stroke", p.alert_stroke)
+            .attr("fill-opacity", p.alert_opacity)
             .attr("cx", function (d) { return scaleX(d.ts); }).attr("r", p.alert_radius).attr("fill", p.alert_color)
             .on("mouseover", function (d) { d3.select(this).attr("r", p.alert_over_radius) })
             .on("mouseout", function (d) { d3.select(this).attr("r", p.alert_radius) })
+            .on("click", function (e, i) { window.open("/alerts#filter=&d1=" + p.start + "&fd2=" + p.end, "_blank"); })
             .append("svg:title")
-            .text(function (d, i) { return "My type is: " + d.type; });
+            .text(function (d, i) { return "source: " + d.type + "\n" + d.title + "\n" + d.ts; });
     }
 
     // time scaler
-    var scaleTime = d3.time.scale().domain([new Date(p.start), new Date(p.end)]).nice(d3.time.hour).range([0, $(p.chart_div).width()]);
+    var scaleTime = d3.time.scale().domain([new Date(p.start), new Date(p.start)]).nice(d3.time.hour).range([0, $(p.chart_div).width()]);
 
     // append svd for time axis
     var timeSvd = d3.select(p.chart_div).append("svg").attr("width", $(p.chart_div).width()).attr("height", p.lane_height);
-
-    // append time axis
-    timeSvd.append("g").attr("class", "x axis").call(d3.svg.axis().scale(scaleTime).orient("bottom").ticks(p.ticks)).style("stroke", "none");
-
 }
 
 TsDashboard.prototype.drawColumnChart = function (config) {
@@ -1408,34 +1777,18 @@ TsDashboard.prototype.drawColumnChart = function (config) {
         margin_bottom: 60,
         xaccessor: function (x) { return x.name; },
         yaccessor: function (x) { return x.val; },
-        xdomain: null,
-        xdomain_min: null,
-        xdomain_max: null,
-        ydomain: null,
         ydomain_min: null,
         ydomain_max: null,
-        xcaption: null,
-        ycaptions: null,
-        series_style_indices: null,
         handle_clicks: false,
-        show_grid: true,
         x_axis_label: null,
         y_axis_label: null,
-        graph_css: 'area',
-        xAxisFontSize: '14px',
-        yAxisFontSize: '14px',
-        xAxisTicks: 7,
-        yFormatValue: "s",
+        xAxisLabelFormat: ',.1f',
+        yFormatValue: ".2s",
+        yAxisTicks: null,
         tickNumber: function (height, yDomainMax) {
             return Math.min(height < 100 ? 3 : 8, yDomainMax);
         },
-        markerStroke: 3,
-        markerOpacity: 0.4,
-        markerOpacityHover: 0.8,
-        markerColor: "#ff0000",
-        click_callback: null,
-        timepoints: null,
-        timepoint_callback: null
+        click_callback: null
     };
 
     // If we have user-defined parameters, override the defaults.
@@ -1444,7 +1797,17 @@ TsDashboard.prototype.drawColumnChart = function (config) {
             p[prop] = config[prop];
         }
     }
+    // gets max and min values of x and y values over all given data series
 
+    if (!p.ydomain) {
+        p.ydomain = d3.extent(p.data, p.yaccessor);
+    }
+    if (p.ydomain_min !== null) {
+        p.ydomain[0] = p.ydomain_min;
+    }
+    if (p.ydomain_max !== null) {
+        p.ydomain[1] = p.ydomain_max;
+    }
     // remove the previous drawing
     $(p.chart_div).empty();
 
@@ -1464,10 +1827,22 @@ TsDashboard.prototype.drawColumnChart = function (config) {
 
     var xAxis = d3.svg.axis()
         .scale(x)
-        .orient("bottom");
+        .orient("bottom")
+        .tickFormat(d3.format(p.xAxisLabelFormat));
+
+    var formatValue = d3.format(p.yFormatValue);
+    var ticks = p.tickNumber(height, p.ydomain[1]);
+    if (p.yAxisTicks != null) { ticks = p.yAxisTicks; }
+
+    var tickArr = [];
+    for (var i = 1; i <= ticks; i++) {
+        tickArr.push(p.ydomain[0] + (i * (p.ydomain[1] - p.ydomain[0]) / (ticks + 1)));
+    }
 
     var yAxis = d3.svg.axis()
         .scale(y)
+        .tickValues(tickArr)
+        .tickFormat(function (d) { return formatValue(d); })
         .orient("left");
 
     var chart = d3.select(p.chart_div)
@@ -1495,27 +1870,6 @@ TsDashboard.prototype.drawColumnChart = function (config) {
         .attr("class", "y axis")
         .call(yAxis);
 
-    // Add a text label for the X axis
-    if (p.x_axis_label != null) {
-        chart.append("text")
-            .attr("class", "x label")
-            .attr("text-anchor", "end")
-            .attr("x", width - 10)
-            .attr("y", height + margin.top + 16)
-            .text(p.x_axis_label);
-    }
-
-    // Add a text label for the Y axis
-    if (p.y_axis_label != null) {
-        chart.append("text")
-            .attr("class", "y label")
-            .attr("text-anchor", "end")
-            .attr("y", 6)
-            .attr("dy", ".75em")
-            .attr("transform", "rotate(-90)")
-            .text(p.y_axis_label);
-    }
-
     chart.selectAll(".bar")
         .data(data)
         .enter().append("rect")
@@ -1538,6 +1892,31 @@ TsDashboard.prototype.drawColumnChart = function (config) {
             tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
             tooltip.select("text").text(p.yaccessor(d));
         });
+
+    // Add a text label for the X axis
+    if (p.x_axis_label != null) {
+        chart.append("text")
+            .attr("class", "axislabel label")
+            .attr("text-anchor", "end")
+            .attr("font-size", "14px")
+            .attr("x", width / 2)
+            .attr("y", height + margin.top + 32)
+            .text(p.x_axis_label);
+    }
+
+    // Add a text label for the Y axis
+    if (p.y_axis_label != null) {
+        chart.append("text")
+            .attr("class", "axislabel label")
+            .attr("text-anchor", "end")
+            .attr("font-size", "14px")
+            .attr("x", 0)
+            .attr("y", 15)
+            .attr("dy", ".75em")
+            .attr("transform", "rotate(-90)")
+            .text(p.y_axis_label);
+    }
+
 
     // Prep the tooltip bits, initial display is hidden
     var tooltip = chart.append("g")
@@ -1625,14 +2004,14 @@ TsDashboard.prototype.drawScatterPlot = function (config) {
     var width = $(p.chart_div).width() - margin.left - margin.right;
     var height = p.height - margin.top - margin.bottom;
 
-    /* 
+    /*
      * value accessor - returns the value to encode for a given data object.
      * scale - maps value to a visual display encoding, such as a pixel position.
      * map function - maps from data value to display value
      * axis - sets up axis
      */
 
-    // setup x 
+    // setup x
     var xValue = p.xaccessor, // data -> value
         xScale = d3.scale.linear().range([0, width]), // value -> display
         xMap = function (d) { return xScale(xValue(d)); }, // data -> display
@@ -1756,6 +2135,143 @@ TsDashboard.prototype.drawScatterPlot = function (config) {
     }
 }
 
+TsDashboard.prototype.drawSparklineTable = function (config) {
+    var self = this;
+    var p = {
+        chart_div: "#someChart",
+        data: null,
+        spark_height: 15,
+        columns: 2,
+        title_clip_prefix: null,
+        title_clip_after: null,
+        col_names: null,
+        first_col_width: 150
+    };
+
+    // If we have user-defined parameters, override the defaults.
+    if (config !== "undefined") {
+        for (var prop in config) {
+            p[prop] = config[prop];
+        }
+    }
+    if (p.col_names == null) {
+        p.col_names = [];
+        for (var i = 0; i < p.columns; i++) {
+            p.col_names.push("");
+        }
+    }
+
+    // Parse the date / time
+    var parseDate = d3.time.format("%d-%b-%y").parse;
+    // create a line function that can convert data[] into x and y points
+    var sparkline = d3.svg.line()
+        .interpolate("linear")
+        .x(function (d) { return xscale(d.epoch); })
+        .y(function (d) { return yscale(d.val); });
+    // Bands area
+    var bandsarea = d3.svg.area()
+        .x(function (d) { return xscale(d.epoch); })
+        .y0(function (d) { return yscale(d.val); })
+        .y1(function (d) { return yscale(0); });
+
+    // remove the previous drawing
+    $(p.chart_div).empty();
+
+    var data = p.data;
+    var colNo = p.columns;
+    var rowNo = Math.floor((p.data.length - 1) / colNo) + 1;
+
+    // create headers
+    var thead = $("<thead></thead>");
+    var theadtr = $("<tr></tr>");
+    for (var i = 0; i < p.col_names.length; i++) {
+        var csswidth = i == 0 ? " style='white-space:nowrap' " : "";
+        theadtr.append("<th" + csswidth + ">" + p.col_names[i] + "</th>");
+    }
+    thead.append(theadtr);
+
+    // create body
+    var tbody = $("<tbody></tbody>");
+
+    // combine into a table
+    var table = $("<table class=\"table\"></table>");
+    table.append(thead);
+    table.append(tbody);
+    $(p.chart_div).append(table);
+
+    // style
+    $(p.chart_div).css('overflow', 'auto');
+    $(p.chart_div).css('height', p.height);
+    $(p.chart_div).css('margin-bottom', p.margin_bottom);
+
+    for (var i = 0; i <= rowNo; i++) {
+        // create row
+        var row = $("<tr></tr>");
+        tbody.append(row);
+        // add columns
+        for (var j = 0; j < colNo; j++) {
+            var dataIdx = i * colNo + j;
+            if (dataIdx >= p.data.length) continue;
+            var datum = data[dataIdx].values;
+            var title = data[dataIdx].title;
+            if (j == 0) {
+                var ctitle = title;
+                if (p.title_clip_after != null) {
+                    if (ctitle.indexOf(p.title_clip_after)) {
+                        ctitle = ctitle.substring(0, ctitle.indexOf(p.title_clip_after));
+                    }
+                }
+                if (p.title_clip_prefix != null) {
+                    if (ctitle.startsWith(p.title_clip_prefix)) {
+                        ctitle = ctitle.substr(p.title_clip_prefix.length);
+                    }
+                }
+                var titleTd = $("<td style='background-color:black !important; width:" + p.first_col_width + "px; word-break:break-all;'>" + ctitle + "</td>");
+                row.append(titleTd);
+            }
+            var imgTd = $("<td style='background-color:black !important; border-left: thin solid #282828; width:" + ((table.width() - p.first_col_width) / colNo).toFixed() + "px;'></td>");
+            var imgDiv = document.createElement("div");
+            imgTd.append(imgDiv);
+            row.append(imgTd);
+
+            var width = imgTd.width();
+
+            datum.forEach(function (d) {
+                d.date = self.toNiceDateTime(d.epoch);
+            });
+            // xscale will fit all values from data.date within pixels 0-width
+            var xscale = d3.time.scale()
+                .domain([d3.min(datum, function (d) { return d.epoch; }),
+                d3.max(datum, function (d) { return d.epoch; })])
+                .range([0, width]);
+            // yscale will fit all walues from data.val within pixels 0-width
+            var yscale = d3.scale.linear()
+                .domain([d3.min(datum, function (d) { return d.val; }),
+                d3.max(datum, function (d) { return d.val; })])
+                .range([p.spark_height, 0]);
+
+
+            var svg = d3.select(imgDiv)
+                .append("svg")
+                .attr("width", width)
+                .attr("height", p.spark_height);
+            svg.append("path")
+                .attr("d", sparkline(datum))
+                .attr("stroke", "#147BB1")
+                .style("stroke-width", 1.0)
+            svg.append("path")
+                .style("fill", "#147BB1")
+                .style("fill-opacity", 0.8)
+                .style("stroke", "none")
+                .attr("fill", "#147BB1")
+                .attr("d", bandsarea(datum));
+            // TODO svg onclick to GTS page
+        }
+    }
+
+}
+
+
 /////////////////////////////////////////////////////////////////////////////////////////////
 // Simple dummy driver that is already given all data and definitions
 function TsDashboardDummyDriver(view_definition, data) {
@@ -1772,5 +2288,5 @@ TsDashboardDummyDriver.prototype.getViewDefinition = function (callback) {
     callback(this.view_definition);
 }
 TsDashboardDummyDriver.prototype.getDrawData = function (options, callback) {
-    callback(this.data);
+    callback(null, this.data);
 }
