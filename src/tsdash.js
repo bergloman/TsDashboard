@@ -670,6 +670,7 @@ TsDashboard.prototype.run = function () {
                             Object.assign(options, widget.options);
                         }
                         self.drawSwimlaneChart(options);
+
                     } else if (widget.type == "sparkline") {
                         if (data == undefined || data.timeseries == undefined || data.timeseries.length == 0) {
                             self.showErrorMsg("Sparkline data not available.");
@@ -701,7 +702,8 @@ TsDashboard.prototype.run = function () {
                         }
                         self.drawSparklineTable(options);
                     } else {
-                        console.log('Widget type is not defined: ' + widget.type);
+                        self.showErrorMsg("Widget type is not defined: " + widget.type);
+                        console.log("Widget type is not defined: " + widget.type);
                     }
                 }
             }

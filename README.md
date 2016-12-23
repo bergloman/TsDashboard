@@ -1,6 +1,6 @@
 # TsDashboard
 
-Light-weight javascript library for creating time-series dashboards. 
+Light-weight javascript library for creating time-series dashboards.
 Geared primarily towards wide-screens, works also on tablets,
 but not specially optimized for phones.
 
@@ -37,7 +37,7 @@ The driver object must provide the following methods:
 
 **Optional** method.
 
-This way the view injects itself into driver - driver can call certain methodsinto view to 
+This way the view injects itself into driver - driver can call certain methodsinto view to
 set values or force refresh.
 
 ### onParamChange(name)
@@ -52,8 +52,8 @@ Parameter `callback` must accept single parameter - an object that describes the
 
 ### getParamValues(name, search, callback)
 
-This method is used to populate dropdowns (parameters type `enum`) 
-and dynamic search results (parameters type `filter`). Given parameter name 
+This method is used to populate dropdowns (parameters type `enum`)
+and dynamic search results (parameters type `filter`). Given parameter name
 and current search string (valid only for dynamic search)
 the callback receives the list of matches or allowed values.
 
@@ -61,15 +61,15 @@ the callback receives the list of matches or allowed values.
 
 This method fetches required data to draw. The `options` parameter must contain the following fields:
 
-- **conf** - configuration 
+- **conf** - configuration
 - **params** - values of parameters that were entered by the user
 
-Result should conform to the following schema:
+Callback receives `err` and optionaly result object. Result should conform to the following schema:
 
-``````
+```json
 {
     "timeseries" : [
-        { 
+        {
             "name" : "some name",
             "values: [
                 { "epoch": ..., "val": ... },
@@ -79,7 +79,7 @@ Result should conform to the following schema:
         ....
     ],
     "dataseries" : [
-        { 
+        {
             "name" : "some name",
             "values: [
                 { "name": ..., "val": ... },
@@ -89,7 +89,7 @@ Result should conform to the following schema:
         ....
     ],
     "scatterseries" : [
-        { 
+        {
             "name" : "some name",
             "values: [
                 { "x": ..., "y": ..., "c": "..." },
@@ -108,7 +108,7 @@ Result should conform to the following schema:
 
 Configuration is given in `javascript` object, which looks like the following `JSON`:
 
-```````````
+```json
 {
     "title": "......",
     "hide_sidebar": false,
@@ -153,6 +153,7 @@ Configuration is given in `javascript` object, which looks like the following `J
     ]
 }
 ```````````
+
 - `hide_sidebar` - if true doesn't generate and display sidebar with parameters. It just executes dashboard. This is useful if driver doesn't need user's input parameters. Default is `false`.
 - `sidebar_width` - width of sidebar in pixes. Default is 190px.
 - All titles (root, blocks, panels, widgets) are optional.
@@ -167,7 +168,15 @@ Configuration is given in `javascript` object, which looks like the following `J
 All widget options are optional.
 
 - `title` - Widget title. Optional.
-- `type` - Widget type, possible values are `timestamp`, `scatterplot`, `histogram`, `table` and `graph`. Optional, default value is `timestamp`. 
+- `type` - Widget type, possible values are:
+    - `timeseries` (Default if ommited)
+    - `scatterplot`
+    - `histogram`
+    - `table`
+    - `kpi`
+    - `swimlane`
+    - `graph`
+    - `sparkline`
 - `timeseries` - list of timeseries names. View requests these timeseries from the driver and then draws them to GUI. Used only for `timeseries` widget.
 - `scatterseries` - list of scatter-plot-series names. View requests these timeseries from the driver and then draws them to GUI. Used only for `scatterplot` widget.
 - `dataseries` - list of timeseries names. View requests these timeseries from the driver and then draws them to GUI. Used only for `histogram` widget.
@@ -217,6 +226,7 @@ All widget options are optional.
     - `width` - column width
 
 ### Temporal graph options
+
 - `height` - height of the temporal graph.
 - `min_node_size` - minimal node size.
 - `max_node_size` - maximal node size.
@@ -234,7 +244,7 @@ All widget options are optional.
 
 ## View interface
 
-This section describes view interface that can be called from the driver. 
+This section describes view interface that can be called from the driver.
 A reference to the view instance is passed via `registerView` method.
 
 ### getParamValue(name)
