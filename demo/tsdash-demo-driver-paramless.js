@@ -126,6 +126,7 @@ ParamlessDemoDriver.prototype.prepareViewDefinition = function (callback) {
                             },
                             {
                                 title: "Widget 1",
+                                help: "An example of a time-series plot with a label for y axis",
                                 timeseries: ["s1"],
                                 options: {
                                     height: 100,
@@ -134,6 +135,7 @@ ParamlessDemoDriver.prototype.prepareViewDefinition = function (callback) {
                             },
                             {
                                 title: "Widget 1x",
+                                help: "A second example of time-series plot",
                                 timeseries: ["s2"],
                                 options: {
                                     height: 100
