@@ -134,6 +134,7 @@ Configuration is given in `javascript` object, which looks like the following `J
                         {
                             "title": ".........",
                             "type": "timeseries",
+                            "help": ".........",
                             "timeseries": ["...", ....],
                             "dataseries": ["...", ....],
                             "timepoints": ["...", ....],
@@ -168,6 +169,7 @@ Configuration is given in `javascript` object, which looks like the following `J
 All widget options are optional.
 
 - `title` - Widget title. Optional.
+- `help` - Tooltip text on mouse hover. Optional.
 - `type` - Widget type, possible values are:
     - `timeseries` (Default if ommited)
     - `scatterplot`
