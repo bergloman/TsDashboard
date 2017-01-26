@@ -1,8 +1,11 @@
 function TsDashboard(div_id, driver) {
-    var self = this;
     this.driver = driver;
     this.div_id = div_id;
     this.init();
+
+    this._callbacks = {
+        memento: function () {}
+    }
 
     this.regex_date = /^(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31))$/;
     this.regex_datetime = /^(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31)) (0[0-9]|1[0-9]|2[0-3])(:[0-5][0-9]){2}$/;
@@ -13,9 +16,12 @@ function TsDashboard(div_id, driver) {
 }
 
 TsDashboard.prototype.onParamChange = function (name) {
+    var self = this;
     if (self.driver.onParamChange) {
         self.driver.onParamChange(name);
     }
+    // notify memento handler
+    self._callbacks.memento(self.getMemento());
 };
 
 TsDashboard.prototype.init = function () {
@@ -103,10 +109,7 @@ TsDashboard.prototype.showErrorMsg = function (msg) {
 
 TsDashboard.prototype.showError = function (e) {
     var self = this;
-
-    var message = e.message;
-
-    self.showErrorMsg(message);
+    self.showErrorMsg(e.message);
 }
 
 TsDashboard.prototype.getToday = function () {
@@ -266,7 +269,7 @@ TsDashboard.prototype.initParams = function () {
 TsDashboard.prototype.collectParameterValues = function () {
     var self = this;
     var param_values = [];
-    for (var i in self.conf.parameters) {
+    for (var i = 0; i < self.conf.parameters.length; i++) {
         var par = self.conf.parameters[i];
         var par_value = { name: par.name };
         if (par.type === "string") {
@@ -335,6 +338,30 @@ TsDashboard.prototype.collectParameterValues = function () {
         param_values.push(par_value);
     };
     return param_values;
+}
+
+TsDashboard.prototype.getMemento = function () {
+    var self = this;
+    var params = self.collectParameterValues();
+    var result = {};
+    for (var i = 0; i < params.length; i++) {
+        result[params[i].name] = params[i].value;
+    }
+    return result;
+}
+
+TsDashboard.prototype.loadMemento = function (memento) {
+    var self = this;
+    var conf = self.conf;
+
+    for (var paramN = 0; paramN < conf.parameters.length; paramN++) {
+        var par = conf.parameters[paramN];
+
+        if (!(par.name in memento)) { continue; }
+
+        var value = memento[par.name];
+        self.setParamValue(par.name, value);
+    }
 }
 
 function getFriendlyTimeSlotLabel(slot_length) {
@@ -423,201 +450,138 @@ TsDashboard.prototype.run = function () {
                             .attr("id", widget_id)
                             .attr("class", "tsd-widget-sub"));
                     widget_counter++;
-                    if (widget.type == "timeseries") {
-                        if (data == undefined || data.timeseries == undefined || data.timeseries.length == 0) {
-                            self.showErrorMsg("Time series data not available.");
-                            continue;
-                        }
-                        var data_series = [];
-                        var mapped = widget.timeseries.map(function (x) {
-                            for (var series_i = 0; series_i < data.timeseries.length; series_i++) {
-                                var series = data.timeseries[series_i];
-                                if (series.name === x) {
-                                    return series.values;
-                                }
+
+                    try {
+                        if (widget.type == "timeseries") {
+                            if (data == undefined || data.timeseries == undefined || data.timeseries.length == 0) {
+                                self.showErrorMsg("Time series data not available.");
+                                continue;
                             }
-                            return null;
-                        }
-                        );
-                        data_series = mapped.filter(function (x) {
-                            return x !== null;
-                        });
-                        var point_series = [];
-                        point_series = widget.timepoints
-                            .map(function (x) {
-                                for (var points_i = 0; points_i < data.timepoints.length; points_i++) {
-                                    var points = data.timepoints[points_i];
-                                    if (points.name === x) {
-                                        return points.values;
-                                    }
-                                }
-                                return null;
-                            })
-                            .filter(function (x) { return x !== null; });
-
-                        var options = {
-                            chart_div: "#" + widget_id,
-                            data: data_series,
-                            timepoints: point_series,
-                            xdomain: data.timeseries[0].xdomain,
-                            height: widget.height,
-                            handle_clicks: true,
-                            y_axis_label: getFriendlyTimeSlotLabel(data.timeseries[0].slot_length)
-                        }
-                        options.click_callback = (function (xoptions) {
-                            return function () { self.showModal(xoptions); }
-                        })(options);
-                        if (widget.options) {
-                            Object.assign(options, widget.options);
-                        }
-                        self.drawTimeSeriesMulti(options);
-
-                    } else if (widget.type == "histogram") {
-                        if (data == undefined || data.dataseries == undefined || data.dataseries.length == 0) {
-                            self.showErrorMsg("Histogram data not available.");
-                            continue;
-                        }
-                        var data_series = [];
-                        data_series = widget.dataseries
-                            .map(function (x) {
-                                for (var series_i = 0; series_i < data.dataseries.length; series_i++) {
-                                    var series = data.dataseries[series_i];
+                            var data_series = [];
+                            var labels = [];
+                            var mapped = widget.timeseries.map(function (x) {
+                                for (var series_i = 0; series_i < data.timeseries.length; series_i++) {
+                                    var series = data.timeseries[series_i];
                                     if (series.name === x) {
+                                        labels.push(data.timeseries[series_i].label);
                                         return series.values;
                                     }
                                 }
                                 return null;
-                            })
-                            .filter(function (x) { return x !== null; });
-                        var options = {
-                            chart_div: "#" + widget_id,
-                            data: data_series[0],
-                            xdomain: data.dataseries[0].xdomain,
-                            height: widget.height,
-                            handle_clicks: true
-                        }
-                        options.click_callback = (function (xoptions) {
-                            return function () { self.showModalColumnChart(xoptions); }
-                        })(options);
-                        if (widget.options) {
-                            Object.assign(options, widget.options);
-                        }
-                        self.drawColumnChart(options);
+                            }
+                            );
+                            data_series = mapped.filter(function (x) {
+                                return x !== null;
+                            });
 
-                    } else if (widget.type == "scatterplot") {
-                        var data_series = [];
-                        if (data == undefined || data.scatterseries == undefined || data.scatterseries.length == 0) {
-                            self.showErrorMsg("Scatter plot data not available.");
-                            continue;
-                        }
-                        data_series = widget.scatterseries
-                            .map(function (x) {
-                                for (var series_i = 0; series_i < data.scatterseries.length; series_i++) {
-                                    var series = data.scatterseries[series_i];
-                                    if (series.name === x) {
-                                        return series.values;
-                                    }
-                                }
-                                return null;
-                            })
-                            .filter(function (x) { return x !== null; });
-                        var options = {
-                            chart_div: "#" + widget_id,
-                            data: data_series[0],
-                            height: widget.height,
-                            handle_clicks: true
-                        }
-                        options.click_callback = (function (xoptions) {
-                            return function () { self.showModalScatterPlot(xoptions); }
-                        })(options);
-                        if (widget.options) {
-                            Object.assign(options, widget.options);
-                        }
-                        self.drawScatterPlot(options);
-
-                    } else if (widget.type == "table") {
-                        var data_series = [];
-                        var data_type = "dataseries";
-                        if (widget.timeseries) {
-                            data_type = "timeseries";
-                        }
-
-                        if (data == undefined || data[data_type] == undefined || data[data_type].length == 0) {
-                            self.showErrorMsg("Table data not available.");
-                            continue;
-                        }
-                        data_series = widget[data_type]
-                            .map(function (x) {
-                                for (var series_i = 0; series_i < data[data_type].length; series_i++) {
-                                    var series = data[data_type][series_i];
-                                    if (series.name === x) {
-                                        return series.values;
-                                    }
-                                }
-                                return null;
-                            })
-                            .filter(function (x) { return x !== null; });
-                        var options = {
-                            chart_div: "#" + widget_id,
-                            data: data_series,
-                            height: widget.height,
-                            handle_clicks: false
-                        }
-                        options.click_callback = (function (xoptions) {
-                            return function () { self.showModal(xoptions); }
-                        })(options);
-                        if (widget.options) {
-                            Object.assign(options, widget.options);
-                        }
-                        self.drawTable(options);
-
-                    } else if (widget.type == "kpi") {
-                        var data_series = widget.dataseries
-                            .map(function (x) {
-                                for (var series_i in data.dataseries) {
-                                    var series = data.dataseries[series_i];
-                                    if (series.name === x) {
-                                        return series.values;
-                                    }
-                                }
-                                return null;
-                            })
-                            .filter(function (x) { return x !== null; });
-                        var options = {
-                            kpi_div: "#" + widget_id,
-                            data: data_series[0],
-                            height: widget.height,
-                            handle_clicks: false
-                        }
-                        if (widget.options) {
-                            Object.assign(options, widget.options);
-                        }
-                        self.drawKpi(options);
-
-                    } else if (widget.type == "graph") {
-                        var graph = {};
-                        var data_type = "graphs";
-                        graph = widget[data_type]
-                            .map(function (x) {
-                                for (var series_i in data[data_type]) {
-                                    var series = data[data_type][series_i];
-                                    if (series.name === x) {
-                                        return series.values;
-                                    }
-                                }
-                                return null;
-                            })
-                            .filter(function (x) { return x !== null; });
-                        if (data == undefined || data[data_type] == undefined || data[data_type].length == 0) {
-                            self.showErrorMsg("Graph data not available.");
-                            continue;
-                        }
-                        var alerts = [];
-                        data_type = "dataseries";
-                        if (widget[data_type]) {
-                            alerts = widget[data_type]
+                            var point_series = [];
+                            point_series = widget.timepoints
                                 .map(function (x) {
-                                    for (var series_i in data[data_type]) {
+                                    for (var points_i = 0; points_i < data.timepoints.length; points_i++) {
+                                        var points = data.timepoints[points_i];
+                                        if (points.name === x) {
+                                            return points.values;
+                                        }
+                                    }
+                                    return null;
+                                })
+                                .filter(function (x) { return x !== null; });
+
+                            var options = {
+                                chart_div: "#" + widget_id,
+                                data: data_series,
+                                labels: labels,
+                                timepoints: point_series,
+                                xdomain: data.timeseries[0].xdomain,
+                                height: widget.height,
+                                handle_clicks: true,
+                                y_axis_label: getFriendlyTimeSlotLabel(data.timeseries[0].slot_length)
+                            }
+                            options.click_callback = (function (xoptions) {
+                                return function () { self.showModal(xoptions); }
+                            })(options);
+                            if (widget.options) {
+                                Object.assign(options, widget.options);
+                            }
+                            self.drawTimeSeriesMulti(options);
+
+                        } else if (widget.type == "histogram") {
+                            if (data == undefined || data.dataseries == undefined || data.dataseries.length == 0) {
+                                self.showErrorMsg("Histogram data not available.");
+                                continue;
+                            }
+                            var data_series = [];
+                            data_series = widget.dataseries
+                                .map(function (x) {
+                                    for (var series_i = 0; series_i < data.dataseries.length; series_i++) {
+                                        var series = data.dataseries[series_i];
+                                        if (series.name === x) {
+                                            return series.values;
+                                        }
+                                    }
+                                    return null;
+                                })
+                                .filter(function (x) { return x !== null; });
+                            var options = {
+                                chart_div: "#" + widget_id,
+                                data: data_series[0],
+                                xdomain: data.dataseries[0].xdomain,
+                                height: widget.height,
+                                handle_clicks: true
+                            }
+                            options.click_callback = (function (xoptions) {
+                                return function () { self.showModalColumnChart(xoptions); }
+                            })(options);
+                            if (widget.options) {
+                                Object.assign(options, widget.options);
+                            }
+                            self.drawColumnChart(options);
+
+                        } else if (widget.type == "scatterplot") {
+                            var data_series = [];
+                            if (data == undefined || data.scatterseries == undefined || data.scatterseries.length == 0) {
+                                self.showErrorMsg("Scatter plot data not available.");
+                                continue;
+                            }
+                            data_series = widget.scatterseries
+                                .map(function (x) {
+                                    for (var series_i = 0; series_i < data.scatterseries.length; series_i++) {
+                                        var series = data.scatterseries[series_i];
+                                        if (series.name === x) {
+                                            return series.values;
+                                        }
+                                    }
+                                    return null;
+                                })
+                                .filter(function (x) { return x !== null; });
+                            var options = {
+                                chart_div: "#" + widget_id,
+                                data: data_series[0],
+                                height: widget.height,
+                                handle_clicks: true
+                            }
+                            options.click_callback = (function (xoptions) {
+                                return function () { self.showModalScatterPlot(xoptions); }
+                            })(options);
+                            if (widget.options) {
+                                Object.assign(options, widget.options);
+                            }
+                            self.drawScatterPlot(options);
+
+                        } else if (widget.type == "table") {
+                            var data_series = [];
+                            var data_type = "dataseries";
+                            if (widget.timeseries) {
+                                data_type = "timeseries";
+                            }
+
+                            if (data == undefined || data[data_type] == undefined || data[data_type].length == 0) {
+                                self.showErrorMsg("Table data not available.");
+                                continue;
+                            }
+                            data_series = widget[data_type]
+                                .map(function (x) {
+                                    for (var series_i = 0; series_i < data[data_type].length; series_i++) {
                                         var series = data[data_type][series_i];
                                         if (series.name === x) {
                                             return series.values;
@@ -626,89 +590,182 @@ TsDashboard.prototype.run = function () {
                                     return null;
                                 })
                                 .filter(function (x) { return x !== null; });
-                        }
-                        var nodes = graph[0].nodes;
-                        var options = {
-                            chart_div: "#" + widget_id,
-                            pred: alerts,
-                            graph: graph,
-                            alerts: alerts,
-                            start: data["graphs"][0].d1,
-                            end: data["graphs"][0].d2,
-                            handle_clicks: false
-                        }
-                        if (widget.options) {
-                            Object.assign(options, widget.options);
-                        }
-                        self.drawTemporalGraph(options);
-                    } else if (widget.type == "swimlane") {
-                        var data_type = "dataseries";
-                        dataseries = widget[data_type]
-                            .map(function (x) {
-                                for (var series_i in data[data_type]) {
-                                    var series = data[data_type][series_i];
-                                    if (series.name === x) {
-                                        return series.values;
+                            var options = {
+                                chart_div: "#" + widget_id,
+                                data: data_series,
+                                height: widget.height,
+                                handle_clicks: false
+                            }
+                            options.click_callback = (function (xoptions) {
+                                return function () { self.showModal(xoptions); }
+                            })(options);
+                            if (widget.options) {
+                                Object.assign(options, widget.options);
+                            }
+                            self.drawTable(options);
+
+                        } else if (widget.type == "kpi") {
+                            var data_series = widget.dataseries
+                                .map(function (x) {
+                                    for (var series_i in data.dataseries) {
+                                        var series = data.dataseries[series_i];
+                                        if (series.name === x) {
+                                            return series.values;
+                                        }
+                                    }
+                                    return null;
+                                })
+                                .filter(function (x) { return x !== null; });
+                            var options = {
+                                kpi_div: "#" + widget_id,
+                                data: data_series[0],
+                                height: widget.height,
+                                handle_clicks: false
+                            }
+                            if (widget.options) {
+                                Object.assign(options, widget.options);
+                            }
+                            self.drawKpi(options);
+
+                        } else if (widget.type == "graph") {
+                            var graph_opts = self._constructGraph(
+                                widget.graphs,
+                                data.graphs,
+                                widget.dataseries,
+                                data.dataseries
+                            );
+
+                            if (widget.options) {
+                                Object.assign(graph_opts, widget.options);
+                            }
+
+                            self.drawTemporalGraph('#' + widget_id, graph_opts);
+                        } else if (widget.type == "swimlane") {
+                            var swimlane_opts = self._constructSwimlane(
+                                widget.dataseries,
+                                data.dataseries
+                            )
+
+                            if (widget.options) {
+                                Object.assign(swimlane_opts, widget.options);
+                            }
+
+                            self.drawSwimlaneChart("#" + widget_id, swimlane_opts);
+                        } else if (widget.type == "sparkline") {
+                            if (data == undefined || data.timeseries == undefined || data.timeseries.length == 0) {
+                                self.showErrorMsg("Sparkline data not available.");
+                                continue;
+                            }
+
+                            var data_series = [];
+                            for (var sparkline_i = 0; sparkline_i < widget.sparklines.length; sparkline_i++) {
+                                for (var series_i = 0; series_i < data.timeseries.length; series_i++) {
+                                    var series = data.timeseries[series_i];
+                                    if (series.name === widget.sparklines[sparkline_i]) {
+                                        data_series.push(series);
                                     }
                                 }
-                                return null;
-                            })
-                            .filter(function (x) { return x !== null; });
-
-                        if (data == undefined || data[data_type] == undefined || data[data_type].length == 0) {
-                            self.showErrorMsg("Swimlane data not available.");
-                            continue;
-                        }
-                        var options = {
-                            chart_div: "#" + widget_id,
-                            data: dataseries,
-                            start: data[data_type][0].d1,
-                            end: data[data_type][0].d2,
-                            handle_clicks: false
-                        }
-                        if (widget.options) {
-                            Object.assign(options, widget.options);
-                        }
-                        self.drawSwimlaneChart(options);
-
-                    } else if (widget.type == "sparkline") {
-                        if (data == undefined || data.timeseries == undefined || data.timeseries.length == 0) {
-                            self.showErrorMsg("Sparkline data not available.");
-                            continue;
-                        }
-
-                        var data_series = [];
-                        for (var sparkline_i = 0; sparkline_i < widget.sparklines.length; sparkline_i++) {
-                            for (var series_i = 0; series_i < data.timeseries.length; series_i++) {
-                                var series = data.timeseries[series_i];
-                                if (series.name === widget.sparklines[sparkline_i]) {
-                                    data_series.push(series);
-                                }
                             }
-                        }
 
-                        data_series.sort(function (x, y) { return x.idx > y.idx; });
+                            data_series.sort(function (x, y) { return x.idx > y.idx; });
 
-                        var options = {
-                            chart_div: "#" + widget_id,
-                            data: data_series,
-                            handle_clicks: true
+                            var options = {
+                                chart_div: "#" + widget_id,
+                                data: data_series,
+                                handle_clicks: true
+                            }
+                            options.click_callback = (function (xoptions) {
+                                return function () { self.showModal(xoptions); }
+                            })(options);
+                            if (widget.options) {
+                                Object.assign(options, widget.options);
+                            }
+                            self.drawSparklineTable(options);
+                        } else {
+                            self.showErrorMsg("Widget type is not defined: " + widget.type);
+                            console.log("Widget type is not defined: " + widget.type);
                         }
-                        options.click_callback = (function (xoptions) {
-                            return function () { self.showModal(xoptions); }
-                        })(options);
-                        if (widget.options) {
-                            Object.assign(options, widget.options);
-                        }
-                        self.drawSparklineTable(options);
-                    } else {
-                        self.showErrorMsg("Widget type is not defined: " + widget.type);
-                        console.log("Widget type is not defined: " + widget.type);
+                    } catch (e) {
+                        self.showErrorMsg(e.message != null ? e.message : 'Exception while drawing widget!');
+                        console.error('Exception while drawing widget!');
                     }
                 }
             }
         }
     });
+}
+
+TsDashboard.prototype._constructGraph = function (graph_widget, graph_data,
+        dataseries_widget, dataseries_data) {
+    // var data_type = "graphs";
+    var graph = graph_widget
+        .map(function (x) {
+            for (var series_i in graph_data) {
+                var series = graph_data[series_i];
+                var name = series.name;
+                if (name === x) {
+                    return series.values;
+                }
+            }
+            return null;
+        })
+        .filter(function (x) { return x !== null; });
+    if (graph_data == undefined || graph_data.length == 0) {
+        throw new Error("Graph data not available.");
+    }
+
+    var alerts = [];
+    // data_type = "dataseries";
+    if (dataseries_widget) {
+        alerts = dataseries_widget
+            .map(function (x) {
+                for (var series_i in dataseries_data) {
+                    var series = dataseries_data[series_i];
+                    if (series.name === x) {
+                        return series.values;
+                    }
+                }
+                return null;
+            })
+            .filter(function (x) { return x !== null; });
+    }
+    // var nodes = graph[0].nodes;
+    var options = {
+        pred: alerts,
+        graph: graph,
+        alerts: alerts,
+        start: graph_data[0].d1,
+        end: graph_data[0].d2,
+        handle_clicks: false
+    }
+
+    return options;
+}
+
+TsDashboard.prototype._constructSwimlane = function (dataseries_widget, dataseries_data) {
+    // var data_type = "dataseries";
+    var dataseries = dataseries_widget.map(function (x) {
+            for (var series_i in dataseries_data) {
+                var series = dataseries_data[series_i];
+                if (series.name === x) {
+                    return series.values;
+                }
+            }
+            return null;
+        })
+        .filter(function (x) { return x !== null; });
+
+    if (dataseries_data == undefined || dataseries_data.length == 0) {
+        throw new Error("Swimlane data not available.")
+    }
+    var options = {
+        data: dataseries,
+        start: dataseries_data[0].d1,
+        end: dataseries_data[0].d2,
+        handle_clicks: false
+    }
+
+    return options
 }
 
 TsDashboard.prototype.showModal = function (options) {
@@ -795,12 +852,13 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
         markerOpacityHover: 0.8,
         markerColor: "#ff0000",
         click_callback: null,
-        timepoints: null,
-        timepoint_callback: null,
+        timepoints: null, // double array (each timeseries can have multiple timepoints) of timepoints { epoch: x, title: y }
+        // timepoint_callback: null, // NOT USED CURRENTLY
         margin_top: 18,
         margin_right: 35,
         margin_bottom: 20,
-        margin_left: 50
+        margin_left: 50,
+        labels: null
     };
 
     // If we have user-defined parameters, override the defaults.
@@ -809,6 +867,7 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
             p[prop] = config[prop];
         }
     }
+
     // gets max and min values of x and y values over all given data series
     if (!p.xdomain) {
         var extents = p.data.map(function (x) { return d3.extent(x, p.xaccessor); });
@@ -932,6 +991,7 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
     // Add error bands
+    var bandIndices = [];
     if (p.bands) {
         for (var i = 0; i < p.bands.length; i++) {
             var band = [];
@@ -939,6 +999,8 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
             var series0 = p.data[p.bands[i].lower];
             var series1 = p.data[p.bands[i].upper];
             var bandColor = p.series_style_indices[p.bands[i].ref];
+            bandIndices.push(p.bands[i].lower);
+            bandIndices.push(p.bands[i].upper);
             for (var j = 0; j < series0.length; j++) {
                 band.push({ val0: series0[j].val, val1: series1[j].val, epoch: series0[j].epoch });
             }
@@ -949,11 +1011,12 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
                 .style("stroke", "none")
                 .attr("fill", "white")
                 .attr("d", bandsarea(band));
-        };
+        }
     }
 
     // Add value lines
     for (var i = 0; i < p.data.length; i++) {
+        if (bandIndices.indexOf(i) != -1) { continue; } // do not plot band edges
         var series = p.data[i];
         // Add the valueline path.
         svg.append("path")
@@ -1126,15 +1189,14 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
                         .attr("x2", xx)
                         .attr("y1", 0)
                         .attr("y2", p.height - margin.top - margin.bottom)
-                        .attr("class", "series" + j)
-                        //.style("stroke", color)
+                        .style("stroke", color)
                         .style("stroke-width", p.markerStroke)
                         .style("opacity", p.markerOpacity)
                         .on("mouseover", function (d) {
                             var ttx = d3.select(this)[0][0].id;
                             var tts = d3.select(this)[0][0].attributes[1].value;
                             var title = d3.select(this)[0][0].attributes[2].value;
-                            d3.select(this).style("opacity", 1)
+                            d3.select(this).style("opacity", 0.6)
                             tooltip.style('opacity', p.markerOpacityHover);
                             tooltip.html(title + "<br/>" + tts)
                                 .style("left", ttx - 70 + "px")
@@ -1157,6 +1219,37 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
             .attr('text-anchor', 'end')
             .text("NO DATA!")
             .attr('class', 'zerolinetext');
+    }
+
+    // Draw legend
+    var lpx = 20;
+    var lpy = 20;
+    var rect_length = 10;
+    if (p.labels) {
+        for (var i = 0; i < p.labels.length; i++) {
+            if (p.labels[i]){
+                var length = p.labels[i].length * 8;
+                g.append("rect")
+                    .attr("x", lpx)
+                    .attr("y", lpy - rect_length)
+                    .attr("width", rect_length)
+                    .attr("height", rect_length)
+                    .attr("class", "series-legend" + i)
+
+                g.append("text")
+                    .attr("x", lpx + 12)
+                    .attr("y", lpy)
+                    .text(p.labels[i])
+
+                if (lpx + (2*length) > width) {
+                    lpx = 20;
+                    lpy = lpy + 20;
+                }
+                else {
+                    lpx += length + 10;
+                }
+            }
+        }
     }
 }
 
@@ -1207,9 +1300,9 @@ TsDashboard.prototype.drawTable = function (config) {
             theadtr.append("<th>" + columns[i].source + "</th>");
         }
     }
-    if (p.sort_by_column !== null) {
+    if (p.sort_by_column !== null && data.length > 0) {
         if (!(p.sort_by_column in data[0])) {
-            self.showErrorMsg("Cannot sort tabel by column: " + p.sort_by_column);
+            self.showErrorMsg("Cannot sort table by column: " + p.sort_by_column);
         } else {
             data.sort(function (x, y) {
                 return p.sort_asc ? x[p.sort_by_column] > y[p.sort_by_column] : x[p.sort_by_column] < y[p.sort_by_column];
@@ -1295,11 +1388,11 @@ TsDashboard.prototype.drawKpi = function (config) {
     $(p.kpi_div).append(table);
 }
 
-TsDashboard.prototype.drawTemporalGraph = function (config) {
+TsDashboard.prototype.drawTemporalGraph = function (chart_div, config) {
     var self = this;
     // Default parameters.
     var p = {
-        chart_div: "#someChart",
+        chart_div: chart_div,
         graph: null,
         alerts: null,
         start: null,
@@ -1486,7 +1579,9 @@ TsDashboard.prototype.drawTemporalGraph = function (config) {
             svg.selectAll(".edge").style("stroke-opacity", p.edge_opacity)
         })
         .on("click", function (e, i) {
-            window.open("/alerts#filter=&d1=" + p.start + "&fd2=" + p.end, "_blank");
+            if (self.driver.openTimeInterval) {
+                self.driver.openTimeInterval(p.start, p.end, true);
+            }
         })
 
     // edge mouse events
@@ -1594,15 +1689,15 @@ TsDashboard.prototype.drawTemporalGraph = function (config) {
 
 }
 
-TsDashboard.prototype.drawSwimlaneChart = function (config) {
+TsDashboard.prototype.drawSwimlaneChart = function (chart_div, config) {
     var self = this;
 
     // If we have user-defined parameters, override the defaults.
     var p = {
+        "chart_div": chart_div,//"#divTarget",
         "start": null,
         "end": null,
         "side_margin": 10,
-        "chart_div": "#divTarget",
         "alert_color": "white",
         "alert_opacity": 0.99,
         "alert_stroke": "black",
@@ -1680,46 +1775,6 @@ TsDashboard.prototype.drawSwimlaneChart = function (config) {
         $(p.chart_div).css("width", "100%");
     }
 
-    // define the master lane
-    /*
-    var masterSvd = d3.select(p.chart_div)
-        .append("svg")
-        .attr("width", $(p.chart_div)
-        .width())
-        .attr("height", p.lane_height);
-
-    var masterLane = masterSvd.append("rect")
-        .attr("x", 0)
-        .attr("y", 0)
-        .attr("width", $(p.chart_div)
-        .width())
-        .attr("height", p.lane_height)
-        .attr("fill", p.master_lane_color)
-        .attr("fill-opacity", p.lane_opacity)
-        .on("mouseover", function(d){d3.select(this).attr("fill-opacity", p.lane_selected_opacity)})
-        .on("mouseout", function(d){d3.select(this).attr("fill-opacity", p.lane_opacity)});
-
-    masterSvd.selectAll("circle")
-        .data(alerts)
-        .enter()
-        .append("circle")
-        .attr("cy", p.lane_height / 2)
-        .attr("cx", function(d) { return scaleX(d.ts); })
-        .attr("r", p.alert_radius)
-        .attr("fill", p.alert_color)
-        .attr("fill-opacity", p.alert_opacity)
-        .style("stroke", p.alert_stroke)
-        .on("mouseover", function(d){ d3.select(this).attr( "r", p.alert_over_radius ) })
-        .on("mouseout", function(d){ d3.select(this).attr( "r", p.alert_radius ) })
-        .on("click", function(e, i) { window.open("/alerts#filter=&d1="+p.start+"&fd2="+p.end, "_blank"); })
-        .append("svg:title").text( function(d, i) { return "source: " + d.type + "\n" + d.title + "\n" + d.ts; });
-
-    masterLane.on("click", function() {
-        clickAction();
-        d3.event.stopPropagation();
-    });
-    */
-
     // define alert type associated lanes
     var toggle = true;
     var lanes = {};
@@ -1757,7 +1812,11 @@ TsDashboard.prototype.drawSwimlaneChart = function (config) {
             .attr("cx", function (d) { return scaleX(d.ts); }).attr("r", p.alert_radius).attr("fill", p.alert_color)
             .on("mouseover", function (d) { d3.select(this).attr("r", p.alert_over_radius) })
             .on("mouseout", function (d) { d3.select(this).attr("r", p.alert_radius) })
-            .on("click", function (e, i) { window.open("/alerts#filter=&d1=" + p.start + "&fd2=" + p.end, "_blank"); })
+            .on("click", function (e, i) {
+                if (self.driver.openTimeInterval) {
+                    self.driver.openTimeInterval(p.start, p.end);
+                }
+            })
             .append("svg:title")
             .text(function (d, i) { return "source: " + d.type + "\n" + d.title + "\n" + d.ts; });
     }
@@ -1986,7 +2045,7 @@ TsDashboard.prototype.drawScatterPlot = function (config) {
         },
         markerStroke: 3,
         markerOpacity: 0.4,
-        markerOpacityHover: 0.8,
+        markerOpacityHover: 0.5,
         markerColor: "#ff0000",
         click_callback: null
     };
@@ -2216,22 +2275,27 @@ TsDashboard.prototype.drawSparklineTable = function (config) {
             if (dataIdx >= p.data.length) continue;
             var datum = data[dataIdx].values;
             var title = data[dataIdx].title;
+            var pipeline = data[dataIdx].pipeline;
+            var url = data[dataIdx].url;
             if (j == 0) {
-                var ctitle = title;
+                 var ctitle = title;
                 if (p.title_clip_after != null) {
-                    if (ctitle.indexOf(p.title_clip_after)) {
-                        ctitle = ctitle.substring(0, ctitle.indexOf(p.title_clip_after));
-                    }
-                }
-                if (p.title_clip_prefix != null) {
-                    if (ctitle.startsWith(p.title_clip_prefix)) {
-                        ctitle = ctitle.substr(p.title_clip_prefix.length);
-                    }
-                }
-                var titleTd = $("<td style='background-color:black !important; width:" + p.first_col_width + "px; word-break:break-all;'>" + ctitle + "</td>");
+                    p.title_clip_after.forEach(function (val) {
+                       if (ctitle.indexOf(val) >= 0){
+                           ctitle = ctitle.substring(0, ctitle.indexOf(val));
+                       }
+                    });
+                 }
+                 if (p.title_clip_prefix != null) {
+                     if (ctitle.startsWith(p.title_clip_prefix) >= 0) {
+                         ctitle = ctitle.substr(p.title_clip_prefix.length);
+                     }
+                 }
+                var titleTd = $("<td style='background-color:black !important; width:" + p.first_col_width
+                                + "px; word-break:break-all;'>" + ctitle + "</td>");
                 row.append(titleTd);
             }
-            var imgTd = $("<td style='background-color:black !important; border-left: thin solid #282828; width:" + ((table.width() - p.first_col_width) / colNo).toFixed() + "px;'></td>");
+            var imgTd = $("<td " + url + " style='background-color:black !important; border-left: thin solid #282828; width:" + ((table.width() - p.first_col_width) / colNo).toFixed() + "px;'></td>");
             var imgDiv = document.createElement("div");
             imgTd.append(imgDiv);
             row.append(imgTd);
@@ -2267,10 +2331,14 @@ TsDashboard.prototype.drawSparklineTable = function (config) {
                 .style("stroke", "none")
                 .attr("fill", "#147BB1")
                 .attr("d", bandsarea(datum));
-            // TODO svg onclick to GTS page
         }
     }
+}
 
+TsDashboard.prototype.on = function (event, callback) {
+    var self = this;
+    if (!(event in self._callbacks)) throw new Error('Invalid event name: ' + event);
+    self._callbacks[event] = callback;
 }
 
 
