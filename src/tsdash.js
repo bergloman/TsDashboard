@@ -442,7 +442,16 @@ TsDashboard.prototype.run = function () {
                     panel_div.append(widget_div);
                     widget_div.addClass("tsd-widget");
                     if (widget.title && widget.title.length > 0) {
-                        widget_div.append($(document.createElement("h3")).text(widget.title));
+                        var widget_title = $(document.createElement("h3")).text(widget.title);
+                        widget_div.append(widget_title);
+                        if (widget.help && widget.help.length > 0) {
+                            var widget_help = $(document.createElement("div"));
+                            widget_help.addClass("tsd-help-tip");
+                            widget_title.append(widget_help);
+                            var widget_help_box = $(document.createElement("div")).text(widget.help);
+                            widget_help_box.addClass("tsd-help-tip-box");
+                            widget_help.append(widget_help_box);
+                        }
                     }
                     var widget_id = "tsd_widget_" + widget_counter;
                     widget_div.append(
