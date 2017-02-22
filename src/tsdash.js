@@ -244,7 +244,7 @@ TsDashboard.prototype.initParams = function () {
             }
 
         } else if (par.type === "enum" || par.type === "dropdown") {
-            label.append("<select id='in" + par.name + "'></select >");
+            label.append("<select id='in" + par.name + self.sufix + "'></select >");
             self.driver.getParamValues(par.name, null, function (options) {
                 for (var i = 0; i < options.length; i++) {
                     var option = options[i];
