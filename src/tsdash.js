@@ -3,10 +3,10 @@ function TsDashboard(div_id, driver, auto_init) {
 
     this.driver = driver;
     this.div_id = div_id;
-    this.sufix = function(len){
+    this.sufix = function (len) {
         var text = "";
         var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        for( var i=0; i < len; i++ )
+        for (var i = 0; i < len; i++)
             text += possible.charAt(Math.floor(Math.random() * possible.length));
         return "_" + text;
     }(10);
@@ -16,7 +16,7 @@ function TsDashboard(div_id, driver, auto_init) {
     }
 
     this._callbacks = {
-        memento: function () {}
+        memento: function () { }
     }
 
     this.regex_date = /^(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31))$/;
@@ -45,26 +45,27 @@ TsDashboard.prototype.init = function () {
         self.top = $("#" + self.div_id);
         self.top.append("<div class='tsd' id='" + self.div_id + self.sufix + "'></div>");
         self.top = $("#" + self.div_id + self.sufix);
+        self.div_id = self.div_id + self.sufix;
 
         if (self.conf.hide_sidebar) {
             self.top.append("<div class='tsd-main' id='tsd_main" + self.sufix + "'></div>");
         } else {
-            self.top.append("<div class='tsd-sidebar dark-matter'></div>");
+            self.top.append("<div class='tsd-sidebar dark-matter' id='tsd_sidebar" + self.sufix + "'></div>");
             self.top.append("<div class='tsd-main' id='tsd_main" + self.sufix + "'></div>");
             self.conf.sidebar_width = self.conf.sidebar_width || 190;
-            self.top.find(".tsd-sidebar").width(self.conf.sidebar_width);
-            self.top.find(".tsd-main").css("margin-left", (+self.conf.sidebar_width) + "px");
+            $("#tsd_sidebar" + self.sufix).width(self.conf.sidebar_width);
+            $("#tsd_main" + self.sufix).css("margin-left", (+self.conf.sidebar_width) + "px");
 
             if (conf.title) {
-                self.top.find(".tsd-sidebar").append("<h1>" + conf.title + "</h1>");
+                $("#tsd_sidebar" + self.sufix).append("<h1>" + conf.title + "</h1>");
             }
 
             self.initParams();
         }
 
-        self.top.find(".tsd-main").append("<div role='alert'' class='tsd-error alert alert-danger'>...</div>");
-        self.top.find(".tsd-main").append("<div class='tsd-main-content' id='tsd_main_content" + self.sufix + "'></div>");
-        self.top.find(".tsd-main").append(
+        $("#tsd_main" + self.sufix).append("<div role='alert' class='tsd-error alert alert-danger' id='tsd_error" + self.sufix + "'>...</div>");
+        $("#tsd_main" + self.sufix).append("<div class='tsd-main-content' id='tsd_main_content" + self.sufix + "'></div>");
+        $("#tsd_main" + self.sufix).append(
             "<div class='modal' id='divModal" + self.sufix + "' tabindex='-1' role='dialog' aria-labelledby='myModalLabel' aria-hidden='true'>\
                 <div class='modal-dialog'>\
                     <div class='modal-content'>\
@@ -89,7 +90,7 @@ TsDashboard.prototype.init = function () {
 
 TsDashboard.prototype.getParamValue = function (name) {
     var self = this;
-    return self.top.find("#in" + name).val();
+    return $("#in" + name + self.sufix).val();
 }
 
 TsDashboard.prototype.setParamValue = function (name, value) {
@@ -104,23 +105,23 @@ TsDashboard.prototype.setParamValue = function (name, value) {
         if (par.type === "boolean") {
             label.append("<input type='checkbox' id='cb" + par.name + self.sufix + "'></input>");
             if (par.default) {
-                self.top.find("#cb" + par.name + self.sufix).attr('checked', "true");
+                $("#cb" + par.name + self.sufix).attr('checked', "true");
             }
         } else {
-            self.top.find("#in" + par.name + self.sufix).val(value);
+            $("#in" + par.name + self.sufix).val(value);
         }
     })(ii);
 }
 
 TsDashboard.prototype.resetErrorMsg = function () {
     var self = this;
-    self.top.find(".tsd-error").removeClass("tsd-error-visible");
+    $("#tsd_error" + self.sufix).removeClass("tsd-error-visible");
 }
 
 TsDashboard.prototype.showErrorMsg = function (msg) {
     var self = this;
-    self.top.find(".tsd-error").text(msg);
-    self.top.find(".tsd-error").addClass("tsd-error-visible");
+    $("#tsd_error" + self.sufix).text(msg);
+    $("#tsd_error" + self.sufix).addClass("tsd-error-visible");
 }
 
 TsDashboard.prototype.showError = function (e) {
@@ -148,11 +149,11 @@ TsDashboard.prototype.getDateString = function (d) {
 
 TsDashboard.prototype.initParams = function () {
     var self = this;
-    var sidebar = self.top.find(".tsd-sidebar");
+    var sidebar = $("#tsd_sidebar" + self.sufix);
     for (var ii = 0; ii < self.conf.parameters.length; ii++) (function (i) {
         var par = self.conf.parameters[i];
 
-        var label = self.top.find(document.createElement("div"));
+        var label = $(document.createElement("div"));
         label.appendTo(sidebar);
         label.addClass("tsd-sidebar-param");
         label.append("<span>" + par.title + "</span>");
@@ -160,36 +161,36 @@ TsDashboard.prototype.initParams = function () {
         if (par.type === "string") {
             label.append("<input id='in" + par.name + self.sufix + "'></input>");
             if (par.default) {
-                self.top.find("#in" + par.name + self.sufix).val(par.default);
+                $("#in" + par.name + self.sufix).val(par.default);
             }
 
         } else if (par.type === "datetime") {
             label.append("<input id='in" + par.name + self.sufix + "' placeholder='yyyy-mm-dd hh:MM:ss'></input>");
-            self.top.find("#in" + par.name + self.sufix).blur(function () {
-                var val = self.top.find("#in" + par.name + self.sufix).val();
+            $("#in" + par.name + self.sufix).blur(function () {
+                var val = $("#in" + par.name + self.sufix).val();
                 if (self.regex_date.test(val)) {
-                    self.top.find("#in" + par.name + self.sufix).val(val + " 00:00:00");
+                    $("#in" + par.name + self.sufix).val(val + " 00:00:00");
                 }
             });
             label.append("<a id='hin_now_" + par.name + self.sufix + "' class='tsd-input-help'>Now</a> ");
-            self.top.find("#hin_now_" + par.name + self.sufix).click(function () {
-                self.top.find("#in" + par.name + self.sufix).val(self.getTimeString());
+            $("#hin_now_" + par.name + self.sufix).click(function () {
+                $("#in" + par.name + self.sufix).val(self.getTimeString());
             });
             label.append("<a id='hin_today_" + par.name + self.sufix + "' class='tsd-input-help'>Today</a> ");
-            self.top.find("#hin_today_" + par.name + self.sufix).click(function () {
-                self.top.find("#in" + par.name + self.sufix).val(self.getDateString() + " 00:00:00");
+            $("#hin_today_" + par.name + self.sufix).click(function () {
+                $("#in" + par.name + self.sufix).val(self.getDateString() + " 00:00:00");
             });
 
             if (par.default) {
                 if (par.default instanceof Date) {
-                    self.top.find("#in" + par.name + self.sufix).val(self.getTimeString(par.default));
+                    $("#in" + par.name + self.sufix).val(self.getTimeString(par.default));
                 } else {
                     if (par.default == "$now") {
-                        self.top.find("#in" + par.name + self.sufix).val(self.getTimeString());
+                        $("#in" + par.name + self.sufix).val(self.getTimeString());
                     } else if (par.default == "$today") {
-                        self.top.find("#in" + par.name + self.sufix).val(self.getDateString() + " 00:00:00");
+                        $("#in" + par.name + self.sufix).val(self.getDateString() + " 00:00:00");
                     } else {
-                        self.top.find("#in" + par.name + self.sufix).val(par.default);
+                        $("#in" + par.name + self.sufix).val(par.default);
                     }
                 }
             }
@@ -197,19 +198,19 @@ TsDashboard.prototype.initParams = function () {
         } else if (par.type === "date") {
             label.append("<input id='in" + par.name + self.sufix + "' placeholder='yyyy-mm-dd'></input>");
             label.append("<a id='hin_today_" + par.name + self.sufix + "' class='tsd-input-help'>Today</a> ");
-            self.top.find("#hin_today_" + par.name + self.sufix).click(function () {
-                self.top.find("#in" + par.name + self.sufix).val(self.getDateString());
+            $("#hin_today_" + par.name + self.sufix).click(function () {
+                $("#in" + par.name + self.sufix).val(self.getDateString());
             });
             if (par.default) {
                 if (par.default instanceof Date) {
-                    self.top.find("#in" + par.name).val(self.getDateString(par.default));
+                    $("#in" + par.name).val(self.getDateString(par.default));
                 } else {
                     if (par.default == "$now") {
-                        self.top.find("#in" + par.name + self.sufix).val(self.getDateString());
+                        $("#in" + par.name + self.sufix).val(self.getDateString());
                     } else if (par.default == "$today") {
-                        self.top.find("#in" + par.name + self.sufix).val(self.getDateString());
+                        $("#in" + par.name + self.sufix).val(self.getDateString());
                     } else {
-                        self.top.find("#in" + par.name + self.sufix).val(par.default);
+                        $("#in" + par.name + self.sufix).val(par.default);
                     }
                 }
             }
@@ -217,29 +218,29 @@ TsDashboard.prototype.initParams = function () {
         } else if (par.type === "filter") {
             label.append("<input id='in" + par.name + self.sufix + "'></input>");
             label.append("<div id='opt" + par.name + self.sufix + "' class='tsd-match-options'></div>");
-            self.top.find("#in" + par.name + self.sufix).keyup(function () {
-                var val = self.top.find("#in" + par.name + self.sufix).val();
+            $("#in" + par.name + self.sufix).keyup(function () {
+                var val = $("#in" + par.name + self.sufix).val();
                 var skip_search =
                     (par.search_min_len === undefined && val.length < 3) ||
                     (par.search_min_len !== undefined && val.length < par.search_min_len)
                 if (skip_search) return;
                 self.driver.getParamValues(par.name, val, function (options) {
-                    self.top.find("#opt" + par.name + self.sufix).empty();
-                    self.top.find("#opt" + par.name + self.sufix).show();
+                    $("#opt" + par.name + self.sufix).empty();
+                    $("#opt" + par.name + self.sufix).show();
                     for (var iii = 0; iii < options.length; iii++) (function (i) {
                         var option = $(document.createElement("div"));
                         option.text(options[i]);
                         option.click(function () {
-                            self.top.find("#in" + par.name + self.sufix).val(options[i]);
-                            self.top.find("#opt" + par.name + self.sufix).empty();
-                            self.top.find("#opt" + par.name + self.sufix).hide();
+                            $("#in" + par.name + self.sufix).val(options[i]);
+                            $("#opt" + par.name + self.sufix).empty();
+                            $("#opt" + par.name + self.sufix).hide();
                         })
-                        self.top.find("#opt" + par.name + self.sufix).append(option);
+                        $("#opt" + par.name + self.sufix).append(option);
                     })(iii);
                 });
             });
             if (par.default) {
-                self.top.find("#in" + par.name + self.sufix).val(par.default);
+                $("#in" + par.name + self.sufix).val(par.default);
             }
 
         } else if (par.type === "enum" || par.type === "dropdown") {
@@ -257,27 +258,27 @@ TsDashboard.prototype.initParams = function () {
                         name = option.name;
                     }
 
-                    self.top.find("#in" + par.name + self.sufix).append("<option value='" + value + "'>" + name + "</option>");
+                    $("#in" + par.name + self.sufix).append("<option value='" + value + "'>" + name + "</option>");
                 }
                 if (par.default) {
-                    self.top.find("#in" + par.name + self.sufix).val(par.default);
+                    $("#in" + par.name + self.sufix).val(par.default);
                 }
             });
 
         } else if (par.type === "boolean") {
             label.append("<input type='checkbox' id='in" + par.name + self.sufix + "'></input>");
             if (par.default) {
-                self.top.find("#in" + par.name + self.sufix).attr('checked', "true");
+                $("#in" + par.name + self.sufix).attr('checked', "true");
             }
         }
 
         // set up callback for value change
-        self.top.find("#in" + par.name + self.sufix).change(function () {
+        $("#in" + par.name + self.sufix).change(function () {
             self.onParamChange(par.name);
         });
     })(ii);
 
-    var btn = self.top.find(document.createElement("button"));
+    var btn = $(document.createElement("button"));
     btn.text("Run");
     btn.click(function () { self.run(); });
     btn.appendTo(sidebar);
@@ -290,14 +291,14 @@ TsDashboard.prototype.collectParameterValues = function () {
         var par = self.conf.parameters[i];
         var par_value = { name: par.name };
         if (par.type === "string") {
-            par_value.value = self.top.find("#in" + par.name + self.sufix).val().trim();
+            par_value.value = $("#in" + par.name + self.sufix).val().trim();
             if (!par.optional && par_value.value === "") {
                 self.showErrorMsg("Missing non-optional parameter: " + par.title);
                 return null;
             }
 
         } else if (par.type === "datetime") {
-            par_value.value = self.top.find("#in" + par.name + self.sufix).val();
+            par_value.value = $("#in" + par.name + self.sufix).val();
             if (!par.optional && par_value.value === null) {
                 self.showErrorMsg("Missing non-optional parameter: " + par.title);
                 return null;
@@ -314,7 +315,7 @@ TsDashboard.prototype.collectParameterValues = function () {
             par_value.value = moment(par_value.value, "YYYY-MM-DD HH:mm:ss").toDate();
 
         } else if (par.type === "date") {
-            par_value.value = self.top.find("#in" + par.name + self.sufix).val();
+            par_value.value = $("#in" + par.name + self.sufix).val();
             if (!par.optional && par_value.value === null) {
                 self.showErrorMsg("Missing non-optional parameter: " + par.title);
                 return null;
@@ -327,28 +328,28 @@ TsDashboard.prototype.collectParameterValues = function () {
             par_value.value = moment(par_value.value, "YYYY-MM-DD").toDate();
 
         } else if (par.type === "filter") {
-            par_value.value = self.top.find("#in" + par.name + self.sufix).val();
+            par_value.value = $("#in" + par.name + self.sufix).val();
             if (!par.optional && par_value.value === null) {
                 self.showErrorMsg("Missing non-optional parameter: " + par.title);
                 return null;
             }
 
         } else if (par.type === "enum") {
-            par_value.value = self.top.find("#sel" + par.name + self.sufix).val();
+            par_value.value = $("#sel" + par.name + self.sufix).val();
             if (!par.optional && par_value.value === null) {
                 self.showErrorMsg("Missing non-optional parameter: " + par.title);
                 return null;
             }
 
         } else if (par.type === "dropdown") {
-            par_value.value = self.top.find("#in" + par.name + self.sufix).val();
+            par_value.value = $("#in" + par.name + self.sufix).val();
             if (par_value.value === null) {
                 self.showErrorMsg("Missing non-optional parameter: " + par.title);
                 return null;
             }
         } else if (par.type === "boolean") {
             par_value.value = false;
-            if (self.top.find("#cb" + par.name + self.sufix).attr('checked')) {
+            if ($("#cb" + par.name + self.sufix).attr('checked')) {
                 par_value.value = true;
             }
         }
@@ -403,7 +404,7 @@ function getFriendlyTimeSlotLabel(slot_length) {
 TsDashboard.prototype.run = function () {
     var self = this;
 
-    var main = self.top.find("#tsd_main_content" + self.sufix);
+    var main = $("#tsd_main_content" + self.sufix);
     main.empty();
     self.resetErrorMsg();
 
@@ -461,7 +462,7 @@ TsDashboard.prototype.run = function () {
                     if (widget.title && widget.title.length > 0) {
                         widget_div.append($(document.createElement("h3")).text(widget.title));
                     }
-                    var widget_id = "tsd_widget_" + widget_counter;
+                    var widget_id = "tsd_widget_" + widget_counter + self.sufix;
                     widget_div.append(
                         $(document.createElement("div"))
                             .attr("id", widget_id)
@@ -505,7 +506,7 @@ TsDashboard.prototype.run = function () {
                                 .filter(function (x) { return x !== null; });
 
                             var options = {
-                                chart_div: "#" + widget_id + self.sufix,
+                                chart_div: "#" + widget_id,
                                 data: data_series,
                                 labels: labels,
                                 timepoints: point_series,
@@ -540,7 +541,7 @@ TsDashboard.prototype.run = function () {
                                 })
                                 .filter(function (x) { return x !== null; });
                             var options = {
-                                chart_div: "#" + widget_id + self.sufix,
+                                chart_div: "#" + widget_id,
                                 data: data_series[0],
                                 xdomain: data.dataseries[0].xdomain,
                                 height: widget.height,
@@ -572,7 +573,7 @@ TsDashboard.prototype.run = function () {
                                 })
                                 .filter(function (x) { return x !== null; });
                             var options = {
-                                chart_div: "#" + widget_id + self.sufix,
+                                chart_div: "#" + widget_id,
                                 data: data_series[0],
                                 height: widget.height,
                                 handle_clicks: true
@@ -608,7 +609,7 @@ TsDashboard.prototype.run = function () {
                                 })
                                 .filter(function (x) { return x !== null; });
                             var options = {
-                                chart_div: "#" + widget_id + self.sufix,
+                                chart_div: "#" + widget_id,
                                 data: data_series,
                                 height: widget.height,
                                 handle_clicks: false
@@ -634,7 +635,7 @@ TsDashboard.prototype.run = function () {
                                 })
                                 .filter(function (x) { return x !== null; });
                             var options = {
-                                kpi_div: "#" + widget_id + self.sufix,
+                                kpi_div: "#" + widget_id,
                                 data: data_series[0],
                                 height: widget.height,
                                 handle_clicks: false
@@ -655,7 +656,7 @@ TsDashboard.prototype.run = function () {
                                 Object.assign(graph_opts, widget.options);
                             }
 
-                            self.drawTemporalGraph('#' + widget_id + self.sufix, graph_opts);
+                            self.drawTemporalGraph('#' + widget_id, graph_opts);
                         } else if (widget.type == "swimlane") {
                             var swimlane_opts = self._constructSwimlane(
                                 widget.dataseries,
@@ -666,7 +667,7 @@ TsDashboard.prototype.run = function () {
                                 Object.assign(swimlane_opts, widget.options);
                             }
 
-                            self.drawSwimlaneChart("#" + widget_id + self.sufix, swimlane_opts);
+                            self.drawSwimlaneChart("#" + widget_id, swimlane_opts);
                         } else if (widget.type == "sparkline") {
                             if (data == undefined || data.timeseries == undefined || data.timeseries.length == 0) {
                                 self.showErrorMsg("Sparkline data not available.");
@@ -686,7 +687,7 @@ TsDashboard.prototype.run = function () {
                             data_series.sort(function (x, y) { return x.idx > y.idx; });
 
                             var options = {
-                                chart_div: "#" + widget_id + self.sufix,
+                                chart_div: "#" + widget_id,
                                 data: data_series,
                                 handle_clicks: true
                             }
@@ -708,7 +709,7 @@ TsDashboard.prototype.run = function () {
                                 Object.assign(gantt_opts, widget.options);
                             }
 
-                            self.drawMultiGantt('#' + widget_id + self.sufix, gantt_opts);
+                            self.drawMultiGantt('#' + widget_id, gantt_opts);
                         }
                         else {
                             self.showErrorMsg("Widget type is not defined: " + widget.type);
@@ -724,7 +725,7 @@ TsDashboard.prototype.run = function () {
 }
 
 TsDashboard.prototype._constructGraph = function (graph_widget, graph_data,
-        dataseries_widget, dataseries_data) {
+    dataseries_widget, dataseries_data) {
     // var data_type = "graphs";
     var graph = graph_widget
         .map(function (x) {
@@ -773,14 +774,14 @@ TsDashboard.prototype._constructGraph = function (graph_widget, graph_data,
 TsDashboard.prototype._constructSwimlane = function (dataseries_widget, dataseries_data) {
     // var data_type = "dataseries";
     var dataseries = dataseries_widget.map(function (x) {
-            for (var series_i in dataseries_data) {
-                var series = dataseries_data[series_i];
-                if (series.name === x) {
-                    return series.values;
-                }
+        for (var series_i in dataseries_data) {
+            var series = dataseries_data[series_i];
+            if (series.name === x) {
+                return series.values;
             }
-            return null;
-        })
+        }
+        return null;
+    })
         .filter(function (x) { return x !== null; });
 
     if (dataseries_data == undefined || dataseries_data.length == 0) {
@@ -819,38 +820,38 @@ TsDashboard.prototype._constructMultiGantt = function (dataseries_widget, datase
 
 TsDashboard.prototype.showModal = function (options) {
     var self = this;
-    self.top.find('#divModal' + self.sufix).on('shown.bs.modal', function () {
+    $('#divModal' + self.sufix).on('shown.bs.modal', function () {
         options.chart_div = "#divModalChart" + self.sufix;
         options.height = 800;
         options.handle_clicks = true;
         options.click_callback = function () { };
         self.drawTimeSeriesMulti(options);
     });
-    self.top.find('#divModal' + self.sufix).modal();
+    $('#divModal' + self.sufix).modal();
 }
 
 TsDashboard.prototype.showModalColumnChart = function (options) {
     var self = this;
-    self.top.find('#divModal' + self.sufix).on('shown.bs.modal', function (e) {
+    $('#divModal' + self.sufix).on('shown.bs.modal', function (e) {
         options.chart_div = "#divModalChart" + self.sufix;
         options.height = 500;
         options.handle_clicks = false;
         options.click_callback = function () { };
         self.drawColumnChart(options);
     });
-    self.top.find('#divModal' + self.sufix).modal();
+    $('#divModal' + self.sufix).modal();
 }
 
 TsDashboard.prototype.showModalScatterPlot = function (options) {
     var self = this;
-    self.top.find('#divModal' + self.sufix).on('shown.bs.modal', function (e) {
+    $('#divModal' + self.sufix).on('shown.bs.modal', function (e) {
         options.chart_div = "#divModalChart" + self.sufix;
         options.height = 500;
         options.handle_clicks = false;
         options.click_callback = function () { };
         self.drawScatterPlot(options);
     });
-    self.top.find('#divModal' + self.sufix).modal();
+    $('#divModal' + self.sufix).modal();
 }
 
 TsDashboard.prototype.toNiceDateTime = function (s) {
@@ -957,14 +958,14 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
     }
 
     // remove the previous drawing
-    self.top.find(p.chart_div).empty();
+    $(p.chart_div).empty();
 
     // Set the dimensions of the canvas / graph
     var margin = { top: p.margin_top, right: p.margin_right, bottom: p.margin_bottom, left: p.margin_left };
     if (p.x_axis_label) {
         margin.bottom += 20;
     }
-    var width = self.top.find(p.chart_div).width() - margin.left - margin.right;
+    var width = $(p.chart_div).width() - margin.left - margin.right;
     var height = p.height - margin.top - margin.bottom;
 
     // Parse the date / time
@@ -1217,7 +1218,7 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
     }// if handle clicks
 
     if (p.backgroundSegments) {
-        for (var bs_idx = 0; bs_idx < p.backgroundSegments.length; bs_idx++ ) {
+        for (var bs_idx = 0; bs_idx < p.backgroundSegments.length; bs_idx++) {
             var bSegment = p.backgroundSegments[bs_idx];
             var epoch_start = bSegment.epoch_start;
             var epoch_end = bSegment.epoch_end;
@@ -1296,7 +1297,7 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
     var rect_length = 10;
     if (p.labels) {
         for (var i = 0; i < p.labels.length; i++) {
-            if (p.labels[i]){
+            if (p.labels[i]) {
                 var length = p.labels[i].length * 8;
                 g.append("rect")
                     .attr("x", lpx)
@@ -1310,7 +1311,7 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
                     .attr("y", lpy)
                     .text(p.labels[i])
 
-                if (lpx + (2*length) > width) {
+                if (lpx + (2 * length) > width) {
                     lpx = 20;
                     lpy = lpy + 20;
                 }
@@ -1347,7 +1348,7 @@ TsDashboard.prototype.drawTable = function (config) {
     }
 
     // remove the previous drawing
-    self.top.find(p.chart_div).empty();
+    $(p.chart_div).empty();
 
     var data = p.data[0];
     var columns = p.columns;
@@ -1399,12 +1400,12 @@ TsDashboard.prototype.drawTable = function (config) {
     thead.append(theadtr);
     table.append(thead);
     table.append(tbody);
-    self.top.find(p.chart_div).append(table);
+    $(p.chart_div).append(table);
 
     // style
-    self.top.find(p.chart_div).css('overflow', 'auto');
-    self.top.find(p.chart_div).css('height', p.height);
-    self.top.find(p.chart_div).css('margin-bottom', p.margin_bottom);
+    $(p.chart_div).css('overflow', 'auto');
+    $(p.chart_div).css('height', p.height);
+    $(p.chart_div).css('margin-bottom', p.margin_bottom);
 
 }
 
@@ -1432,7 +1433,7 @@ TsDashboard.prototype.drawKpi = function (config) {
     }
 
     // remove the previous drawing
-    self.top.find(p.kpi_div).empty();
+    $(p.kpi_div).empty();
     var data = p.data;
 
     // create body
@@ -1483,7 +1484,7 @@ TsDashboard.prototype.drawKpi = function (config) {
 
     var table = $("<table></table>");
     table.append(tbody);
-    self.top.find(p.kpi_div).append(table);
+    $(p.kpi_div).append(table);
 }
 
 TsDashboard.prototype.drawTemporalGraph = function (chart_div, config) {
@@ -1529,11 +1530,11 @@ TsDashboard.prototype.drawTemporalGraph = function (chart_div, config) {
     }
 
     // remove the previous drawing
-    self.top.find(p.chart_div).empty();
-    self.top.find(p.chart_div).css("height", p.height);
+    $(p.chart_div).empty();
+    $(p.chart_div).css("height", p.height);
     var svg = d3.select(p.chart_div)
         .append("svg").attr("x", 0).attr("y", 0)
-        .attr("width", self.top.find(p.chart_div).width())
+        .attr("width", $(p.chart_div).width())
         .attr("height", p.height);
 
     // data
@@ -1594,11 +1595,11 @@ TsDashboard.prototype.drawTemporalGraph = function (chart_div, config) {
     }
 
     // scales
-    var scaleX = d3.scale.linear().domain([d3.min(xpoints), d3.max(xpoints)]).range([p.side_margin, self.top.find(p.chart_div).width() - p.side_margin]);
+    var scaleX = d3.scale.linear().domain([d3.min(xpoints), d3.max(xpoints)]).range([p.side_margin, $(p.chart_div).width() - p.side_margin]);
     if (p.start != null && p.end != null) {
-        scaleX = d3.scale.linear().domain([p.start, p.end]).range([p.side_margin, self.top.find(p.chart_div).width() - p.side_margin]);
+        scaleX = d3.scale.linear().domain([p.start, p.end]).range([p.side_margin, $(p.chart_div).width() - p.side_margin]);
     }
-    var scaleY = d3.scale.linear().domain([d3.min(ypoints), d3.max(ypoints)]).range([p.side_margin, self.top.find(p.chart_div).height() - p.side_margin]);
+    var scaleY = d3.scale.linear().domain([d3.min(ypoints), d3.max(ypoints)]).range([p.side_margin, $(p.chart_div).height() - p.side_margin]);
     var scaleNode = d3.scale.linear().domain([d3.min(node_sizes), d3.max(node_sizes)]).range([p.min_node_size, p.max_node_size]);
     var scaleEdge = d3.scale.linear().domain([d3.min(edge_sizes), d3.max(edge_sizes)]).range([p.min_edge_size, p.max_edge_size]);
     var scaleTime = d3.scale.linear().domain([p.start, p.end]).range([0, p.duration]);
@@ -1816,10 +1817,10 @@ TsDashboard.prototype.drawSwimlaneChart = function (chart_div, config) {
     }
 
     // remove the previous drawing
-    self.top.find(p.chart_div).empty();
+    $(p.chart_div).empty();
 
     // x axis scaler
-    var scaleX = d3.scale.linear().domain([p.start, p.end]).range([p.side_margin, self.top.find(p.chart_div).width() - p.side_margin]);
+    var scaleX = d3.scale.linear().domain([p.start, p.end]).range([p.side_margin, $(p.chart_div).width() - p.side_margin]);
 
     var alerts1 = p.data[0];
 
@@ -1869,7 +1870,7 @@ TsDashboard.prototype.drawSwimlaneChart = function (chart_div, config) {
         else {
             toggle = true;
         }
-        self.top.find(p.chart_div).css("width", "100%");
+        $(p.chart_div).css("width", "100%");
     }
 
     // define alert type associated lanes
@@ -1880,7 +1881,7 @@ TsDashboard.prototype.drawSwimlaneChart = function (chart_div, config) {
         // generate svg element for each lane
         lanes[alertTypes[i]] = d3.select(p.chart_div)
             .append("svg")
-            .attr("width", self.top.find(p.chart_div)
+            .attr("width", $(p.chart_div)
                 .width())
             .attr("height", p.lane_height);
 
@@ -1888,7 +1889,7 @@ TsDashboard.prototype.drawSwimlaneChart = function (chart_div, config) {
         lanes[alertTypes[i]].append("rect")
             .attr("x", 0)
             .attr("y", 0)
-            .attr("width", self.top.find(p.chart_div).width())
+            .attr("width", $(p.chart_div).width())
             .attr("height", p.lane_height)
             .attr("fill", p.lanes_color)
             .attr("fill-opacity", p.lane_opacity)
@@ -1919,10 +1920,10 @@ TsDashboard.prototype.drawSwimlaneChart = function (chart_div, config) {
     }
 
     // time scaler
-    var scaleTime = d3.time.scale().domain([new Date(p.start), new Date(p.start)]).nice(d3.time.hour).range([0, self.top.find(p.chart_div).width()]);
+    var scaleTime = d3.time.scale().domain([new Date(p.start), new Date(p.start)]).nice(d3.time.hour).range([0, $(p.chart_div).width()]);
 
     // append svd for time axis
-    var timeSvd = d3.select(p.chart_div).append("svg").attr("width", self.top.find(p.chart_div).width()).attr("height", p.lane_height);
+    var timeSvd = d3.select(p.chart_div).append("svg").attr("width", $(p.chart_div).width()).attr("height", p.lane_height);
 }
 
 TsDashboard.prototype.drawMultiGantt = function (widget_id, config) {
@@ -1948,7 +1949,7 @@ TsDashboard.prototype.drawMultiGantt = function (widget_id, config) {
         // font
         font_size: 15,
 
-        click: function() { }
+        click: function () { }
     }
 
     // If we have user-defined parameters, override the defaults.
@@ -1958,7 +1959,7 @@ TsDashboard.prototype.drawMultiGantt = function (widget_id, config) {
         }
     }
 
-    var container = self.top.find(p.chart_div);
+    var container = $(p.chart_div);
     // clear the container
     container.html('');
 
@@ -1966,23 +1967,23 @@ TsDashboard.prototype.drawMultiGantt = function (widget_id, config) {
     var h = container.innerHeight();
 
     var getTickFormat = function (trange_msecs) {
-        if (trange_msecs < 1000*60*60*24) {     // day
+        if (trange_msecs < 1000 * 60 * 60 * 24) {     // day
             // hour:minute
             return '%H:%M';
         }
-        else if (trange_msecs < 1000*60*60*24*7) {    // week
+        else if (trange_msecs < 1000 * 60 * 60 * 24 * 7) {    // week
             // (week name) (month name) (day of month)
             return '%a %b %e';
         }
-        else if (trange_msecs < 1000*60*60*24*30) {   // month
+        else if (trange_msecs < 1000 * 60 * 60 * 24 * 30) {   // month
             // (month) (day of month)
             return '%b %e';
         }
-        else if (trange_msecs < 1000*60*60*24*30*3) { // 3 months
+        else if (trange_msecs < 1000 * 60 * 60 * 24 * 30 * 3) { // 3 months
             // (month) (day of month)
             return '%b %e';
         }
-        else if (trange_msecs < 1000*60*60*24*356) {  // year
+        else if (trange_msecs < 1000 * 60 * 60 * 24 * 356) {  // year
             // month
             return '%b';
         }
@@ -2001,8 +2002,8 @@ TsDashboard.prototype.drawMultiGantt = function (widget_id, config) {
 
     var initAxis = function () {
         x = d3.time.scale()
-            .domain([ time_start, time_end ])
-            .range([ 0, chart_utils.width() ])
+            .domain([time_start, time_end])
+            .range([0, chart_utils.width()])
             .clamp(true);
         xAxis = d3.svg.axis()
             .scale(x)
@@ -2030,7 +2031,7 @@ TsDashboard.prototype.drawMultiGantt = function (widget_id, config) {
             return w - axis_utils.width() - p.padding_right;
         },
         height: function () {
-            var last_group_n = p.data.length-1;
+            var last_group_n = p.data.length - 1;
             var last_group = p.data[last_group_n];
             return group_utils.offsetY(last_group, last_group_n) + group_utils.height(last_group, last_group_n);
             // return h;
@@ -2041,7 +2042,7 @@ TsDashboard.prototype.drawMultiGantt = function (widget_id, config) {
         width: chart_utils.width,
         height: function (group, group_n) {
             var n = group.values.length;
-            return n*(p.item_h + p.item_margin);
+            return n * (p.item_h + p.item_margin);
         },
         offsetX: function () {
             return 0;
@@ -2079,7 +2080,7 @@ TsDashboard.prototype.drawMultiGantt = function (widget_id, config) {
                 return p.item_h;
             },
             offsetY: function (item, item_n) {
-                return p.item_margin / 2 + item_n*(p.item_h + p.item_margin);
+                return p.item_margin / 2 + item_n * (p.item_h + p.item_margin);
             },
             textOffsetX: function () {
                 return axis_utils.subgroupWidth() - 10;
@@ -2104,7 +2105,7 @@ TsDashboard.prototype.drawMultiGantt = function (widget_id, config) {
                         return 0;
                     },
                     width: function (item, item_n) {
-                        return Math.max(1,(x(item.end) - x(item.start)));
+                        return Math.max(1, (x(item.end) - x(item.start)));
                     },
                     height: subgroup_utils.height,
                     transform: function (d, i) {
@@ -2189,12 +2190,12 @@ TsDashboard.prototype.drawMultiGantt = function (widget_id, config) {
             var subgroup_utils = getSubgroupUtils(group, group_n);
             // group of items (drawn horizontally)
             var subgroups = d3.select(this)
-                                .selectAll('.subgroup')
-                                .data(function (group) { return group.values; })
-                                .enter()
-                                .append('g')
-                                .attr('class', 'subgroup')
-                                .attr('transform', subgroup_utils.transform)
+                .selectAll('.subgroup')
+                .data(function (group) { return group.values; })
+                .enter()
+                .append('g')
+                .attr('class', 'subgroup')
+                .attr('transform', subgroup_utils.transform)
             // individual items (stacked horizontally)
             subgroups.each(function (subgroup, subgroup_n) {
                 var item_utils = subgroup_utils.getItemUtils(subgroup, subgroup_n);
@@ -2236,7 +2237,7 @@ TsDashboard.prototype.drawMultiGantt = function (widget_id, config) {
             .attr('width', axis_utils.groupWidth)
             .attr('height', group_utils.height)
             .append('text')
-            .attr('transform', function (d, i) { return 'translate(' + group_utils.textOffsetX(d,i) + ',' + group_utils.textOffsetY(d,i) + ')'; })
+            .attr('transform', function (d, i) { return 'translate(' + group_utils.textOffsetX(d, i) + ',' + group_utils.textOffsetY(d, i) + ')'; })
             .text(group_utils.label)
 
         // y_groups.append('text')
@@ -2245,7 +2246,7 @@ TsDashboard.prototype.drawMultiGantt = function (widget_id, config) {
         var y_subgroups = y_axis.append('g')
             .attr('width', axis_utils.subgroupWidth)
             .attr('height', h)
-            .attr('transform', function (d, i) { return 'translate(' + axis_utils.groupWidth(d,i) + ',0)'; })
+            .attr('transform', function (d, i) { return 'translate(' + axis_utils.groupWidth(d, i) + ',0)'; })
             .selectAll('.y-subgroup')
             .data(data)
             .enter()
@@ -2267,16 +2268,16 @@ TsDashboard.prototype.drawMultiGantt = function (widget_id, config) {
                     .append('text')
                     .attr('font-size', p.font_size)
                     .attr('text-anchor', 'end')
-                    .attr('transform', function (d, i) { return 'translate(' + item_utils.textOffsetX(d,i) + ', ' + item_utils.textOffsetY(d,i) + ')' })
+                    .attr('transform', function (d, i) { return 'translate(' + item_utils.textOffsetX(d, i) + ', ' + item_utils.textOffsetY(d, i) + ')' })
                     .text(item_utils.label);
             })
 
         svg.append('g')
-             .attr('class', 'x axis')
-             .attr('transform', 'translate(' + axis_utils.width() + ', ' + chart_utils.height() + ')')
-             // .attr('width', axis_utils.width)
-             .transition()
-             .call(xAxis);
+            .attr('class', 'x axis')
+            .attr('transform', 'translate(' + axis_utils.width() + ', ' + chart_utils.height() + ')')
+            // .attr('width', axis_utils.width)
+            .transition()
+            .call(xAxis);
     }
 
     draw(p.data);
@@ -2324,14 +2325,14 @@ TsDashboard.prototype.drawColumnChart = function (config) {
         p.ydomain[1] = p.ydomain_max;
     }
     // remove the previous drawing
-    self.top.find(p.chart_div).empty();
+    $(p.chart_div).empty();
 
     var margin = { top: 18, right: 35, bottom: p.margin_bottom, left: 50 };
     if (p.x_axis_label) {
         margin.bottom += 20;
     }
 
-    var width = self.top.find(p.chart_div).width() - margin.left - margin.right;
+    var width = $(p.chart_div).width() - margin.left - margin.right;
     var height = p.height - margin.top - margin.bottom;
 
     var x = d3.scale.ordinal()
@@ -2512,11 +2513,11 @@ TsDashboard.prototype.drawScatterPlot = function (config) {
     }
 
     // remove the previous drawing
-    self.top.find(p.chart_div).empty();
+    $(p.chart_div).empty();
 
     var margin = { top: 18, right: 35, bottom: 30, left: 50 };
 
-    var width = self.top.find(p.chart_div).width() - margin.left - margin.right;
+    var width = $(p.chart_div).width() - margin.left - margin.right;
     var height = p.height - margin.top - margin.bottom;
 
     /*
@@ -2690,7 +2691,7 @@ TsDashboard.prototype.drawSparklineTable = function (config) {
         .y1(function (d) { return yscale(0); });
 
     // remove the previous drawing
-    self.top.find(p.chart_div).empty();
+    $(p.chart_div).empty();
 
     var data = p.data;
     var colNo = p.columns;
@@ -2712,12 +2713,12 @@ TsDashboard.prototype.drawSparklineTable = function (config) {
     var table = $("<table class=\"table\"></table>");
     table.append(thead);
     table.append(tbody);
-    self.top.find(p.chart_div).append(table);
+    $(p.chart_div).append(table);
 
     // style
-    self.top.find(p.chart_div).css('overflow', 'auto');
-    self.top.find(p.chart_div).css('height', p.height);
-    self.top.find(p.chart_div).css('margin-bottom', p.margin_bottom);
+    $(p.chart_div).css('overflow', 'auto');
+    $(p.chart_div).css('height', p.height);
+    $(p.chart_div).css('margin-bottom', p.margin_bottom);
 
     for (var i = 0; i <= rowNo; i++) {
         // create row
@@ -2736,22 +2737,22 @@ TsDashboard.prototype.drawSparklineTable = function (config) {
                 var ctitle = title;
                 if (p.title_clip_after != null) {
                     p.title_clip_after.forEach(function (val) {
-                       if (ctitle.indexOf(val) >= 0){
-                           ctitle = ctitle.substring(0, ctitle.indexOf(val));
-                       }
+                        if (ctitle.indexOf(val) >= 0) {
+                            ctitle = ctitle.substring(0, ctitle.indexOf(val));
+                        }
                     });
-                 }
-                 if (p.title_clip_prefix != null) {
-                     if (ctitle.startsWith(p.title_clip_prefix) >= 0) {
-                         ctitle = ctitle.substr(p.title_clip_prefix.length);
-                     }
-                 }
+                }
+                if (p.title_clip_prefix != null) {
+                    if (ctitle.startsWith(p.title_clip_prefix) >= 0) {
+                        ctitle = ctitle.substr(p.title_clip_prefix.length);
+                    }
+                }
                 var titleTd = $("<td style='background-color:black !important; width:" + p.first_col_width
-                                + "px; word-break:break-all;'>" + ctitle + "</td>");
+                    + "px; word-break:break-all;'>" + ctitle + "</td>");
                 row.append(titleTd);
             }
             var imgTd = $("<td " + url + " style='background-color:black !important; border-left: thin solid #282828; width:"
-                          + ((table.width() - p.first_col_width) / colNo).toFixed() + "px;'></td>");
+                + ((table.width() - p.first_col_width) / colNo).toFixed() + "px;'></td>");
             var imgDiv = document.createElement("div");
             imgTd.append(imgDiv);
             row.append(imgTd);
