@@ -1465,7 +1465,7 @@ TsDashboard.prototype.drawKpi = function (config) {
             switch (config.shape) {
                 case 'circle': {
                     var height = div.outerHeight();
-                    div.css('border-radius', height / 2);
+                    //div.css('border-radius', height / 2);
                     break;
                 }
                 default: {
@@ -1507,9 +1507,9 @@ TsDashboard.prototype.drawTemporalGraph = function (chart_div, config) {
         edge_opacity: 0.4,
         edge_off_opacity: 0.1,
         edge_selected_opacity: 0.8,
-        node_opacity: 0.8,
+        node_opacity: 0.2,
         node_alert_opacity: 1.0,
-        node_off_opacity: 0.1,
+        node_off_opacity: 0.2,
         node_stroke: "white",
         default_node_size: 5,
         default_edge_size: 3,
@@ -1552,16 +1552,16 @@ TsDashboard.prototype.drawTemporalGraph = function (chart_div, config) {
     var node_sizes = [];
     var edge_sizes = [];
 
-    // itterate alerts and change colors of nodes
+    // iterate over alerts and change colors of nodes
     for (var node in nodes) {
         nodes[node].color = p.node_color;
-        nodes[node].color = p.node_opacity;
+        nodes[node].opacity = p.node_opacity;
     }
 
     var alerts = [];
     var pred = [];
 
-    // iterate alerts and change colors of nodes
+    // iterate over alerts and change colors of nodes
     for (var i = 0; i < alertsAll.length; i++) {
         if (alertsAll[i].src == "event_prediction" || alertsAll[i].src == "event_predictionalert") {
             alertsAll[i].ts = Date.parse(alertsAll[i].ts);
@@ -1579,6 +1579,7 @@ TsDashboard.prototype.drawTemporalGraph = function (chart_div, config) {
             if (eventName in nodes) {
                 nodes[eventName].color = p.alert_node_color;
                 nodes[eventName].opacity = p.node_alert_opacity;
+                nodes[eventName].is_alert = true;
             }
         }
     }
@@ -1590,6 +1591,9 @@ TsDashboard.prototype.drawTemporalGraph = function (chart_div, config) {
         node_sizes.push(nodes[node].size);
         nodes_arr.push({ id: node, options: nodes[node] });
     }
+    // sort nodes so that alert nodes are drawn last, meaning on top (cannot set z-index in svg)
+    nodes_arr = nodes_arr.sort(function(a, b) { return (a.options.is_alert ? 1 : 0); });
+
     for (var i = 0; i < edges.length; i++) {
         edge_sizes.push(edges[i].size);
     }
@@ -1733,7 +1737,7 @@ TsDashboard.prototype.drawTemporalGraph = function (chart_div, config) {
         }
     }
 
-    // finall state edge
+    // final state edge
     for (var i = 0; i < edges.length; i++) {
         d3.select("#edge-" + edges[i].n1 + "-" + edges[i].n2 + self.sufix)
             .transition()
@@ -1750,16 +1754,17 @@ TsDashboard.prototype.drawTemporalGraph = function (chart_div, config) {
             })
     }
 
-    // finnal state node
+    // final state node
     for (var i = 0; i < nodes_arr.length; i++) {
-        var time = scaleTime(nodes_arr[i].options.epoch) + p.step_duration + 1;
-        d3.select("#node-" + nodes_arr[i].id + self.sufix)
+        var curr_node = nodes_arr[i];
+        var time = scaleTime(curr_node.options.epoch) + p.step_duration + 1;
+        d3.select("#node-" + curr_node.id)
             .transition()
             .delay(time)
             .attr("stroke-opacity", p.node_opacity)
-            .attr("fill", nodes_arr[i].options.color)
-            .attr("fill-opacity", nodes_arr[i].options.opacity)
-            .attr("cx", scaleX(nodes_arr[i].options.epoch))
+            .attr("fill", curr_node.options.color)
+            .attr("fill-opacity", curr_node.options.opacity)
+            .attr("cx", scaleX(curr_node.options.epoch))
     }
 
     // time traveling bar
