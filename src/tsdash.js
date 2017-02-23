@@ -1577,7 +1577,6 @@ TsDashboard.prototype.drawTemporalGraph = function (chart_div, config) {
         if (alerts[i].src == "event") {
             var eventName = alerts[i]["title"].split(' ')[0];
             if (eventName in nodes) {
-                console.log("alert node", eventName)
                 nodes[eventName].color = p.alert_node_color;
                 nodes[eventName].opacity = p.node_alert_opacity;
                 nodes[eventName].is_alert = true;
