@@ -1701,11 +1701,11 @@ TsDashboard.prototype.drawTemporalGraph = function (chart_div, config) {
         var predictions = JSON.parse(pred[i].extra_data).predictions;
         for (var name in predictions) {
             // move node
-            d3.select("#node-" + name + self.sufix).transition().delay(scaleTime(pred[i].ts)).attr("cx", scaleX(predictions[name])).duration(p.step_duration).ease("linear");
+            d3.select("#node-" + name).transition().delay(scaleTime(pred[i].ts)).attr("cx", scaleX(predictions[name])).duration(p.step_duration).ease("linear");
             // move edge
             for (var j = 0; j < lineIdArr.length; j++) {
                 if (lineIdArr[j].split('-')[1] == name) {
-                    var edge = d3.select("#" + lineIdArr[j] + self.sufix);
+                    var edge = d3.select("#" + lineIdArr[j]);
                     edge.transition().delay(scaleTime(pred[i].ts))
                         .attr("d", function (d) {
                             var prev = lineCoordinates[lineIdArr[j]];
@@ -1720,7 +1720,7 @@ TsDashboard.prototype.drawTemporalGraph = function (chart_div, config) {
                         .duration(p.step_duration).ease("linear")
                 }
                 if (lineIdArr[j].split('-')[2] == name) {
-                    var edge = d3.select("#" + lineIdArr[j] + self.sufix)
+                    var edge = d3.select("#" + lineIdArr[j])
                     edge.transition().delay(scaleTime(pred[i].ts))
                         .attr("d", function (d) {
                             var prev = lineCoordinates[lineIdArr[j]];
@@ -1739,7 +1739,7 @@ TsDashboard.prototype.drawTemporalGraph = function (chart_div, config) {
 
     // final state edge
     for (var i = 0; i < edges.length; i++) {
-        d3.select("#edge-" + edges[i].n1 + "-" + edges[i].n2 + self.sufix)
+        d3.select("#edge-" + edges[i].n1 + "-" + edges[i].n2)
             .transition()
             .delay(scaleTime(nodes[edges[i].n2].epoch) + p.step_duration + 1)
             .style("stroke-opacity", p.edge_opacity)
