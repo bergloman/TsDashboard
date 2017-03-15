@@ -684,7 +684,7 @@ TsDashboard.prototype.run = function () {
                                 }
                             }
 
-                            data_series.sort(function (x, y) { return x.idx > y.idx; });
+                            data_series.sort(function (x, y) { return x.idx - y.idx; });
 
                             var options = {
                                 chart_div: "#" + widget_id,
