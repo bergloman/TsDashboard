@@ -419,6 +419,7 @@ TsDashboard.prototype.run = function () {
     self.driver.getDrawData(options, function (err, data) {
         if (err != null) {
             self.showError(err);
+            return;
         }
         if (data == undefined) {
             self.showErrorMsg("No data available.");
