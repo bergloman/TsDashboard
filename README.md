@@ -153,7 +153,7 @@ Configuration is given in `javascript` object, which looks like the following `J
         }
     ]
 }
-```````````
+````````````````````
 
 - `hide_sidebar` - if true doesn't generate and display sidebar with parameters. It just executes dashboard. This is useful if driver doesn't need user's input parameters. Default is `false`.
 - `sidebar_width` - width of sidebar in pixes. Default is 190px.
