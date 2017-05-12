@@ -99,7 +99,7 @@ Callback receives `err` and optionaly result object. Result should conform to th
         ....
     ]
 }
-``````
+`````````````
 
 - `epoch` should be a valid `Javascript` epoch (i.e. `Unix` timestamp in milliseconds).
 - `c` (meaning category) in `scatterseries` values is optional, but can be supplied and will result is different colors for dots. It will also force display of legend when more than one category is present.
