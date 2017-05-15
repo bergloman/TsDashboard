@@ -20,7 +20,7 @@ function TsDashboard(div_id, driver, auto_init) {
     }
 
     this._callbacks = {
-        memento: function () {}
+        memento: function () { }
     }
 
     this.regex_date = /^(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31))$/;
@@ -248,25 +248,10 @@ TsDashboard.prototype.initParams = function () {
             }
 
         } else if (par.type === "enum" || par.type === "dropdown") {
-            label.append("<select id='in" + par.name + self.sufix + "'></select >");
+            var ctrl_id = "in" + par.name + self.sufix;
+            label.append("<select id='" + ctrl_id + "'></select >");
             self.driver.getParamValues(par.name, null, function (options) {
-                for (var i = 0; i < options.length; i++) {
-                    var option = options[i];
-
-                    var value, name;
-                    if (par.type == "enum") {
-                        value = option.value;
-                        name = option.caption;
-                    } else {
-                        value = option.name;
-                        name = option.name;
-                    }
-
-                    $("#in" + par.name + self.sufix).append("<option value='" + value + "'>" + name + "</option>");
-                }
-                if (par.default) {
-                    $("#in" + par.name + self.sufix).val(par.default);
-                }
+                self.setDropdownOptions(par.name, options, par.default)
             });
 
         } else if (par.type === "boolean") {
@@ -286,6 +271,31 @@ TsDashboard.prototype.initParams = function () {
     btn.text("Run");
     btn.click(function () { self.run(); });
     btn.appendTo(sidebar);
+}
+
+TsDashboard.prototype.setDropdownOptions = function (name, options, default_value) {
+    var self = this;
+    var ctrl_id = "in" + name + self.sufix;
+    $("#" + ctrl_id).empty();
+    for (var i = 0; i < options.length; i++) {
+        var option = options[i];
+        var value, name;
+        if (par.type == "enum") {
+            value = option.value;
+            name = option.caption;
+        } else {
+            value = option.name;
+            name = option.name;
+        }
+
+        $("#" + ctrl_id).append(
+            $("<option></option>")
+                .attr("value", value)
+                .text(name));
+    }
+    if (default_value) {
+        $("#" + ctrl_id).val(default_value);
+    }
 }
 
 TsDashboard.prototype.collectParameterValues = function () {
@@ -1596,7 +1606,7 @@ TsDashboard.prototype.drawTemporalGraph = function (chart_div, config) {
         nodes_arr.push({ id: node, options: nodes[node] });
     }
     // sort nodes so that alert nodes are drawn last, meaning on top (cannot set z-index in svg)
-    nodes_arr = nodes_arr.sort(function(a, b) { return (a.options.is_alert ? 1 : 0); });
+    nodes_arr = nodes_arr.sort(function (a, b) { return (a.options.is_alert ? 1 : 0); });
 
     for (var i = 0; i < edges.length; i++) {
         edge_sizes.push(edges[i].size);
@@ -2742,7 +2752,7 @@ TsDashboard.prototype.drawSparklineTable = function (config) {
             var pipeline = data[dataIdx].pipeline;
             var url = data[dataIdx].url;
             if (j == 0) {
-                 var ctitle = title;
+                var ctitle = title;
                 if (p.title_clip_after != null) {
                     p.title_clip_after.forEach(function (val) {
                         if (ctitle.indexOf(val) >= 0) {
