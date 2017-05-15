@@ -1,7 +1,23 @@
-function TsDashboard(div_id, driver) {
+function TsDashboard(div_id, driver, auto_init) {
+    if (auto_init == null) { auto_init = true; }    // TODO add comment on github
+
     this.driver = driver;
     this.div_id = div_id;
-    this.init();
+    this.sufix = function (len) {
+        var text = "";
+        var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        for (var i = 0; i < len; i++)
+            text += possible.charAt(Math.floor(Math.random() * possible.length));
+        return "_" + text;
+    }(10);
+
+    if (auto_init) {
+        this.init();
+    }
+
+    this._callbacks = {
+        memento: function () { }
+    }
 
     this._callbacks = {
         memento: function () {}
@@ -31,38 +47,40 @@ TsDashboard.prototype.init = function () {
         self.conf.parameters = self.conf.parameters || [];
 
         self.top = $("#" + self.div_id);
-        self.top.addClass("tsd");
+        self.top.append("<div class='tsd' id='" + self.div_id + self.sufix + "'></div>");
+        self.top = $("#" + self.div_id + self.sufix);
+        self.div_id = self.div_id + self.sufix;
 
         if (self.conf.hide_sidebar) {
-            self.top.append("<div class='tsd-main' id='tsd_main'></div>");
+            self.top.append("<div class='tsd-main' id='tsd_main" + self.sufix + "'></div>");
         } else {
-            self.top.append("<div class='tsd-sidebar dark-matter'></div>");
-            self.top.append("<div class='tsd-main' id='tsd_main'></div>");
+            self.top.append("<div class='tsd-sidebar dark-matter' id='tsd_sidebar" + self.sufix + "'></div>");
+            self.top.append("<div class='tsd-main' id='tsd_main" + self.sufix + "'></div>");
             self.conf.sidebar_width = self.conf.sidebar_width || 190;
-            $(".tsd-sidebar").width(self.conf.sidebar_width);
-            $(".tsd-main").css("margin-left", (+self.conf.sidebar_width) + "px");
+            $("#tsd_sidebar" + self.sufix).width(self.conf.sidebar_width);
+            $("#tsd_main" + self.sufix).css("margin-left", (+self.conf.sidebar_width) + "px");
 
             if (conf.title) {
-                $(".tsd-sidebar").append("<h1>" + conf.title + "</h1>");
+                $("#tsd_sidebar" + self.sufix).append("<h1>" + conf.title + "</h1>");
             }
 
             self.initParams();
         }
 
-        $(".tsd-main").append("<div role='alert'' class='tsd-error alert alert-danger'>...</div>");
-        $(".tsd-main").append("<div class='tsd-main-content' id='tsd_main_content'></div>");
-        $(".tsd-main").append(
-            "<div class='modal' id='divModal' tabindex='-1' role='dialog' aria-labelledby='myModalLabel' aria-hidden='true'>\
+        $("#tsd_main" + self.sufix).append("<div role='alert' class='tsd-error alert alert-danger' id='tsd_error" + self.sufix + "'>...</div>");
+        $("#tsd_main" + self.sufix).append("<div class='tsd-main-content' id='tsd_main_content" + self.sufix + "'></div>");
+        $("#tsd_main" + self.sufix).append(
+            "<div class='modal' id='divModal" + self.sufix + "' tabindex='-1' role='dialog' aria-labelledby='myModalLabel' aria-hidden='true'>\
                 <div class='modal-dialog'>\
                     <div class='modal-content'>\
                         <div class='modal-header'>\
                             <button type='button' class='close' data-dismiss='modal' aria-hidden='true'>&times;</button>\
-                            <h4 class='modal-title' id='myModalLabel'>\
+                            <h4 class='modal-title' id='myModalLabel" + self.sufix + "'>\
                             <span data-bind='text: modal_title'></span>\
                             </h4>\
                         </div>\
                         <div class='modal-body'>\
-                            <div id='divModalChart'></div>\
+                            <div id='divModalChart" + self.sufix + "'></div>\
                         </div>\
                     </div>\
                 </div>\
@@ -75,7 +93,8 @@ TsDashboard.prototype.init = function () {
 }
 
 TsDashboard.prototype.getParamValue = function (name) {
-    return $("#in" + name).val();
+    var self = this;
+    return $("#in" + name + self.sufix).val();
 }
 
 TsDashboard.prototype.setParamValue = function (name, value) {
@@ -88,28 +107,31 @@ TsDashboard.prototype.setParamValue = function (name, value) {
         }
 
         if (par.type === "boolean") {
-            label.append("<input type='checkbox' id='cb" + par.name + "'></input>");
+            label.append("<input type='checkbox' id='cb" + par.name + self.sufix + "'></input>");
             if (par.default) {
-                $("#cb" + par.name).attr('checked', "true");
+                $("#cb" + par.name + self.sufix).attr('checked', "true");
             }
         } else {
-            $("#in" + par.name).val(value);
+            $("#in" + par.name + self.sufix).val(value);
         }
     })(ii);
 }
 
 TsDashboard.prototype.resetErrorMsg = function () {
-    $(".tsd-error").removeClass("tsd-error-visible");
+    var self = this;
+    $("#tsd_error" + self.sufix).removeClass("tsd-error-visible");
 }
 
 TsDashboard.prototype.showErrorMsg = function (msg) {
-    $(".tsd-error").text(msg);
-    $(".tsd-error").addClass("tsd-error-visible");
+    var self = this;
+    $("#tsd_error" + self.sufix).text(msg);
+    $("#tsd_error" + self.sufix).addClass("tsd-error-visible");
 }
 
 TsDashboard.prototype.showError = function (e) {
     var self = this;
-    self.showErrorMsg(e.message);
+    console.error(e);
+    self.showErrorMsg(e.message != null ? e.message : 'Exception while drawing widget!');
 }
 
 TsDashboard.prototype.getToday = function () {
@@ -131,7 +153,7 @@ TsDashboard.prototype.getDateString = function (d) {
 
 TsDashboard.prototype.initParams = function () {
     var self = this;
-    var sidebar = $(".tsd-sidebar");
+    var sidebar = $("#tsd_sidebar" + self.sufix);
     for (var ii = 0; ii < self.conf.parameters.length; ii++) (function (i) {
         var par = self.conf.parameters[i];
 
@@ -141,92 +163,92 @@ TsDashboard.prototype.initParams = function () {
         label.append("<span>" + par.title + "</span>");
 
         if (par.type === "string") {
-            label.append("<input id='in" + par.name + "'></input>");
+            label.append("<input id='in" + par.name + self.sufix + "'></input>");
             if (par.default) {
-                $("#in" + par.name).val(par.default);
+                $("#in" + par.name + self.sufix).val(par.default);
             }
 
         } else if (par.type === "datetime") {
-            label.append("<input id='in" + par.name + "' placeholder='yyyy-mm-dd hh:MM:ss'></input>");
-            $("#in" + par.name).blur(function () {
-                var val = $("#in" + par.name).val();
+            label.append("<input id='in" + par.name + self.sufix + "' placeholder='yyyy-mm-dd hh:MM:ss'></input>");
+            $("#in" + par.name + self.sufix).blur(function () {
+                var val = $("#in" + par.name + self.sufix).val();
                 if (self.regex_date.test(val)) {
-                    $("#in" + par.name).val(val + " 00:00:00");
+                    $("#in" + par.name + self.sufix).val(val + " 00:00:00");
                 }
             });
-            label.append("<a id='hin_now_" + par.name + "' class='tsd-input-help'>Now</a> ");
-            $("#hin_now_" + par.name).click(function () {
-                $("#in" + par.name).val(self.getTimeString());
+            label.append("<a id='hin_now_" + par.name + self.sufix + "' class='tsd-input-help'>Now</a> ");
+            $("#hin_now_" + par.name + self.sufix).click(function () {
+                $("#in" + par.name + self.sufix).val(self.getTimeString());
             });
-            label.append("<a id='hin_today_" + par.name + "' class='tsd-input-help'>Today</a> ");
-            $("#hin_today_" + par.name).click(function () {
-                $("#in" + par.name).val(self.getDateString() + " 00:00:00");
+            label.append("<a id='hin_today_" + par.name + self.sufix + "' class='tsd-input-help'>Today</a> ");
+            $("#hin_today_" + par.name + self.sufix).click(function () {
+                $("#in" + par.name + self.sufix).val(self.getDateString() + " 00:00:00");
             });
 
             if (par.default) {
                 if (par.default instanceof Date) {
-                    $("#in" + par.name).val(self.getTimeString(par.default));
+                    $("#in" + par.name + self.sufix).val(self.getTimeString(par.default));
                 } else {
                     if (par.default == "$now") {
-                        $("#in" + par.name).val(self.getTimeString());
+                        $("#in" + par.name + self.sufix).val(self.getTimeString());
                     } else if (par.default == "$today") {
-                        $("#in" + par.name).val(self.getDateString() + " 00:00:00");
+                        $("#in" + par.name + self.sufix).val(self.getDateString() + " 00:00:00");
                     } else {
-                        $("#in" + par.name).val(par.default);
+                        $("#in" + par.name + self.sufix).val(par.default);
                     }
                 }
             }
 
         } else if (par.type === "date") {
-            label.append("<input id='in" + par.name + "' placeholder='yyyy-mm-dd'></input>");
-            label.append("<a id='hin_today_" + par.name + "' class='tsd-input-help'>Today</a> ");
-            $("#hin_today_" + par.name).click(function () {
-                $("#in" + par.name).val(self.getDateString());
+            label.append("<input id='in" + par.name + self.sufix + "' placeholder='yyyy-mm-dd'></input>");
+            label.append("<a id='hin_today_" + par.name + self.sufix + "' class='tsd-input-help'>Today</a> ");
+            $("#hin_today_" + par.name + self.sufix).click(function () {
+                $("#in" + par.name + self.sufix).val(self.getDateString());
             });
             if (par.default) {
                 if (par.default instanceof Date) {
                     $("#in" + par.name).val(self.getDateString(par.default));
                 } else {
                     if (par.default == "$now") {
-                        $("#in" + par.name).val(self.getDateString());
+                        $("#in" + par.name + self.sufix).val(self.getDateString());
                     } else if (par.default == "$today") {
-                        $("#in" + par.name).val(self.getDateString());
+                        $("#in" + par.name + self.sufix).val(self.getDateString());
                     } else {
-                        $("#in" + par.name).val(par.default);
+                        $("#in" + par.name + self.sufix).val(par.default);
                     }
                 }
             }
 
         } else if (par.type === "filter") {
-            label.append("<input id='in" + par.name + "'></input>");
-            label.append("<div id='opt" + par.name + "' class='tsd-match-options'></div>");
-            $("#in" + par.name).keyup(function () {
-                var val = $("#in" + par.name).val();
+            label.append("<input id='in" + par.name + self.sufix + "'></input>");
+            label.append("<div id='opt" + par.name + self.sufix + "' class='tsd-match-options'></div>");
+            $("#in" + par.name + self.sufix).keyup(function () {
+                var val = $("#in" + par.name + self.sufix).val();
                 var skip_search =
                     (par.search_min_len === undefined && val.length < 3) ||
                     (par.search_min_len !== undefined && val.length < par.search_min_len)
                 if (skip_search) return;
                 self.driver.getParamValues(par.name, val, function (options) {
-                    $("#opt" + par.name).empty();
-                    $("#opt" + par.name).show();
+                    $("#opt" + par.name + self.sufix).empty();
+                    $("#opt" + par.name + self.sufix).show();
                     for (var iii = 0; iii < options.length; iii++) (function (i) {
                         var option = $(document.createElement("div"));
                         option.text(options[i]);
                         option.click(function () {
-                            $("#in" + par.name).val(options[i]);
-                            $("#opt" + par.name).empty();
-                            $("#opt" + par.name).hide();
+                            $("#in" + par.name + self.sufix).val(options[i]);
+                            $("#opt" + par.name + self.sufix).empty();
+                            $("#opt" + par.name + self.sufix).hide();
                         })
-                        $("#opt" + par.name).append(option);
+                        $("#opt" + par.name + self.sufix).append(option);
                     })(iii);
                 });
             });
             if (par.default) {
-                $("#in" + par.name).val(par.default);
+                $("#in" + par.name + self.sufix).val(par.default);
             }
 
         } else if (par.type === "enum" || par.type === "dropdown") {
-            label.append("<select id='in" + par.name + "'></select >");
+            label.append("<select id='in" + par.name + self.sufix + "'></select >");
             self.driver.getParamValues(par.name, null, function (options) {
                 for (var i = 0; i < options.length; i++) {
                     var option = options[i];
@@ -240,22 +262,22 @@ TsDashboard.prototype.initParams = function () {
                         name = option.name;
                     }
 
-                    $("#in" + par.name).append("<option value='" + value + "'>" + name + "</option>");
+                    $("#in" + par.name + self.sufix).append("<option value='" + value + "'>" + name + "</option>");
                 }
                 if (par.default) {
-                    $("#in" + par.name).val(par.default);
+                    $("#in" + par.name + self.sufix).val(par.default);
                 }
             });
 
         } else if (par.type === "boolean") {
-            label.append("<input type='checkbox' id='in" + par.name + "'></input>");
+            label.append("<input type='checkbox' id='in" + par.name + self.sufix + "'></input>");
             if (par.default) {
-                $("#in" + par.name).attr('checked', "true");
+                $("#in" + par.name + self.sufix).attr('checked', "true");
             }
         }
 
         // set up callback for value change
-        $("#in" + par.name).change(function () {
+        $("#in" + par.name + self.sufix).change(function () {
             self.onParamChange(par.name);
         });
     })(ii);
@@ -273,14 +295,14 @@ TsDashboard.prototype.collectParameterValues = function () {
         var par = self.conf.parameters[i];
         var par_value = { name: par.name };
         if (par.type === "string") {
-            par_value.value = $("#in" + par.name).val().trim();
+            par_value.value = $("#in" + par.name + self.sufix).val().trim();
             if (!par.optional && par_value.value === "") {
                 self.showErrorMsg("Missing non-optional parameter: " + par.title);
                 return null;
             }
 
         } else if (par.type === "datetime") {
-            par_value.value = $("#in" + par.name).val();
+            par_value.value = $("#in" + par.name + self.sufix).val();
             if (!par.optional && par_value.value === null) {
                 self.showErrorMsg("Missing non-optional parameter: " + par.title);
                 return null;
@@ -297,7 +319,7 @@ TsDashboard.prototype.collectParameterValues = function () {
             par_value.value = moment(par_value.value, "YYYY-MM-DD HH:mm:ss").toDate();
 
         } else if (par.type === "date") {
-            par_value.value = $("#in" + par.name).val();
+            par_value.value = $("#in" + par.name + self.sufix).val();
             if (!par.optional && par_value.value === null) {
                 self.showErrorMsg("Missing non-optional parameter: " + par.title);
                 return null;
@@ -310,28 +332,28 @@ TsDashboard.prototype.collectParameterValues = function () {
             par_value.value = moment(par_value.value, "YYYY-MM-DD").toDate();
 
         } else if (par.type === "filter") {
-            par_value.value = $("#in" + par.name).val();
+            par_value.value = $("#in" + par.name + self.sufix).val();
             if (!par.optional && par_value.value === null) {
                 self.showErrorMsg("Missing non-optional parameter: " + par.title);
                 return null;
             }
 
         } else if (par.type === "enum") {
-            par_value.value = $("#sel" + par.name).val();
+            par_value.value = $("#sel" + par.name + self.sufix).val();
             if (!par.optional && par_value.value === null) {
                 self.showErrorMsg("Missing non-optional parameter: " + par.title);
                 return null;
             }
 
         } else if (par.type === "dropdown") {
-            par_value.value = $("#in" + par.name).val();
+            par_value.value = $("#in" + par.name + self.sufix).val();
             if (par_value.value === null) {
                 self.showErrorMsg("Missing non-optional parameter: " + par.title);
                 return null;
             }
         } else if (par.type === "boolean") {
             par_value.value = false;
-            if ($("#cb" + par.name).attr('checked')) {
+            if ($("#cb" + par.name + self.sufix).attr('checked')) {
                 par_value.value = true;
             }
         }
@@ -386,7 +408,7 @@ function getFriendlyTimeSlotLabel(slot_length) {
 TsDashboard.prototype.run = function () {
     var self = this;
 
-    var main = $("#tsd_main_content");
+    var main = $("#tsd_main_content" + self.sufix);
     main.empty();
     self.resetErrorMsg();
 
@@ -401,6 +423,7 @@ TsDashboard.prototype.run = function () {
     self.driver.getDrawData(options, function (err, data) {
         if (err != null) {
             self.showError(err);
+            return;
         }
         if (data == undefined) {
             self.showErrorMsg("No data available.");
@@ -442,18 +465,9 @@ TsDashboard.prototype.run = function () {
                     panel_div.append(widget_div);
                     widget_div.addClass("tsd-widget");
                     if (widget.title && widget.title.length > 0) {
-                        var widget_title = $(document.createElement("h3")).text(widget.title);
-                        widget_div.append(widget_title);
-                        if (widget.help && widget.help.length > 0) {
-                            var widget_help = $(document.createElement("div"));
-                            widget_help.addClass("tsd-help-tip");
-                            widget_title.append(widget_help);
-                            var widget_help_box = $(document.createElement("div")).text(widget.help);
-                            widget_help_box.addClass("tsd-help-tip-box");
-                            widget_help.append(widget_help_box);
-                        }
+                        widget_div.append($(document.createElement("h3")).text(widget.title));
                     }
-                    var widget_id = "tsd_widget_" + widget_counter;
+                    var widget_id = "tsd_widget_" + widget_counter + self.sufix;
                     widget_div.append(
                         $(document.createElement("div"))
                             .attr("id", widget_id)
@@ -635,7 +649,6 @@ TsDashboard.prototype.run = function () {
                                 Object.assign(options, widget.options);
                             }
                             self.drawKpi(options);
-
                         } else if (widget.type == "graph") {
                             var graph_opts = self._constructGraph(
                                 widget.graphs,
@@ -675,8 +688,7 @@ TsDashboard.prototype.run = function () {
                                     }
                                 }
                             }
-
-                            data_series.sort(function (x, y) { return x.idx > y.idx; });
+                            data_series.sort(function (x, y) { return x.idx - y.idx; });
 
                             var options = {
                                 chart_div: "#" + widget_id,
@@ -690,13 +702,25 @@ TsDashboard.prototype.run = function () {
                                 Object.assign(options, widget.options);
                             }
                             self.drawSparklineTable(options);
-                        } else {
+                        }
+                        else if (widget.type == 'multi-gantt') {
+                            var gantt_opts = self._constructMultiGantt(
+                                widget.dataseries,
+                                data.dataseries
+                            )
+
+                            if (widget.options != null) {
+                                Object.assign(gantt_opts, widget.options);
+                            }
+
+                            self.drawMultiGantt('#' + widget_id, gantt_opts);
+                        }
+                        else {
                             self.showErrorMsg("Widget type is not defined: " + widget.type);
                             console.log("Widget type is not defined: " + widget.type);
                         }
                     } catch (e) {
-                        self.showErrorMsg(e.message != null ? e.message : 'Exception while drawing widget!');
-                        console.error('Exception while drawing widget!');
+                        self.showError(e);
                     }
                 }
             }
@@ -705,7 +729,7 @@ TsDashboard.prototype.run = function () {
 }
 
 TsDashboard.prototype._constructGraph = function (graph_widget, graph_data,
-        dataseries_widget, dataseries_data) {
+    dataseries_widget, dataseries_data) {
     // var data_type = "graphs";
     var graph = graph_widget
         .map(function (x) {
@@ -754,14 +778,14 @@ TsDashboard.prototype._constructGraph = function (graph_widget, graph_data,
 TsDashboard.prototype._constructSwimlane = function (dataseries_widget, dataseries_data) {
     // var data_type = "dataseries";
     var dataseries = dataseries_widget.map(function (x) {
-            for (var series_i in dataseries_data) {
-                var series = dataseries_data[series_i];
-                if (series.name === x) {
-                    return series.values;
-                }
+        for (var series_i in dataseries_data) {
+            var series = dataseries_data[series_i];
+            if (series.name === x) {
+                return series.values;
             }
-            return null;
-        })
+        }
+        return null;
+    })
         .filter(function (x) { return x !== null; });
 
     if (dataseries_data == undefined || dataseries_data.length == 0) {
@@ -777,40 +801,61 @@ TsDashboard.prototype._constructSwimlane = function (dataseries_widget, dataseri
     return options
 }
 
+TsDashboard.prototype._constructMultiGantt = function (dataseries_widget, dataseries_data) {
+    var ts_name = dataseries_widget[0];
+    var dataseries = (function () {
+        for (var i = 0; i < dataseries_data.length; i++) {
+            if (dataseries_data[i].name == ts_name) {
+                return dataseries_data[i].groups;
+            }
+        }
+        return null;
+    })();
+    if (dataseries == null || dataseries.length == 0) {
+        throw new Error('MultiGantt chart data not available!');
+    }
+    var opts = {
+        data: dataseries
+    }
+    if (dataseries_widget.start != null) { opts.start = dataseries_widget.start; }
+    if (dataseries_widget.end != null) { opts.end = dataseries_widget.end; }
+    return opts;
+}
+
 TsDashboard.prototype.showModal = function (options) {
     var self = this;
-    $('#divModal').on('shown.bs.modal', function (e) {
-        options.chart_div = "#divModalChart";
+    $('#divModal' + self.sufix).on('shown.bs.modal', function () {
+        options.chart_div = "#divModalChart" + self.sufix;
         options.height = 800;
         options.handle_clicks = true;
         options.click_callback = function () { };
         self.drawTimeSeriesMulti(options);
     });
-    $('#divModal').modal();
+    $('#divModal' + self.sufix).modal();
 }
 
 TsDashboard.prototype.showModalColumnChart = function (options) {
     var self = this;
-    $('#divModal').on('shown.bs.modal', function (e) {
-        options.chart_div = "#divModalChart";
+    $('#divModal' + self.sufix).on('shown.bs.modal', function (e) {
+        options.chart_div = "#divModalChart" + self.sufix;
         options.height = 500;
         options.handle_clicks = false;
         options.click_callback = function () { };
         self.drawColumnChart(options);
     });
-    $('#divModal').modal();
+    $('#divModal' + self.sufix).modal();
 }
 
 TsDashboard.prototype.showModalScatterPlot = function (options) {
     var self = this;
-    $('#divModal').on('shown.bs.modal', function (e) {
-        options.chart_div = "#divModalChart";
+    $('#divModal' + self.sufix).on('shown.bs.modal', function (e) {
+        options.chart_div = "#divModalChart" + self.sufix;
         options.height = 500;
         options.handle_clicks = false;
         options.click_callback = function () { };
         self.drawScatterPlot(options);
     });
-    $('#divModal').modal();
+    $('#divModal' + self.sufix).modal();
 }
 
 TsDashboard.prototype.toNiceDateTime = function (s) {
@@ -822,7 +867,7 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
     var self = this;
     // Default parameters.
     var p = {
-        chart_div: "#someChart",
+        chart_div: "#someChart" + self.sufix,
         data: null,
         bands: null,
         height: 100,
@@ -867,7 +912,9 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
         margin_right: 35,
         margin_bottom: 20,
         margin_left: 50,
-        labels: null
+        labels: null,
+        backgroundSegments: null, // array where each element is { epoch_start: num, epoch_end: num, color: string }
+        backgroundSegmentOpacity: 0.3
     };
 
     // If we have user-defined parameters, override the defaults.
@@ -1016,9 +1063,8 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
             // Add band area
             svg.append("path")
                 .style("fill", "white")
-                .style("fill-opacity", 0.2)
+                .style("fill-opacity", 0.25)
                 .style("stroke", "none")
-                .attr("fill", "white")
                 .attr("d", bandsarea(band));
         }
     }
@@ -1159,21 +1205,40 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
                     .style("left", xx - 10 + "px")
                     .style("top", yy + 40 + "px");
 
-                focus.select('#focusCircle')
+                focus.select('#focusCircle' + self.sufix)
                     .attr('cx', xx)
                     .attr('cy', yy);
-                focus.select('#focusLineX')
+                focus.select('#focusLineX' + self.sufix)
                     .attr('x1', xx)
                     .attr('y1', y(y.domain()[0]))
                     .attr('x2', xx)
                     .attr('y2', y(y.domain()[1]));
-                focus.select('#focusLineY')
+                focus.select('#focusLineY' + self.sufix)
                     .attr('x1', x(x.domain()[0]))
                     .attr('y1', yy)
                     .attr('x2', x(x.domain()[1]))
                     .attr('y2', yy);
             });
     }// if handle clicks
+
+    if (p.backgroundSegments) {
+        for (var bs_idx = 0; bs_idx < p.backgroundSegments.length; bs_idx++) {
+            var bSegment = p.backgroundSegments[bs_idx];
+            var epoch_start = bSegment.epoch_start;
+            var epoch_end = bSegment.epoch_end;
+            var seg_col = bSegment.color;
+            if ((epoch_start == undefined) || (epoch_end == undefined) ||
+                (seg_col == undefined)) { continue; }
+            var seg_x = Math.max(x(epoch_start), 0);
+            svg.append("rect")
+                .attr("x", seg_x)
+                .attr("y", 0)
+                .attr("width", x(epoch_end) - seg_x)
+                .attr("height", p.height - margin.top - margin.bottom)
+                .style("fill", seg_col)
+                .style("fill-opacity", p.backgroundSegmentOpacity);
+        }
+    }
 
     // timepoint markers
     if (p.timepoints && p.timepoints.length > 0) {
@@ -1236,7 +1301,7 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
     var rect_length = 10;
     if (p.labels) {
         for (var i = 0; i < p.labels.length; i++) {
-            if (p.labels[i]){
+            if (p.labels[i]) {
                 var length = p.labels[i].length * 8;
                 g.append("rect")
                     .attr("x", lpx)
@@ -1250,7 +1315,7 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
                     .attr("y", lpy)
                     .text(p.labels[i])
 
-                if (lpx + (2*length) > width) {
+                if (lpx + (2 * length) > width) {
                     lpx = 20;
                     lpy = lpy + 20;
                 }
@@ -1267,7 +1332,7 @@ TsDashboard.prototype.drawTable = function (config) {
     var self = this;
     // Default parameters.
     var p = {
-        chart_div: "#someChart",
+        chart_div: "#someChart" + self.sufix,
         data: null,
         header: null,
         height: 400,
@@ -1349,18 +1414,19 @@ TsDashboard.prototype.drawTable = function (config) {
 }
 
 TsDashboard.prototype.drawKpi = function (config) {
-
     var self = this;
+    // var self = this;
     // Default parameters.
     var p = {
-        kpi_div: "#someKpi",
+        kpi_div: "#someKpi" + self.sufix,
         data: null,
         header: null,
         height: 100,
         margin_bottom: 0,
         column_widths: null,
         column_order: null,
-        filter: null
+        filter: null,
+        shape: 'square'
     };
 
     // If we have user-defined parameters, override the defaults.
@@ -1379,15 +1445,43 @@ TsDashboard.prototype.drawKpi = function (config) {
     var row = $("<tr></tr>");
     for (var i = 0; i < data.length; i++) {
         var dd = data[i];
-        var td = $("<td class='tsd-kpi-tile tsd-kpi-tile-ok' />");
+        var td = $("<td class='tsd-kpi-tile' />");
+        var div = $('<div class="tsd-kpi-tile-ok" />');
         switch (dd.status) {
-            case "ok": td.addClass("tsd-kpi-tile-ok"); break;
-            case "error": td.addClass("tsd-kpi-tile-error"); break;
-            case "warning": td.addClass("tsd-kpi-tile-warning"); break;
-            default: td.addClass("tsd-kpi-tile-inactive"); break;
+            case "ok": div.addClass("tsd-kpi-tile-ok"); break;
+            case "error": div.addClass("tsd-kpi-tile-error"); break;
+            case "warning": div.addClass("tsd-kpi-tile-warning"); break;
+            default: div.addClass("tsd-kpi-tile-inactive"); break;
         }
-        td.append("<div class='tsd-kpi-tile-title'></div>").text(dd.name);
-        td.append("<div class='tsd-kpi-tile-value'></div>").text(dd.value);
+        div.append("<div class='tsd-kpi-tile-title'></div>").text(dd.name);
+        if (dd.value != null) {
+            div.append("<div class='tsd-kpi-tile-value'></div>").text(dd.value);
+        }
+        if (config.height != null) {
+            div.css('height', config.height);
+            div.css('min-height', config.height);
+        }
+        if (config.width != null) {
+            div.css('width', config.width);
+            div.css('min-width', config.width);
+        }
+        if (config.shape != null && config.shape != 'square') {
+            switch (config.shape) {
+                case 'circle': {
+                    var height = div.outerHeight();
+                    //div.css('border-radius', height / 2);
+                    break;
+                }
+                default: {
+                    throw new Error('Unknown shape: ' + config.shape);
+                }
+            }
+        }
+        if (config.margin != null) {
+            td.css('padding-left', config.margin / 2);
+            td.css('padding-right', config.margin / 2);
+        }
+        td.append(div);
         row.append(td);
     }
     tbody.append(row);
@@ -1417,9 +1511,9 @@ TsDashboard.prototype.drawTemporalGraph = function (chart_div, config) {
         edge_opacity: 0.4,
         edge_off_opacity: 0.1,
         edge_selected_opacity: 0.8,
-        node_opacity: 0.8,
+        node_opacity: 0.2,
         node_alert_opacity: 1.0,
-        node_off_opacity: 0.1,
+        node_off_opacity: 0.2,
         node_stroke: "white",
         default_node_size: 5,
         default_edge_size: 3,
@@ -1462,16 +1556,16 @@ TsDashboard.prototype.drawTemporalGraph = function (chart_div, config) {
     var node_sizes = [];
     var edge_sizes = [];
 
-    // itterate alerts and change colors of nodes
+    // iterate over alerts and change colors of nodes
     for (var node in nodes) {
         nodes[node].color = p.node_color;
-        nodes[node].color = p.node_opacity;
+        nodes[node].opacity = p.node_opacity;
     }
 
     var alerts = [];
     var pred = [];
 
-    // iterate alerts and change colors of nodes
+    // iterate over alerts and change colors of nodes
     for (var i = 0; i < alertsAll.length; i++) {
         if (alertsAll[i].src == "event_prediction" || alertsAll[i].src == "event_predictionalert") {
             alertsAll[i].ts = Date.parse(alertsAll[i].ts);
@@ -1489,6 +1583,7 @@ TsDashboard.prototype.drawTemporalGraph = function (chart_div, config) {
             if (eventName in nodes) {
                 nodes[eventName].color = p.alert_node_color;
                 nodes[eventName].opacity = p.node_alert_opacity;
+                nodes[eventName].is_alert = true;
             }
         }
     }
@@ -1500,6 +1595,9 @@ TsDashboard.prototype.drawTemporalGraph = function (chart_div, config) {
         node_sizes.push(nodes[node].size);
         nodes_arr.push({ id: node, options: nodes[node] });
     }
+    // sort nodes so that alert nodes are drawn last, meaning on top (cannot set z-index in svg)
+    nodes_arr = nodes_arr.sort(function(a, b) { return (a.options.is_alert ? 1 : 0); });
+
     for (var i = 0; i < edges.length; i++) {
         edge_sizes.push(edges[i].size);
     }
@@ -1643,14 +1741,13 @@ TsDashboard.prototype.drawTemporalGraph = function (chart_div, config) {
         }
     }
 
-    // finall state edge
+    // final state edge
     for (var i = 0; i < edges.length; i++) {
         d3.select("#edge-" + edges[i].n1 + "-" + edges[i].n2)
             .transition()
             .delay(scaleTime(nodes[edges[i].n2].epoch) + p.step_duration + 1)
             .style("stroke-opacity", p.edge_opacity)
             .style("stroke", p.edge_color)
-            //.style("stroke", "red")
             .attr("d", function (d) {
                 var t1x = scaleX(nodes[edges[i].n1][x_pos_att]);
                 var t2x = scaleX(nodes[edges[i].n2][x_pos_att]);
@@ -1661,16 +1758,17 @@ TsDashboard.prototype.drawTemporalGraph = function (chart_div, config) {
             })
     }
 
-    // finnal state node
+    // final state node
     for (var i = 0; i < nodes_arr.length; i++) {
-        var time = scaleTime(nodes_arr[i].options.epoch) + p.step_duration + 1;
-        d3.select("#node-" + nodes_arr[i].id)
+        var curr_node = nodes_arr[i];
+        var time = scaleTime(curr_node.options.epoch) + p.step_duration + 1;
+        d3.select("#node-" + curr_node.id)
             .transition()
             .delay(time)
             .attr("stroke-opacity", p.node_opacity)
-            .attr("fill", nodes_arr[i].options.color)
-            .attr("fill-opacity", nodes_arr[i].options.opacity)
-            .attr("cx", scaleX(nodes_arr[i].options.epoch))
+            .attr("fill", curr_node.options.color)
+            .attr("fill-opacity", curr_node.options.opacity)
+            .attr("cx", scaleX(curr_node.options.epoch))
     }
 
     // time traveling bar
@@ -1835,6 +1933,363 @@ TsDashboard.prototype.drawSwimlaneChart = function (chart_div, config) {
 
     // append svd for time axis
     var timeSvd = d3.select(p.chart_div).append("svg").attr("width", $(p.chart_div).width()).attr("height", p.lane_height);
+}
+
+TsDashboard.prototype.drawMultiGantt = function (widget_id, config) {
+    var self = this;
+    var p = {
+        chart_div: widget_id,
+        data: [],
+        start: null,
+        end: null,
+        default_color: '#ffffff',
+
+        // shape
+        item_h: 20,
+        item_margin: 10,
+        group_width: 100,
+        subgroup_width: 100,
+
+        // paddings
+        padding_left: 10,
+        padding_right: 10,
+        margin_side: 0,
+
+        // font
+        font_size: 15,
+
+        click: function () { }
+    }
+
+    // If we have user-defined parameters, override the defaults.
+    if (config !== "undefined") {
+        for (var prop in config) {
+            p[prop] = config[prop];
+        }
+    }
+
+    var container = $(p.chart_div);
+    // clear the container
+    container.html('');
+
+    var w = container.innerWidth() - p.margin_side;
+    var h = container.innerHeight();
+
+    var getTickFormat = function (trange_msecs) {
+        if (trange_msecs < 1000 * 60 * 60 * 24) {     // day
+            // hour:minute
+            return '%H:%M';
+        }
+        else if (trange_msecs < 1000 * 60 * 60 * 24 * 7) {    // week
+            // (week name) (month name) (day of month)
+            return '%a %b %e';
+        }
+        else if (trange_msecs < 1000 * 60 * 60 * 24 * 30) {   // month
+            // (month) (day of month)
+            return '%b %e';
+        }
+        else if (trange_msecs < 1000 * 60 * 60 * 24 * 30 * 3) { // 3 months
+            // (month) (day of month)
+            return '%b %e';
+        }
+        else if (trange_msecs < 1000 * 60 * 60 * 24 * 356) {  // year
+            // month
+            return '%b';
+        }
+        else {
+            // only show years
+            return '%Y';
+        }
+    }
+
+    var time_start;
+    var time_end;
+
+    var x;
+    var y;
+    var xAxis;
+
+    var initAxis = function () {
+        x = d3.time.scale()
+            .domain([time_start, time_end])
+            .range([0, chart_utils.width()])
+            .clamp(true);
+        xAxis = d3.svg.axis()
+            .scale(x)
+            .orient("bottom")
+            .tickFormat(d3.time.format(getTickFormat(time_end - time_start)))
+            .tickSubdivide(true)
+            .tickSize(8)
+            .tickPadding(8);
+    }
+
+    var axis_utils = {
+        groupWidth: function () {
+            return p.group_width;
+        },
+        subgroupWidth: function () {
+            return p.subgroup_width;
+        },
+        width: function (d, i) {
+            return axis_utils.groupWidth(d, i) + axis_utils.subgroupWidth(d, i);
+        }
+    }
+
+    var chart_utils = {
+        width: function () {
+            return w - axis_utils.width() - p.padding_right;
+        },
+        height: function () {
+            var last_group_n = p.data.length - 1;
+            var last_group = p.data[last_group_n];
+            return group_utils.offsetY(last_group, last_group_n) + group_utils.height(last_group, last_group_n);
+            // return h;
+        }
+    }
+
+    var group_utils = {
+        width: chart_utils.width,
+        height: function (group, group_n) {
+            var n = group.values.length;
+            return n * (p.item_h + p.item_margin);
+        },
+        offsetX: function () {
+            return 0;
+        },
+        offsetY: function (group, group_n) {
+            var groups = p.data;
+            var offset = 0;
+            for (var i = 0; i < group_n; i++) {
+                offset += group_utils.height(groups[i], i);
+            }
+            return offset;
+        },
+        textOffsetX: function (d, i) {
+            return p.padding_left;
+        },
+        textOffsetY: function (group, group_n) {
+            var font_size = p.font_size;
+            var group_size = group_utils.height(group, group_n);
+            var group_offset = group_utils.offsetY(group, group_n);
+            return group_offset + group_size / 2 + p.font_size / 2 - 2;
+        },
+        transform: function (group, group_n) {
+            return 'translate(' + group_utils.offsetX(group, group_n) + ', ' + group_utils.offsetY(group, group_n) + ')';
+        },
+        label: function (group) {
+            return group.name;
+        }
+    }
+
+    var getSubgroupUtils = function (group, group_n) {
+        var group_offset_y = group_utils.offsetY(group, group_n);
+
+        var subgroup_utils = {
+            height: function () {
+                return p.item_h;
+            },
+            offsetY: function (item, item_n) {
+                return p.item_margin / 2 + item_n * (p.item_h + p.item_margin);
+            },
+            textOffsetX: function () {
+                return axis_utils.subgroupWidth() - 10;
+            },
+            textOffsetY: function (item, item_n) {
+                // var item_offset = subgroup_utils.offsetY(item, item_n);
+                var item_h = subgroup_utils.height(item, item_n);
+                return item_h - (item_h - p.font_size) / 2 - 2;
+            },
+            transform: function (item, item_n) {
+                return 'translate(0,' + subgroup_utils.offsetY(item, item_n) + ')';
+            },
+            label: function (item) {
+                return item.name;
+            },
+            getItemUtils: function () {
+                var item_utils = {
+                    offsetX: function (item, item_n) {
+                        return x(item.start);
+                    },
+                    offsetY: function () {
+                        return 0;
+                    },
+                    width: function (item, item_n) {
+                        return Math.max(1, (x(item.end) - x(item.start)));
+                    },
+                    height: subgroup_utils.height,
+                    transform: function (d, i) {
+                        return 'translate(' + item_utils.offsetX(d, i) + ',' + item_utils.offsetY(d, i) + ')';
+                    },
+                    color: function (d) {
+                        return d.color != null ? d.color : p.default_color;
+                    },
+                    clazz: function (item) {
+                        return 'bar' + (item.status == null ? '' : ' ' + item.status);
+                    }
+                }
+                return item_utils;
+            }
+        }
+        return subgroup_utils;
+    }
+
+    var initTimeDomain = function () {
+        time_start = null;
+        time_end = null;
+
+        if (p.start != null) { time_start = p.start; }
+        if (p.end != null) { time_end = p.end; }
+
+        if (time_start == null || time_end == null) {
+            start = Number.POSITIVE_INFINITY;
+            end = Number.NEGATIVE_INFINITY;
+            for (var i = 0; i < p.data.length; i++) {
+                var group = p.data[i];
+                for (var j = 0; j < group.values.length; j++) {
+                    var subgroup = group.values[j];
+                    for (var k = 0; k < subgroup.values.length; k++) {
+                        var item = subgroup.values[k];
+                        if (item.start < start) start = item.start;
+                        if (item.end > end) end = item.end;
+                    }
+                }
+            }
+            if (time_start == null) { time_start = start; }
+            if (time_end == null) { time_end = end; }
+        }
+    }
+
+    var draw = function (data) {
+        initTimeDomain(data);
+        initAxis();
+
+        var svg = d3.select(p.chart_div)
+            .append('svg')
+            .attr('class', 'gantt')
+            .attr('width', w)
+            .attr('height', chart_utils.height() + 100)
+
+        // create backgrounds
+        var backgrounds = svg.append('g')
+            .selectAll('.group-background')
+            .data(data)
+            .enter()
+            .append('rect')
+            .attr('class', function (d, i) { return i % 2 == 0 ? 'group-background row-even' : 'group-background row-odd' })
+            .attr('width', w)
+            .attr('height', group_utils.height)
+            .attr('transform', function (d, i) { return 'translate(0, ' + group_utils.offsetY(d, i) + ')' })
+
+        // draw the items
+        var chart = svg.append('g')
+            .attr('width', axis_utils.width)
+            .attr('height', chart_utils.height())
+            .attr('transform', 'translate(' + axis_utils.width() + ', 0)');
+
+        var groups = chart.selectAll('.group')
+            .data(data)
+            .enter()
+            .append('g')
+            .attr('class', 'group')
+            .attr('width', chart_utils.width)
+            .attr('height', group_utils.height)
+            .attr('transform', group_utils.transform)
+
+        groups.each(function (group, group_n) {
+            var subgroup_utils = getSubgroupUtils(group, group_n);
+            // group of items (drawn horizontally)
+            var subgroups = d3.select(this)
+                .selectAll('.subgroup')
+                .data(function (group) { return group.values; })
+                .enter()
+                .append('g')
+                .attr('class', 'subgroup')
+                .attr('transform', subgroup_utils.transform)
+            // individual items (stacked horizontally)
+            subgroups.each(function (subgroup, subgroup_n) {
+                var item_utils = subgroup_utils.getItemUtils(subgroup, subgroup_n);
+
+                d3.select(this)
+                    .selectAll('.item')
+                    .data(function (subgroup) {
+                        return subgroup.values
+                    })
+                    .enter()
+                    .append('rect')
+                    .attr('class', 'item')
+                    .attr('height', item_utils.height)
+                    .attr('width', item_utils.width)
+                    .attr("transform", item_utils.transform)
+                    .attr('fill', item_utils.color)
+                    .attr('rx', 5)    // border radius
+                    .attr('ry', 5)    // border radius
+                    .attr('class', item_utils.clazz)
+                    .on("click", p.click)
+            })
+        })
+
+        // draw the labels
+        var y_axis = svg.append('g')
+            .attr('width', chart_utils.width())
+            .attr('height', chart_utils.height())
+            .attr('transform', 'translate(0, 0)');
+
+        var y_groups = y_axis.append('g')
+            .attr('width', axis_utils.groupWidth)
+            .attr('height', h)
+            .attr('transform', 'translate(0,0)')
+            .selectAll('.y-group')
+            .data(data)
+            .enter()
+            .append('g')
+            .attr('class', 'y-group')
+            .attr('width', axis_utils.groupWidth)
+            .attr('height', group_utils.height)
+            .append('text')
+            .attr('transform', function (d, i) { return 'translate(' + group_utils.textOffsetX(d, i) + ',' + group_utils.textOffsetY(d, i) + ')'; })
+            .text(group_utils.label)
+
+        // y_groups.append('text')
+        //     .text(group_utils.label)
+
+        var y_subgroups = y_axis.append('g')
+            .attr('width', axis_utils.subgroupWidth)
+            .attr('height', h)
+            .attr('transform', function (d, i) { return 'translate(' + axis_utils.groupWidth(d, i) + ',0)'; })
+            .selectAll('.y-subgroup')
+            .data(data)
+            .enter()
+            .append('g')
+            .attr('class', 'y-subgroup')
+            .attr('width', axis_utils.subgroupWidth)
+            .attr('height', group_utils.height)
+            .attr('transform', group_utils.transform)
+            .each(function (group, group_n) {
+                var item_utils = getSubgroupUtils(group, group_n);
+                var text = d3.select(this)
+                    .selectAll('g')
+                    .data(function (group) { return group.values; })
+                    .enter()
+                    .append('g')
+                    .attr('height', item_utils.height)
+                    .attr('width', item_utils.width)
+                    .attr('transform', function (d, i) { return 'translate(0,' + item_utils.offsetY(d, i) + ')'; })
+                    .append('text')
+                    .attr('font-size', p.font_size)
+                    .attr('text-anchor', 'end')
+                    .attr('transform', function (d, i) { return 'translate(' + item_utils.textOffsetX(d, i) + ', ' + item_utils.textOffsetY(d, i) + ')' })
+                    .text(item_utils.label);
+            })
+
+        svg.append('g')
+            .attr('class', 'x axis')
+            .attr('transform', 'translate(' + axis_utils.width() + ', ' + chart_utils.height() + ')')
+            // .attr('width', axis_utils.width)
+            .transition()
+            .call(xAxis);
+    }
+
+    draw(p.data);
 }
 
 TsDashboard.prototype.drawColumnChart = function (config) {
@@ -2208,10 +2663,10 @@ TsDashboard.prototype.drawScatterPlot = function (config) {
 TsDashboard.prototype.drawSparklineTable = function (config) {
     var self = this;
     var p = {
-        chart_div: "#someChart",
+        chart_div: "#someChart" + self.sufix,
         data: null,
         spark_height: 15,
-        columns: 2,
+        columns: 3,
         title_clip_prefix: null,
         title_clip_after: null,
         col_names: null,
@@ -2290,21 +2745,22 @@ TsDashboard.prototype.drawSparklineTable = function (config) {
                  var ctitle = title;
                 if (p.title_clip_after != null) {
                     p.title_clip_after.forEach(function (val) {
-                       if (ctitle.indexOf(val) >= 0){
-                           ctitle = ctitle.substring(0, ctitle.indexOf(val));
-                       }
+                        if (ctitle.indexOf(val) >= 0) {
+                            ctitle = ctitle.substring(0, ctitle.indexOf(val));
+                        }
                     });
-                 }
-                 if (p.title_clip_prefix != null) {
-                     if (ctitle.startsWith(p.title_clip_prefix) >= 0) {
-                         ctitle = ctitle.substr(p.title_clip_prefix.length);
-                     }
-                 }
+                }
+                if (p.title_clip_prefix != null) {
+                    if (ctitle.startsWith(p.title_clip_prefix) >= 0) {
+                        ctitle = ctitle.substr(p.title_clip_prefix.length);
+                    }
+                }
                 var titleTd = $("<td style='background-color:black !important; width:" + p.first_col_width
-                                + "px; word-break:break-all;'>" + ctitle + "</td>");
+                    + "px; word-break:break-all;'>" + ctitle + "</td>");
                 row.append(titleTd);
             }
-            var imgTd = $("<td " + url + " style='background-color:black !important; border-left: thin solid #282828; width:" + ((table.width() - p.first_col_width) / colNo).toFixed() + "px;'></td>");
+            var imgTd = $("<td " + url + " style='background-color:black !important; border-left: thin solid #282828; width:"
+                + ((table.width() - p.first_col_width) / colNo).toFixed() + "px;'></td>");
             var imgDiv = document.createElement("div");
             imgTd.append(imgDiv);
             row.append(imgTd);
