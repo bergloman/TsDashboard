@@ -1188,15 +1188,15 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
         var focus = g.append('g').style('display', 'none');
 
         focus.append('line')
-            .attr('id', 'focusLineX')
+            .attr('id', 'focusLineX' + self.sufix)
             .attr('class', 'focusLine')
             .style("stroke-dasharray", ("5, 3"));
         focus.append('line')
-            .attr('id', 'focusLineY')
+            .attr('id', 'focusLineY' + self.sufix)
             .attr('class', 'focusLine')
             .style("stroke-dasharray", ("5, 3"));
         focus.append('circle')
-            .attr('id', 'focusCircle')
+            .attr('id', 'focusCircle' + self.sufix)
             .attr('r', 5)
             .attr('class', 'circle focusCircle');
 
@@ -1963,6 +1963,7 @@ TsDashboard.prototype.drawMultiGantt = function (widget_id, config) {
         start: null,
         end: null,
         default_color: '#ffffff',
+        xaxis_location: 'bottom',
 
         // shape
         item_h: 20,
@@ -1987,6 +1988,9 @@ TsDashboard.prototype.drawMultiGantt = function (widget_id, config) {
             p[prop] = config[prop];
         }
     }
+
+    var draw_axis_top = p.xaxis_location == 'top' || p.xaxis_location == 'both';
+    var draw_axis_bottom = p.xaxis_location == 'bottom' || p.xaxis_location == 'both';
 
     var container = $(p.chart_div);
     // clear the container
@@ -2027,20 +2031,12 @@ TsDashboard.prototype.drawMultiGantt = function (widget_id, config) {
 
     var x;
     var y;
-    var xAxis;
 
     var initAxis = function () {
         x = d3.time.scale()
             .domain([time_start, time_end])
             .range([0, chart_utils.width()])
             .clamp(true);
-        xAxis = d3.svg.axis()
-            .scale(x)
-            .orient("bottom")
-            .tickFormat(d3.time.format(getTickFormat(time_end - time_start)))
-            .tickSubdivide(true)
-            .tickSize(8)
-            .tickPadding(8);
     }
 
     var axis_utils = {
@@ -2056,6 +2052,9 @@ TsDashboard.prototype.drawMultiGantt = function (widget_id, config) {
     }
 
     var chart_utils = {
+        offsetY: function () {
+            return draw_axis_top ? 30 : 0;
+        },
         width: function () {
             return w - axis_utils.width() - p.padding_right;
         },
@@ -2063,7 +2062,12 @@ TsDashboard.prototype.drawMultiGantt = function (widget_id, config) {
             var last_group_n = p.data.length - 1;
             var last_group = p.data[last_group_n];
             return group_utils.offsetY(last_group, last_group_n) + group_utils.height(last_group, last_group_n);
-            // return h;
+        }
+    }
+
+    var container_utils = {
+        height: function () {
+            return chart_utils.height() + chart_utils.offsetY();
         }
     }
 
@@ -2102,8 +2106,6 @@ TsDashboard.prototype.drawMultiGantt = function (widget_id, config) {
     }
 
     var getSubgroupUtils = function (group, group_n) {
-        var group_offset_y = group_utils.offsetY(group, group_n);
-
         var subgroup_utils = {
             height: function () {
                 return p.item_h;
@@ -2127,6 +2129,19 @@ TsDashboard.prototype.drawMultiGantt = function (widget_id, config) {
             },
             getItemUtils: function () {
                 var item_utils = {
+                    text: function (item, item_n) {
+                        return item_utils.width(item, item_n) < 5 ? '' : item.text;
+                    },
+                    textColor: function (item) {
+                        var item_color = item.color;
+                        return '#303030 !important';
+                    },
+                    textOffsetX: function (item, item_n) {
+                        return item_utils.offsetX(item, item_n) + item_utils.width(item, item_n) / 2;
+                    },
+                    textOffsetY: function (item, item_n) {
+                        return item_utils.offsetY(item, item_n) + item_utils.height(item, item_n) / 2;
+                    },
                     offsetX: function (item, item_n) {
                         return x(item.start);
                     },
@@ -2144,7 +2159,7 @@ TsDashboard.prototype.drawMultiGantt = function (widget_id, config) {
                         return d.color != null ? d.color : p.default_color;
                     },
                     clazz: function (item) {
-                        return 'bar' + (item.status == null ? '' : ' ' + item.status);
+                        return 'bar' + (item.clazz == null ? '' : ' ' + item.clazz);
                     }
                 }
                 return item_utils;
@@ -2183,13 +2198,14 @@ TsDashboard.prototype.drawMultiGantt = function (widget_id, config) {
         initTimeDomain(data);
         initAxis();
 
+        // the SVG element
         var svg = d3.select(p.chart_div)
             .append('svg')
             .attr('class', 'gantt')
             .attr('width', w)
-            .attr('height', chart_utils.height() + 100)
+            .attr('height', container_utils.height() + 100)
 
-        // create backgrounds
+        // create striped row backgrounds
         var backgrounds = svg.append('g')
             .selectAll('.group-background')
             .data(data)
@@ -2198,14 +2214,15 @@ TsDashboard.prototype.drawMultiGantt = function (widget_id, config) {
             .attr('class', function (d, i) { return i % 2 == 0 ? 'group-background row-even' : 'group-background row-odd' })
             .attr('width', w)
             .attr('height', group_utils.height)
-            .attr('transform', function (d, i) { return 'translate(0, ' + group_utils.offsetY(d, i) + ')' })
+            .attr('transform', function (d, i) { return 'translate(0, ' + (chart_utils.offsetY() + group_utils.offsetY(d, i)) + ')' })
 
-        // draw the items
+        // draw the chart
         var chart = svg.append('g')
             .attr('width', axis_utils.width)
             .attr('height', chart_utils.height())
-            .attr('transform', 'translate(' + axis_utils.width() + ', 0)');
+            .attr('transform', 'translate(' + axis_utils.width() + ', ' + chart_utils.offsetY() + ')');
 
+        // group elements
         var groups = chart.selectAll('.group')
             .data(data)
             .enter()
@@ -2245,6 +2262,20 @@ TsDashboard.prototype.drawMultiGantt = function (widget_id, config) {
                     .attr('ry', 5)    // border radius
                     .attr('class', item_utils.clazz)
                     .on("click", p.click)
+
+                d3.select(this)
+                    .selectAll('.item')
+                    .data(function (subgroup) {
+                        return subgroup.values;
+                    })
+                    .enter()
+                    .append('text')
+                    .attr("transform", function (item, item_n) { return 'translate(' + item_utils.textOffsetX(item, item_n) + ',' + item_utils.textOffsetY(item, item_n) + ')' })
+                    .attr('text-anchor', 'middle')
+                    .attr('alignment-baseline', 'middle')
+                    .attr('class', item_utils.clazz)
+                    .text(item_utils.text)
+                    .on("click", p.click)
             })
         })
 
@@ -2252,7 +2283,7 @@ TsDashboard.prototype.drawMultiGantt = function (widget_id, config) {
         var y_axis = svg.append('g')
             .attr('width', chart_utils.width())
             .attr('height', chart_utils.height())
-            .attr('transform', 'translate(0, 0)');
+            .attr('transform', 'translate(0, ' + chart_utils.offsetY() + ')');
 
         var y_groups = y_axis.append('g')
             .attr('width', axis_utils.groupWidth)
@@ -2268,9 +2299,6 @@ TsDashboard.prototype.drawMultiGantt = function (widget_id, config) {
             .append('text')
             .attr('transform', function (d, i) { return 'translate(' + group_utils.textOffsetX(d, i) + ',' + group_utils.textOffsetY(d, i) + ')'; })
             .text(group_utils.label)
-
-        // y_groups.append('text')
-        //     .text(group_utils.label)
 
         var y_subgroups = y_axis.append('g')
             .attr('width', axis_utils.subgroupWidth)
@@ -2301,12 +2329,39 @@ TsDashboard.prototype.drawMultiGantt = function (widget_id, config) {
                     .text(item_utils.label);
             })
 
-        svg.append('g')
-            .attr('class', 'x axis')
-            .attr('transform', 'translate(' + axis_utils.width() + ', ' + chart_utils.height() + ')')
-            // .attr('width', axis_utils.width)
-            .transition()
-            .call(xAxis);
+        // draw the axis
+        var axis_tick_size = 8;
+        var axis_tick_padding = 8;
+        if (draw_axis_bottom) {
+            var xAxisBottom = d3.svg.axis()
+                .scale(x)
+                .orient("bottom")
+                .tickFormat(d3.time.format(getTickFormat(time_end - time_start)))
+                .tickSubdivide(true)
+                .tickSize(axis_tick_size)
+                .tickPadding(axis_tick_padding);
+            svg.append('g')
+                .attr('class', 'x axis')
+                .attr('transform', 'translate(' + axis_utils.width() + ', ' + (chart_utils.offsetY() + chart_utils.height()) + ')')
+                // .attr('width', axis_utils.width)
+                .transition()
+                .call(xAxisBottom);
+        }
+        if (draw_axis_top) {
+            var xAxisTop = d3.svg.axis()
+                .scale(x)
+                .orient("top")
+                .tickFormat(d3.time.format(getTickFormat(time_end - time_start)))
+                .tickSubdivide(true)
+                .tickSize(axis_tick_size)
+                .tickPadding(axis_tick_padding);
+            svg.append('g')
+                .attr('class', 'x axis')
+                .attr('transform', 'translate(' + axis_utils.width() + ', ' + chart_utils.offsetY() + ')')
+                // .attr('width', axis_utils.width)
+                .transition()
+                .call(xAxisTop);
+        }
     }
 
     draw(p.data);
@@ -2761,6 +2816,7 @@ TsDashboard.prototype.drawSparklineTable = function (config) {
             var title = data[dataIdx].title;
             var pipeline = data[dataIdx].pipeline;
             var url = data[dataIdx].url;
+
             if (j == 0) {
                 var ctitle = title;
                 if (p.title_clip_after != null) {
