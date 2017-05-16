@@ -275,6 +275,16 @@ TsDashboard.prototype.initParams = function () {
 
 TsDashboard.prototype.setDropdownOptions = function (name, options, default_value) {
     var self = this;
+    var par = null;
+    for (var xpar of self.conf.parameters){
+        if (xpar.name === name) {
+            par=xpar;
+            break;
+        }
+    }
+    if (!par){
+        throw new Error("Parameter with provide name not found: " + name);
+    }
     var ctrl_id = "in" + name + self.sufix;
     $("#" + ctrl_id).empty();
     for (var i = 0; i < options.length; i++) {
