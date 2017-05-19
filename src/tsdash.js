@@ -276,13 +276,13 @@ TsDashboard.prototype.initParams = function () {
 TsDashboard.prototype.setDropdownOptions = function (name, options, default_value) {
     var self = this;
     var par = null;
-    for (var xpar of self.conf.parameters){
+    for (var xpar of self.conf.parameters) {
         if (xpar.name === name) {
-            par=xpar;
+            par = xpar;
             break;
         }
     }
-    if (!par){
+    if (!par) {
         throw new Error("Parameter with provide name not found: " + name);
     }
     var ctrl_id = "in" + name + self.sufix;
@@ -422,7 +422,23 @@ function getFriendlyTimeSlotLabel(slot_length) {
         ylab_i = Math.max(0, ylab_i);
         y_label = "per " + (slot_length / units[ylab_i].n) + " " + units[ylab_i].t;
         return y_label;
-    } else { return null }
+    } else {
+        return null;
+    }
+}
+
+/** Utility function for injecting data into texts */
+function injectDataIntoText(text, data) {
+    let tester = /\$\{\}/gi;
+    let matches = text.match(tester);
+    if (!matches || matches.length == 0) {
+        return;
+    }
+    if (!data || !data["dataseries"] || !data["dataseries"]["$injectable"]) {
+        return;
+    }
+    xdata = data["dataseries"]["$injectable"];
+    return text;
 }
 
 TsDashboard.prototype.run = function () {
@@ -458,7 +474,7 @@ TsDashboard.prototype.run = function () {
 
             block_div.addClass("tsd-block");
             if (block.title && block.title.length > 0) {
-                block_div.append($(document.createElement("h2")).text(block.title));
+                block_div.append($(document.createElement("h2")).text(injectDataIntoText(block.title)));
             }
 
             var block_div2 = $(document.createElement("div"));
@@ -474,7 +490,7 @@ TsDashboard.prototype.run = function () {
                 panel_div.addClass("tsd-panel");
                 panel_div.addClass(col_class);
                 if (panel.title && panel.title.length > 0) {
-                    panel_div.append($(document.createElement("h3")).text(panel.title));
+                    panel_div.append($(document.createElement("h3")).text(injectDataIntoText(panel.title)));
                 }
 
                 for (var k = 0; k < panel.widgets.length; k++) {
@@ -485,7 +501,7 @@ TsDashboard.prototype.run = function () {
                     panel_div.append(widget_div);
                     widget_div.addClass("tsd-widget");
                     if (widget.title && widget.title.length > 0) {
-                        widget_div.append($(document.createElement("h3")).text(widget.title));
+                        widget_div.append($(document.createElement("h3")).text(injectDataIntoText(widget.title)));
                     }
                     var widget_id = "tsd_widget_" + widget_counter + self.sufix;
                     widget_div.append(
