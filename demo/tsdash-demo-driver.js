@@ -113,7 +113,10 @@ TsDashboardDemoDriver.prototype.getDrawData = function (options, callback) {
     res.timeseries.push({ name: "s3", values: ts3 });
     res.timepoints.push({ name: "p1", values: tp1 });
     res.timepoints.push({ name: "p2", values: tp2 });
+    
     res.dataseries.push({ name: "c1", values: ds1 });
+    res.dataseries.push({ name: "$injectable", values: ds1 });
+    
     res.scatterseries.push({ name: "r1", values: r1 });
     res.graphs.push({ name: "g1", values: { nodes: nodes, edges: edges } });
     res.dataseries.push({ name:"alerts", values: alerts });
@@ -174,7 +177,7 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
         ],
         blocks: [
             {
-                title: "Main block",
+                title: "Main block - ${Algeria}",
                 panels: [
                     {
                         title: "First panel",
