@@ -180,10 +180,10 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                 title: "Main block - ${Algeria}",
                 panels: [
                     {
-                        title: "First panel",
+                        title: "First panel - ${Albania}",
                         widgets: [
                             {
-                                title: "Widget 1",
+                                title: "Widget 1 - ${Argentina}",
                                 timeseries: ["s1"],
                                 options: {
                                     height: 200,
