@@ -56,6 +56,7 @@ TsDashboardDemoDriver.prototype.getDrawData = function (options, callback) {
     var ts2 = [];
     var ts3 = [];
     var ds1 = [];
+    var ds2 = [];
     var r1 = [];
     var tp1 = [];
     var tp2 = [];
@@ -105,6 +106,7 @@ TsDashboardDemoDriver.prototype.getDrawData = function (options, callback) {
     this.countries.slice(0, 10)
         .forEach(function (x) {
             ds1.push({ name: x.name, val: x.name.length });
+			ds2.push({ name: x.name, val: x.name.substring(0, 1) + "=" + x.name.length });
         });
 
 
@@ -115,7 +117,7 @@ TsDashboardDemoDriver.prototype.getDrawData = function (options, callback) {
     res.timepoints.push({ name: "p2", values: tp2 });
     
     res.dataseries.push({ name: "c1", values: ds1 });
-    res.dataseries.push({ name: "$injectable", values: ds1 });
+    res.dataseries.push({ name: "$injectable", values: ds2 });
     
     res.scatterseries.push({ name: "r1", values: r1 });
     res.graphs.push({ name: "g1", values: { nodes: nodes, edges: edges } });
