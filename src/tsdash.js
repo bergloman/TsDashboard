@@ -429,29 +429,29 @@ function getFriendlyTimeSlotLabel(slot_length) {
 
 /** Utility function for injecting data into texts */
 TsDashboard.prototype.injectDataIntoText = function (text, data) {
-    let tester = /\$\{([0-9a-zA-Z\_]+)\}/gi;
-    let matches = text.match(tester);
-    if (!matches || matches.length == 0) {
-        return text;
-    }
-    if (!data || !data["dataseries"]) {
-        return text;
-    }
-    let data_series = data["dataseries"]
-        .filter(function (x) { return x.name === "$injectable"; });
-    if (data_series.length == 0) {
-        return text;
-    }
-    let xdata = data_series[0].values;
-    if (xdata.length == 0) {
-        return text;
-    }
-    for (var match of matches) {
-        let xmatch = match.substr(2, match.length - 3);
-        for (var rec of xdata) {
-            if (rec.name === xmatch) {
-                text = text.replace(match, rec.val);
-                break;
+    var tester = /\$\{([0-9a-zA-Z\_]+)\}/gi;
+    var matches = text.match(tester);
+    if (!matches || matches.length == 0) { return text; }
+    if (!data || !data.dataseries) { return text; }
+
+    var data_series = data.dataseries.filter(function (x) { return x.name === "$injectable"; });
+    if (data_series.length == 0) { return text; }
+
+    for (var seriesN = 0; seriesN < data_series.length; seriesN++) {
+        //for (var series of data_series) {
+        var xdata = data_series[seriesN].values;
+        if (xdata.length == 0) { return text; }
+
+        for (var matchN = 0; matchN < matches.length; matchN++) {
+            var match = matches[matchN];
+            var xmatch = match.substr(2, match.length - 3);
+
+            for (var recN = 0; recN < xdata.length; recN++) {
+                var rec = xdata[recN];
+                if (rec.name === xmatch) {
+                    text = text.replace(match, rec.val);
+                    break;
+                }
             }
         }
     }
