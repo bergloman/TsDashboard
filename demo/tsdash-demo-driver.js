@@ -121,7 +121,10 @@ TsDashboardDemoDriver.prototype.getDrawData = function (options, callback) {
     
     res.scatterseries.push({ name: "r1", values: r1 });
     res.graphs.push({ name: "g1", values: { nodes: nodes, edges: edges } });
-    res.dataseries.push({ name:"alerts", values: alerts });
+    res.dataseries.push({ name: "alerts", values: alerts });
+
+    // testing additional injectable data options
+    res.dataseries.push({ name: "$injectable", values: [{ name: 'service_id', val: 111 }] });
 
     callback(null, res);
 }
@@ -179,7 +182,7 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
         ],
         blocks: [
             {
-                title: "Main block - ${Algeria}",
+                title: "Main block - ${service_id}",
                 panels: [
                     {
                         title: "First panel - ${Albania}",
