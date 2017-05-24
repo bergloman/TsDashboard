@@ -437,17 +437,16 @@ TsDashboard.prototype.injectDataIntoText = function (text, data) {
     var data_series = data.dataseries.filter(function (x) { return x.name === "$injectable"; });
     if (data_series.length == 0) { return text; }
 
-    for (var seriesN = 0; seriesN < data_series.length; seriesN++) {
-        //for (var series of data_series) {
-        var xdata = data_series[seriesN].values;
+    for (var i = 0; i < data_series.length; i++) {
+        var xdata = data_series[i].values;
         if (xdata.length == 0) { return text; }
 
-        for (var matchN = 0; matchN < matches.length; matchN++) {
-            var match = matches[matchN];
+        for (var j = 0; j < matches.length; j++) {
+            var match = matches[j];
             var xmatch = match.substr(2, match.length - 3);
 
-            for (var recN = 0; recN < xdata.length; recN++) {
-                var rec = xdata[recN];
+            for (var k = 0; k < xdata.length; k++) {
+                var rec = xdata[k];
                 if (rec.name === xmatch) {
                     text = text.replace(match, rec.val);
                     break;
