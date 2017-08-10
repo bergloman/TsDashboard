@@ -1,0 +1,29 @@
+{
+    "undef": true,
+    "unused": true,
+    "devel": true,
+    "freeze": true,
+    "curly": false,
+    "singleGroups": false,
+    "eqeqeq": false,
+    "eqnull": true,
+    "funcscope": false,
+    "loopfunc": true,
+    "asi": true,
+    "-W041": true,
+    "-W002": true,
+    "jquery": true,
+    "browser": true,
+    "predef": [
+        "ko",
+        "AlertExplanation",
+        "moment",
+        "drawTimeSeries",
+        "drawTimeSeriesMulti"
+    ],
+    "globals": {
+        "$": true,
+        "d3": true
+    }
+}
+

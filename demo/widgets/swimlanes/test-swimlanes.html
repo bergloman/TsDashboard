@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="../../dep/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="../../../src/tsdash.css">
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1> Some title</h1>
+                <div id="divTarget"></div>
+            </div>
+        </div>
+    </div>
+
+    <!--<script src="dep/d3-4.1.1.min.js"></script>-->
+    <script src="../../dep/d3.js"></script>
+    <script src="../../dep/moment.min.js"></script>
+    <script src="../../dep/jquery-3.1.0.min.js"></script>
+    <script src="../../dep/bootstrap.min.js"></script>
+    <script src="../../../src/widgets/swimlanes.js"></script>
+
+    <script>
+        // prepare data
+        $(function () {
+            var event_types = ["type1", "type2"];
+            var services = ["svc1", "svc2", "svc3"];
+            var ts = Date.now() - 23 * 60 * 60 * 1000;
+            var events = [];
+            for (var i = 0; i < 100; i++) {
+                ts += 15 * 60 * 1000 * Math.random() + 3*60*1000;
+                events.push({
+                    ts: ts,
+                    type: event_types[Math.random() > 0.2 ? 1 : 0],
+                    service: services[Math.floor(services.length * Math.random())] || services[0]
+                });
+            }
+
+            var options = {
+                start: Date.now() - 24 * 60 * 60 * 1000,
+                end: Date.now(),
+                events: events,
+                categories: ["type", "service"],
+                chart_div: "#divTarget",
+                circle_radius: 4
+            };
+            var widget = new WidgetSwimLanes(options);
+            widget.draw();
+        });
+    </script>
+</body>
+
+</html>
