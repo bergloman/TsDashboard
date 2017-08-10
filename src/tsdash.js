@@ -19,10 +19,6 @@ function TsDashboard(div_id, driver, auto_init) {
         memento: function () { }
     }
 
-    this._callbacks = {
-        memento: function () { }
-    }
-
     this.regex_date = /^(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31))$/;
     this.regex_datetime = /^(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31)) (0[0-9]|1[0-9]|2[0-3])(:[0-5][0-9]){2}$/;
 
@@ -115,6 +111,17 @@ TsDashboard.prototype.setParamValue = function (name, value) {
             $("#in" + par.name + self.sufix).val(value);
         }
     })(ii);
+}
+
+// Will download a file with the given name and content.
+TsDashboard.prototype.promptDownload = function (fname, content) {
+    var element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
+    element.setAttribute('download', fname);
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
 }
 
 TsDashboard.prototype.resetErrorMsg = function () {
@@ -289,6 +296,7 @@ TsDashboard.prototype.setDropdownOptions = function (name, options, default_valu
     $("#" + ctrl_id).empty();
     for (var i = 0; i < options.length; i++) {
         var option = options[i];
+
         var value, name;
         if (par.type == "enum") {
             value = option.value;
@@ -367,7 +375,7 @@ TsDashboard.prototype.collectParameterValues = function () {
 
         } else if (par.type === "dropdown") {
             par_value.value = $("#in" + par.name + self.sufix).val();
-            if (par_value.value === null) {
+            if (!par.optional && par_value.value === null) {
                 self.showErrorMsg("Missing non-optional parameter: " + par.title);
                 return null;
             }
@@ -386,8 +394,10 @@ TsDashboard.prototype.getMemento = function () {
     var self = this;
     var params = self.collectParameterValues();
     var result = {};
-    for (var i = 0; i < params.length; i++) {
-        result[params[i].name] = params[i].value;
+    if (params) {
+        for (var i = 0; i < params.length; i++) {
+            result[params[i].name] = params[i].value;
+        }
     }
     return result;
 }
@@ -422,9 +432,7 @@ function getFriendlyTimeSlotLabel(slot_length) {
         ylab_i = Math.max(0, ylab_i);
         y_label = "per " + (slot_length / units[ylab_i].n) + " " + units[ylab_i].t;
         return y_label;
-    } else {
-        return null;
-    }
+    } else { return null }
 }
 
 /** Utility function for injecting data into texts */
@@ -437,16 +445,17 @@ TsDashboard.prototype.injectDataIntoText = function (text, data) {
     var data_series = data.dataseries.filter(function (x) { return x.name === "$injectable"; });
     if (data_series.length == 0) { return text; }
 
-    for (var i = 0; i < data_series.length; i++) {
-        var xdata = data_series[i].values;
+    for (var seriesN = 0; seriesN < data_series.length; seriesN++) {
+        //for (var series of data_series) {
+        var xdata = data_series[seriesN].values;
         if (xdata.length == 0) { return text; }
 
-        for (var j = 0; j < matches.length; j++) {
-            var match = matches[j];
+        for (var matchN = 0; matchN < matches.length; matchN++) {
+            var match = matches[matchN];
             var xmatch = match.substr(2, match.length - 3);
 
-            for (var k = 0; k < xdata.length; k++) {
-                var rec = xdata[k];
+            for (var recN = 0; recN < xdata.length; recN++) {
+                var rec = xdata[recN];
                 if (rec.name === xmatch) {
                     text = text.replace(match, rec.val);
                     break;
@@ -488,7 +497,7 @@ TsDashboard.prototype.run = function () {
             var block_div = $(document.createElement("div"));
             main.append(block_div);
 
-            block_div.addClass("tsd-block");
+            block_div.addClass("tsd-block-longterm");
             if (block.title && block.title.length > 0) {
                 block_div.append($(document.createElement("h2")).text(self.injectDataIntoText(block.title, data)));
             }
@@ -843,10 +852,18 @@ TsDashboard.prototype._constructSwimlane = function (dataseries_widget, dataseri
     if (dataseries_data == undefined || dataseries_data.length == 0) {
         throw new Error("Swimlane data not available.")
     }
+    var d1 = dataseries_data[0].d1;
+    var d2 = dataseries_data[0].d2;
+    if (!d1) {
+        d1 = dataseries[0][0].ts;
+    }
+    if (!d2) {
+        d2 = dataseries[0][dataseries[0].length - 1].ts;
+    }
     var options = {
         data: dataseries,
-        start: dataseries_data[0].d1,
-        end: dataseries_data[0].d2,
+        start: d1,
+        end: d2,
         handle_clicks: false
     }
 
@@ -966,7 +983,8 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
         margin_left: 50,
         labels: null,
         backgroundSegments: null, // array where each element is { epoch_start: num, epoch_end: num, color: string }
-        backgroundSegmentOpacity: 0.3
+        backgroundSegmentOpacity: 0.3,
+        exportable: true
     };
 
     // If we have user-defined parameters, override the defaults.
@@ -1291,7 +1309,6 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
                 .style("fill-opacity", p.backgroundSegmentOpacity);
         }
     }
-
     // timepoint markers
     if (p.timepoints && p.timepoints.length > 0) {
         for (var j = 0; j < p.timepoints.length; j++) {
@@ -1376,6 +1393,82 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
                 }
             }
         }
+    }
+
+    if (p.exportable) {
+        var export_btn = $('<div></div>');
+
+        export_btn.addClass('btn-export-data');
+        export_btn.css('position', 'absolute');
+        export_btn.css('right', margin.right);
+        export_btn.css('top', margin.top);
+
+        export_btn.click(function () {
+            var fname = 'export.csv';
+            var content = '';
+
+            var all_series = p.data;
+
+            if (all_series.length == 0) {
+                self.promptDownload(fname, content);
+                return;
+            }
+
+            // the headers
+            content += 'timestamp';
+            for (var headerN = 0; headerN < all_series.length; headerN++) {
+                content += ',' + p.labels[headerN];
+            }
+            // count the number of rows in the file
+            var row_count = all_series[0].length;
+
+            var rowsDict = {};
+            for (var headerN = 0; headerN < all_series.length; headerN++) {
+                for (var row = 0; row < all_series[headerN].length; row++) {
+                    var epoch = all_series[headerN][row].epoch;
+                    var val = all_series[headerN][row].val;
+                    if (!(epoch in rowsDict)) {
+                        rowsDict[epoch] = [];
+                        for (var rn = 0; rn < all_series.length; rn++) {
+                            rowsDict[epoch].push(0);
+                        }
+                    }
+                    else {
+                        rowsDict[epoch][headerN] = val;
+                    }
+                }
+            }
+
+            for (var headerN = 0; headerN < all_series.length; headerN++) {
+                for (var row = 0; row < all_series[headerN].length; row++) {
+                    var epoch = all_series[headerN][row].epoch;
+                    var val = all_series[headerN][row].val;
+                    if (epoch in rowsDict) {
+                        rowsDict[epoch][headerN] = val;
+                    }
+                }
+            }
+
+            // put keys (epoch) in an array and sort it
+            var keys = [];
+            for (var epoch in rowsDict) {
+                keys.push(epoch);
+            }
+            keys.sort();
+
+            // go through all the rows and join the elements
+            for (var keyN = 0; keyN < keys.length; keyN++) {
+                var row_str = '\n';
+                row_str += keys[keyN].toString();
+                for (var seriesN = 0; seriesN < all_series.length; seriesN++) {
+                    row_str += ',' + rowsDict[keys[keyN]][seriesN].toString();
+                }
+                content += row_str;
+            }
+
+            self.promptDownload(fname, content);
+        })
+        $(p.chart_div).append(export_btn);
     }
 }
 
@@ -1743,6 +1836,37 @@ TsDashboard.prototype.drawTemporalGraph = function (chart_div, config) {
             }
         })
 
+    // insert alerting pulsing circles
+    var pulsing = svg.selectAll("circles")
+        .data(nodes_arr.filter(function (d) { return d.options.color == "red"; }))
+        .enter()
+        .append("circle")
+        .transition()
+        .delay(function (d) { return scaleTime(d.options.epoch); })
+        .attr("stroke-width", 10)
+        .style("stroke", "red")
+        .style("fill", "none")
+        .attr("r", 100)
+        .attr("cx", function (d) { return scaleX(d.options.epoch) })
+        .attr("cy", function (d) { return scaleY(d.options.y); })
+        .each(pulse)
+
+    function pulse() {
+        var circle = d3.select(this);
+        (function repeat() {
+            circle = circle.transition()
+                .duration(1000)
+                .attr("stroke-width", 10)
+                .attr("r", 10)
+                .transition()
+                .duration(1000)
+                .attr('stroke-width', 0.1)
+                .attr("r", 50)
+                .ease('sine')
+                .each("end", repeat);
+        })();
+    }
+
     // edge mouse events
     svg.selectAll(".edge")
         .on("mouseover", function (e, i) {
@@ -1846,6 +1970,14 @@ TsDashboard.prototype.drawTemporalGraph = function (chart_div, config) {
             return "M" + t1x + "," + t1y + "C" + tx + "," + t1y + " " + tx + "," + t2y + " " + t2x + "," + t2y;
         }).duration(p.duration).ease("linear")
 
+    // final state time traveler
+    if (nodes_arr) {
+        if (nodes_arr.length > 0) {
+            timeTraveler.transition()
+                .delay(scaleTime(nodes_arr[nodes_arr.length - 1].options.epoch) + p.step_duration + 1)
+                .attr("display", "none");
+        }
+    }
 }
 
 TsDashboard.prototype.drawSwimlaneChart = function (chart_div, config) {
@@ -1867,7 +1999,8 @@ TsDashboard.prototype.drawSwimlaneChart = function (chart_div, config) {
         "lane_height": 20,
         "alert_radius": 3,
         "alert_over_radius": 10,
-        "ticks": 10
+        "ticks": 10,
+        "filter": []
     };
 
     // If we have user-defined parameters, override the defaults.
@@ -1889,7 +2022,7 @@ TsDashboard.prototype.drawSwimlaneChart = function (chart_div, config) {
     // transform attr names
     var alerts = [];
     for (var i = 0; i < alerts1.length; i++) {
-        if (alerts1[i].src != "event_prediction" && alerts1[i].src != "event_prediction_alert") {
+        if ($.inArray(alerts1[i].src, p.filter) == -1) {
             alerts.push({
                 "type": alerts1[i].src,
                 "ts": new Date(alerts1[i].ts),
@@ -1939,6 +2072,21 @@ TsDashboard.prototype.drawSwimlaneChart = function (chart_div, config) {
     var lanes = {};
     for (var i = 0; i < alertTypes.length; i++) {
 
+        d3.select(p.chart_div)
+            .append("svg")
+            .attr("width", $(p.chart_div)
+                .width())
+            .attr("height", 12)
+            .append("svg:text")
+            .text(function (d) { return alertTypes[i]; })
+            .attr("cy", 50)
+            .attr("y", 0)
+            .attr("dy", "0.75em")
+            .attr("height", p.lane_height)
+            .attr("font-family", "sans-serif")
+            .attr("font-size", "12px")
+            .attr("fill", "red")
+
         // generate svg element for each lane
         lanes[alertTypes[i]] = d3.select(p.chart_div)
             .append("svg")
@@ -1984,7 +2132,7 @@ TsDashboard.prototype.drawSwimlaneChart = function (chart_div, config) {
     var scaleTime = d3.time.scale().domain([new Date(p.start), new Date(p.start)]).nice(d3.time.hour).range([0, $(p.chart_div).width()]);
 
     // append svd for time axis
-    var timeSvd = d3.select(p.chart_div).append("svg").attr("width", $(p.chart_div).width()).attr("height", p.lane_height);
+    // var timeSvd = d3.select(p.chart_div).append("svg").attr("width", $(p.chart_div).width()).attr("height", p.lane_height);
 }
 
 TsDashboard.prototype.drawMultiGantt = function (widget_id, config) {
@@ -2162,7 +2310,11 @@ TsDashboard.prototype.drawMultiGantt = function (widget_id, config) {
             getItemUtils: function () {
                 var item_utils = {
                     text: function (item, item_n) {
-                        return item_utils.width(item, item_n) < 5 ? '' : item.text;
+                        var text = item_utils.width(item, item_n) < 5 ? '' : item.text;
+                        if (text == '') {
+                            text = item.data.length;
+                        }
+                        return text;
                     },
                     textColor: function (item) {
                         var item_color = item.color;
@@ -2277,7 +2429,6 @@ TsDashboard.prototype.drawMultiGantt = function (widget_id, config) {
             // individual items (stacked horizontally)
             subgroups.each(function (subgroup, subgroup_n) {
                 var item_utils = subgroup_utils.getItemUtils(subgroup, subgroup_n);
-
                 d3.select(this)
                     .selectAll('.item')
                     .data(function (subgroup) {

@@ -66,7 +66,12 @@ TsDashboardDemoDriver.prototype.getDrawData = function (options, callback) {
     var ts3_curr = 3;
     var nodes = {};
     var edges = [];
-    var alerts = [{"type": "db", "ts":1476704004495}, {"type": "events", "ts":1476704004535}, {"type": "events", "ts":1476704004695}, {"type": "blalalalaaaa", "ts":1476704004995}];
+    var alerts = [
+        { type: "category1", ts: 1476704004495 },
+        { type: "category2", ts: 1476704004535 },
+        { type: "category2", ts: 1476704004695 },
+        { type: "category3", ts: 1476704004995 }
+    ];
     for (var i = 0; i <= length_in_days; i++) {
         //d += 24 * 60 * 60 * 1000; // advance single day
         d += 15 * 60 * 1000; // advance 15 min
@@ -98,15 +103,15 @@ TsDashboardDemoDriver.prototype.getDrawData = function (options, callback) {
             } else {
                 edges.push({ size: Math.random(), n1: n2, n2: n1 });
             }
-            nodes[n1] = {size: Math.random(), epoch: i, x: i, y: i%5};
-            nodes[n2] = {size: Math.random(), epoch: i%5, x: i%5, y: i%6};
+            nodes[n1] = { size: Math.random(), epoch: i, x: i, y: i % 5 };
+            nodes[n2] = { size: Math.random(), epoch: i % 5, x: i % 5, y: i % 6 };
         }
     }
 
     this.countries.slice(0, 10)
         .forEach(function (x) {
             ds1.push({ name: x.name, val: x.name.length });
-			ds2.push({ name: x.name, val: x.name.substring(0, 1) + "=" + x.name.length });
+            ds2.push({ name: x.name, val: x.name.substring(0, 1) + "=" + x.name.length });
         });
 
 
@@ -115,10 +120,10 @@ TsDashboardDemoDriver.prototype.getDrawData = function (options, callback) {
     res.timeseries.push({ name: "s3", values: ts3 });
     res.timepoints.push({ name: "p1", values: tp1 });
     res.timepoints.push({ name: "p2", values: tp2 });
-    
+
     res.dataseries.push({ name: "c1", values: ds1 });
     res.dataseries.push({ name: "$injectable", values: ds2 });
-    
+
     res.scatterseries.push({ name: "r1", values: r1 });
     res.graphs.push({ name: "g1", values: { nodes: nodes, edges: edges } });
     res.dataseries.push({ name: "alerts", values: alerts });
@@ -264,7 +269,7 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                                 title: "Table with time-series data",
                                 timeseries: ["s2", "s1"],
                                 options: {
-                                    height: 200
+                                    height: 300
                                 }
                             }
                         ]
@@ -285,7 +290,7 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                                 dataseries: ["c1"],
                                 options: {
                                     height: 150,
-                                    columns : [{source: "val", caption: "Count", width: "30%"}, {source: "name", caption: "Country", width: "70%"}]
+                                    columns: [{ source: "val", caption: "Count", width: "30%" }, { source: "name", caption: "Country", width: "70%" }]
                                 }
                             }
                         ]
@@ -298,15 +303,15 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                     {
                         title: "Big picture wide panel",
                         widgets: [
-                            {
-                                type: "graph",
-                                title: "Temporal graph",
-                                graphs: ["g1"],
-                                options: {
-                                    duration: 10000,
-                                    height: 600
-                                }
-                            },
+                            // {
+                            //     type: "graph",
+                            //     title: "Temporal graph",
+                            //     graphs: ["g1"],
+                            //     options: {
+                            //         duration: 10000,
+                            //         height: 600
+                            //     }
+                            // },
                             {
                                 type: "swimlane",
                                 title: "Swimlane chart",

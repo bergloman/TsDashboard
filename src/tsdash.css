@@ -1,11 +1,11 @@
-/*body, dd, div, dl, dt, fieldset, form, h1, h2, h3, h4, h5, h6, input, li, ol, p, pre, td, textarea, th, ul {
-    margin: 0;
-    padding: 0;
-}*/
+body {    
+    background-color: #1E1E1E;
+    color: #fff;
+}
 
 tsd {
     margin: 0;
-    padding: 0;    
+    padding: 0;
     overflow: hidden;
     position: relative;
     font-family: sans-serif;
@@ -15,15 +15,14 @@ tsd {
 }
 
 h1{
-    color: #085075;    
+    color: orange;    
 }
 
 h2 {
-    color: #085075;    
+    color: orangered;    
 }
 h3{
-    color: #085075;    
-    display:inline-block;
+    color: #eee;    
 }
 
 /*.tsd-header{
@@ -37,6 +36,7 @@ h3{
 }*/
 
 .tsd-sidebar {
+    border-right-color: #222;
     padding: 10px;
     margin: 0;
     font-size: 12px;
@@ -44,7 +44,7 @@ h3{
     position: absolute;
     /*top: 55px;*/
     left: 0;
-    border-right: solid 1px #eee;
+    /*border-right: solid 1px #eee;*/
     height: calc(100vh - 55px);
 }
 
@@ -60,7 +60,7 @@ h3{
     margin-bottom: 10px;
     margin-top: 0px;
     display: none;
-    background-color: #fff;    
+    background-color: #fff;
     overflow-y: scroll;
     max-height: 200px;
 }
@@ -74,7 +74,11 @@ h3{
 
 .tsd-block{
     padding: 0px 20px 20px 20px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #333;
+}
+
+.tsd-block-longterm{
+    padding: 0px 0px 0px 0px;
 }
 .tsd-block h2 {
     padding-top: 20px;
@@ -84,6 +88,8 @@ h3{
 }
 .tsd-panel{
     padding-top: 20px;
+    padding-left: 5px;
+    padding-right: 5px;
     width: 100%;
 }
 .tsd-widget{
@@ -133,41 +139,22 @@ h3{
     opacity: 0.7;
 }
 
-.tsd-help-tip {
-    text-align: center;
-    background-color: #BCDBEA;
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    font-size: 14px;
-    line-height: 26px;
-    float: right;
-    margin-left: 4px;
+/**
+ * Override paddings for single widgets
+ */
+.tsd-single-widget .tsd-main{
+    padding: 0px 0px 0px 0px;
+}
+.tsd-single-widget .tsd-block{
+    padding: 0px 0px 0px 0px;
+}
+.tsd-single-widget .tsd-panel{
+    padding: 0px 0px 0px 0px;
+}
+.tsd-single-widget .tsd-widget{
+    padding: 0px 0px 0px 0px;
 }
 
-.tsd-help-tip:before {
-    content: '?';
-    font-weight: bold;
-    color: #fff;
-}
-
-.tsd-help-tip-box {
-    position: absolute;
-    text-align: center;
-    min-height: 40px;
-    padding: 2px;
-    font: 12px sans-serif;
-    color: white;
-    background: black;
-    border: 0px;
-    display: none;
-    z-index: 1;
-    opacity: 0.8;
-}
-
-.tsd-help-tip:hover .tsd-help-tip-box{
-    display : block;
-}
 
 /***********************************************************************/
 .tsd-sidebar-param {
@@ -178,11 +165,11 @@ h3{
     font-size: 14px;
     width:100%;
     /*border-radius:3px;*/
-    border:#ccc 1px solid;
+    border:#888 1px solid;
     box-sizing:border-box;
     padding:2px;
-    background-color: #fff;
-    color: #222;
+    background-color: #222;
+    color: #fff;
 }
 
 .tsd-sidebar input[type="checkbox"]{
@@ -191,7 +178,7 @@ h3{
 
 .tsd-sidebar input:focus, .tsd-sidebar select:focus{
     outline:none;
-    border:rgba(24,149,215,1) 1px solid;
+    border-color:rgba(24,149,215,1);
     color:rgba(24,149,215,1);
 }
 
@@ -201,7 +188,7 @@ h3{
     width:100%;
     /*border-radius:3px;*/
     border:rgba(0,0,0,.3) 0px solid;
-    background-color :#147bb1;
+    background-color: #007ACC; /* #147bb1; */
     color: white;
     box-sizing:border-box;
     padding:2px;
@@ -213,7 +200,8 @@ h3{
 }
 .tsd-input-help {
     font-size: 10px;
-    color:#888;margin-right: 10px;
+    color:#ccc;
+    margin-right: 10px;
     cursor: pointer;
 }
 .tsd-input-help:hover {
@@ -221,9 +209,6 @@ h3{
 }
 .tsd-bar {
     fill: #147bb1;
-}
-.tsd-bar-highlight {
-    fill: #26a3e4;    
 }
 .modal {
     padding-right: 17px;
@@ -234,16 +219,27 @@ h3{
     padding: 0;
 }
 
+.modal-content {
+    height: 100%;
+    border-radius: 0;
+    /* background-color: rgb(255,255,255,0.8); */
+    background-color: #1e1e1e;
+}
+
 .tsd-kpi-tile {
     color:white;
     font-size: 14px;
-    padding: 10px;
+}
+.tsd-kpi-tile div {
+    margin-left: auto;
+    margin-right: auto;
+    /* display: table-cell; */
     text-align: center;
-    min-width: 80px;
-    height: 80px;
+    vertical-align: middle;
 }
 .tsd-kpi-tile-ok {
-    background-color: mediumseagreen;
+    /*background-color: mediumseagreen;*/
+    background-color: #59b641;
 }
 .tsd-kpi-tile-warning {
     background-color: darkorange;
@@ -259,11 +255,6 @@ h3{
     font-weight: bold;
 }
 
-.modal-content {
-    height: 100%;
-    border-radius: 0;
-    background-color: rgb(255,255,255,0.8);
-}
 /*********************************/
 /* Chart styles                  */
 /*********************************/
@@ -279,10 +270,10 @@ h3{
     /*stroke-width: 1.5px;*/
 }
 .line1-legend {
-	background-color: #008aff; 
+    background-color: #008aff;
 }
 .line2-legend {
-	background-color: #ff8a00; 
+    background-color: #ff8a00;
 }
 
 .area {
@@ -295,37 +286,63 @@ h3{
     stroke-width: 2;
     fill: none;
 }
-.series0 { stroke: #1f77b4; }
-.series1 { stroke: #ff7f0e; }
-.series2 { stroke: #2ca02c; }
-.series3 { stroke: #d62728; }
-.series4 { stroke: #9467bd; }
-.series5 { stroke: #8c564b; }
-.series6 { stroke: #e377c2; }
-.series7 { stroke: #7f7f7f; }
-.series8 { stroke: #bcbd22; }
-.series9 { stroke: #17becf; }
-.series-tag0 { background-color: #1f77b4; }
-.series-tag1 { background-color: #ff7f0e; }
-.series-tag2 { background-color: #2ca02c; }
-.series-tag3 { background-color: #d62728; }
-.series-tag4 { background-color: #9467bd; }
-.series-tag5 { background-color: #8c564b; }
-.series-tag6 { background-color: #e377c2; }
-.series-tag7 { background-color: #7f7f7f; }
-.series-tag8 { background-color: #bcbd22; }
-.series-tag9 { background-color: #17becf; }
 
+.series0 { stroke: #ffffff;  }
+.series1 { stroke: #1f77b4;  }
+.series2 { stroke: #d62728;  }
+.series3 { stroke: #9467bd;  }
+.series4 { stroke: #8c564b;  }
+.series5 { stroke: #e377c2;  }
+.series6 { stroke: #7f7f7f;  }
+.series7 { stroke: #bcbd22;  }
+.series8 { stroke: #17becf;  }
+.series9 { stroke: #ff7f0e;  }
+.series10 { stroke: #2ca02c;  }
+
+.series-tag0 {
+    background-color: #ffffff;
+    color: #4f4f4f;
+}
+.series-tag0 { background-color: #ffffff;  }
+.series-tag1 { background-color: #1f77b4;  }
+.series-tag2 { background-color: #d62728;  }
+.series-tag3 { background-color: #9467bd;  }
+.series-tag4 { background-color: #8c564b;  }
+.series-tag5 { background-color: #e377c2;  }
+.series-tag6 { background-color: #7f7f7f;  }
+.series-tag7 {
+    background-color: #bcbd22;
+    color: #000;
+}
+.series-tag8 { background-color: #17becf;  }
+.series-tag9 { background-color: #ff7f0e;  }
+.series-tag10 { background-color: #2ca02c;  }
+
+.series-legend0 { fill: #ffffff; stroke: #ffffff; }
+.series-legend1 { fill: #1f77b4; stroke: #1f77b4; }
+.series-legend2 { fill: #d62728; stroke: #d62728; }
+.series-legend3 { fill: #9467bd; stroke: #9467bd; }
+.series-legend4 { fill: #8c564b; stroke: #8c564b; }
+.series-legend5 { fill: #e377c2; stroke: #e377c2; }
+.series-legend6 { fill: #7f7f7f; stroke: #7f7f7f; }
+.series-legend7 { fill: #bcbd22; stroke: #bcbd22; }
+.series-legend8 { fill: #17becf; stroke: #17becf; }
+.series-legend9 { fill: #ff7f0e; stroke: #ff7f0e; }
+.series-legend10 { fill: #2ca02c; stroke: #2ca02c; }
 
 svg text {
-    fill: #666;
+    fill: #eee;
 }
 
-path { 
+/* NOTE: This property should not be set globaly for path svg objects.
+   Instead, create a class for path objects that get that property.
+*/ 
+/*path {
     stroke-width: 2;
     fill: none;
-}
-path2 { 
+}*/
+
+path2 {
     stroke: #ff8a00;
     stroke-width: 2;
     fill: none;
@@ -342,13 +359,8 @@ path2 {
 .tick {
     stroke: lightgrey;
     stroke-opacity: 0.4;
-    stroke-dasharray: 5,5;
+  stroke-dasharray: 5,5;
     shape-rendering: crispEdges;
-}
-
-.tick text {
-    stroke: none;
-    stroke-dasharray: 0;
 }
 
 .overlay {
@@ -366,8 +378,8 @@ path2 {
  .focusCircle {
      fill: red;
  }
-     
-     
+
+
 .zerolinetext {
     fill: red;
     color: red;
@@ -382,16 +394,38 @@ path2 {
     background: black;
     border: 0px;
     pointer-events: none;
-    /*
-    position: relative;
-    width: 100px;
-    text-align: center;
-    min-height: 40px;
-    padding: 2px;
-    font: 12px sans-serif;
-    color: white;
-    background: black;
-    border: 0px;
-    pointer-events: none;
-    */
  }
+
+.btn-export-data {
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+}
+.btn-export-data:before {
+    content: "\2b73";
+    font-size: 20px;
+}
+ /*================================
+  * GANTT CHART
+  *==============================*/
+
+.gantt {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+.gantt>.gantt-chart>.bar {
+    fill: #ffffff;
+}
+
+.gantt .row-even {
+    fill: #222222;
+}
+
+.gantt .row-odd {
+    fill: #323232;
+}
+
+.gantt rect.bar, .gantt text.bar {
+    cursor: pointer;
+}
