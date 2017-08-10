@@ -21,8 +21,8 @@ h1{
 h2 {
     color: orangered;    
 }
-h3{
-    color: #eee;    
+h3, h4{
+    color: goldenrod;    
 }
 
 /*.tsd-header{
@@ -79,6 +79,7 @@ h3{
 
 .tsd-block-longterm{
     padding: 0px 0px 0px 0px;
+    border-bottom: solid 1px #444;
 }
 .tsd-block h2 {
     padding-top: 20px;

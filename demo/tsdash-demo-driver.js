@@ -67,10 +67,10 @@ TsDashboardDemoDriver.prototype.getDrawData = function (options, callback) {
     var nodes = {};
     var edges = [];
     var alerts = [
-        { type: "category1", ts: 1476704004495 },
-        { type: "category2", ts: 1476704004535 },
-        { type: "category2", ts: 1476704004695 },
-        { type: "category3", ts: 1476704004995 }
+        { type: "category1", ts: 1476704004495, title: "Title 1" },
+        { type: "category2", ts: 1476704004535, title: "Title 2" },
+        { type: "category2", ts: 1476704004695, title: "Title 3" },
+        { type: "category3", ts: 1476704004995, title: "Title 4" }
     ];
     for (var i = 0; i <= length_in_days; i++) {
         //d += 24 * 60 * 60 * 1000; // advance single day

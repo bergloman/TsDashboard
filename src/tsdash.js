@@ -526,7 +526,7 @@ TsDashboard.prototype.run = function () {
                     panel_div.append(widget_div);
                     widget_div.addClass("tsd-widget");
                     if (widget.title && widget.title.length > 0) {
-                        widget_div.append($(document.createElement("h3")).text(self.injectDataIntoText(widget.title, data)));
+                        widget_div.append($(document.createElement("h4")).text(self.injectDataIntoText(widget.title, data)));
                     }
                     var widget_id = "tsd_widget_" + widget_counter + self.sufix;
                     widget_div.append(
