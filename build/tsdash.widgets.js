@@ -5,7 +5,6 @@
  * @param {Date} config.end - end Date to display
  * @param {Array} config.events - Array of events to display
  * @param {Array} config.categories - Array of field names that are used for grouping into swimlanes
- * @param {string} config.target_id - ID of HTML element where this widget is to be drawn
  */
 function WidgetSwimLanes(config) {
     // If we have user-defined parameters, override the defaults.
@@ -14,9 +13,8 @@ function WidgetSwimLanes(config) {
         end: null,
         events: null,
         categories: null,
-        target_div: "#divTarget",
         side_margin: 0,
-        left_padding: 30,
+        chart_div: "#divTarget",
         circle_color: "#007ACC",
         circle_color2: "#72afcc",
         lanes_color: "#333",
@@ -24,6 +22,7 @@ function WidgetSwimLanes(config) {
         lane_opacity: 1,
         lane_selected_opacity: 1,
         lane_height: 30,
+        left_padding: 30,
         circle_radius: 8,
         circle_over_radius: 10,
         ticks: 10,
@@ -39,24 +38,12 @@ function WidgetSwimLanes(config) {
         }
     }
 
-    if (!p.target_div.startsWith("#")) {
-        p.target_div = "#" + p.target_div;
-    }
-
     this._p = p;
-    this._sort_type = "d";
-    this.clear();
-}
-
-WidgetSwimLanes.prototype.clear = function (d) {
     this._eventTypes = [];
     this._eventTypesDict = {};
     this.analyzeEventTypes();
 }
-WidgetSwimLanes.prototype.redraw = function (d) {
-    this.clear();
-    this.draw();
-}
+
 WidgetSwimLanes.prototype.getTimeString = function (d) {
     if (!d) {
         d = new Date();
@@ -75,7 +62,6 @@ WidgetSwimLanes.prototype.getEventType = function (event) {
 }
 
 WidgetSwimLanes.prototype.analyzeEventTypes = function () {
-    var self = this;
     var p = this._p;
     var events = this._p.events;
     var eventTypes = this._eventTypes;
@@ -98,21 +84,21 @@ WidgetSwimLanes.prototype.analyzeEventTypes = function () {
         }
     }
     eventTypes.sort(function (a, b) {
-        if (self._sort_type == "d") {
-            return (a.min < b.min ? -1 : 1);
-        } else {
-            return a.type.localeCompare(b.type);
-        }
+        return a.type.localeCompare(b.type);
     });
     for (var i = 0; i < eventTypes.length; i++) {
         eventTypesDict[eventTypes[i].type] = i;
     }
+    events.sort(function (a, b) {
+        if (a.ts > b.ts) return -1;
+        return 1;
+    });
 }
 
 WidgetSwimLanes.prototype.draw = function () {
     var self = this;
     var p = this._p;
-    var width = $(p.target_div).width();
+    var width = $(p.chart_div).width();
     var timeline_height = 20;
     var events = p.events;
     var start = p.start || events[0].ts;
@@ -121,7 +107,7 @@ WidgetSwimLanes.prototype.draw = function () {
     start -= span * 0.05;
     end += span * 0.05;
 
-    $(p.target_div)
+    $(p.chart_div)
         .empty()
         .css("padding", p.side_margin)
         .css("font-size", 10)
@@ -129,6 +115,7 @@ WidgetSwimLanes.prototype.draw = function () {
 
     // x axis scaler
     var target_range = [2 * p.side_margin + p.left_padding, width - 2 * p.side_margin];
+    console.log(target_range);
     var scaleX = d3.scale.linear()
         .domain([start, end])
         .range(target_range);
@@ -137,7 +124,7 @@ WidgetSwimLanes.prototype.draw = function () {
     var eventTypesDict = this._eventTypesDict;
 
     // define event type associated lanes
-    var svg = d3.select(p.target_div)
+    var svg = d3.select(p.chart_div)
         .append("svg")
         .attr("width", width)
         .attr("height", p.lane_height * eventTypes.length + 2 * timeline_height);
@@ -182,6 +169,35 @@ WidgetSwimLanes.prototype.draw = function () {
             return (d.type || "");
         });
 
+    // if (p.show_now) {
+    //     var now_d = new Date();
+    //     var now = now_d.getTime();
+    //     var today_d = new Date();
+    //     today_d.setHours(0, 0, 0, 0);
+
+    //     svg.append("line")
+    //         .attr("x1", scaleX(now))
+    //         .attr("y1", timeline_height)
+    //         .attr("x2", scaleX(now))
+    //         .attr("y2", timeline_height + eventTypes.length * p.lane_height)
+    //         .style("stroke", "gold")
+    //         .style("stroke-dasharray", "3,2")
+    //         .style("opacity", 0.3)
+    //         .style("stroke-width", 1);
+    //     var day_in_msec = 24 * 60 * 60 * 1000;
+    //     while (today_d > start) {
+    //         svg.append("line")
+    //             .attr("x1", scaleX(today_d))
+    //             .attr("y1", timeline_height)
+    //             .attr("x2", scaleX(today_d))
+    //             .attr("y2", timeline_height + eventTypes.length * p.lane_height)
+    //             .style("stroke", "white")
+    //             .style("stroke-dasharray", "2,2")
+    //             .style("opacity", 0.3)
+    //             .style("stroke-width", 1);
+    //         today_d -= day_in_msec
+    //     }
+    // }
     svg.append('g').selectAll('line')
         .data(eventTypes)
         .enter().append('line')
@@ -199,11 +215,18 @@ WidgetSwimLanes.prototype.draw = function () {
         .attr("cx", function (d) { return scaleX(d.ts); })
         .attr("r", p.circle_radius)
         .attr("fill", p.circle_color)
-        .on("mouseover", function (d) { d3.select(this).transition().duration(100).attr("r", p.circle_over_radius).attr("fill", p.circle_color2) })
-        .on("mouseout", function (d) { d3.select(this).transition().duration(100).attr("r", p.circle_radius).attr("fill", p.circle_color) })
+        .on("mouseover", function (d) {
+            d3.select(this).transition().duration(100).attr("r", p.circle_over_radius).attr("fill", p.circle_color2);
+            p.start_hover_callback(d);
+        })
+        .on("mouseout", function (d) {
+            d3.select(this).transition().duration(100).attr("r", p.circle_radius).attr("fill", p.circle_color);
+            p.end_hover_callback(d);
+        })
         .append("svg:title")
         .text(function (d) {
-            return self.getTimeString(d.ts);
+            //return d.type; 
+            return self.getTimeString(d.ts) + " " + self.getEventType(d);
         });
 
     // show timescale again at bottom
@@ -221,25 +244,5 @@ WidgetSwimLanes.prototype.draw = function () {
             .outerTickSize(1))
         .style("fill", p.circle_color)
         .style("stroke", "none");
-
-    // append buttons for switching sort
-    var btn1 = svg.append("text")
-        .attr('x', 5)
-        .attr("y", 12)
-        .text("By title");
-    btn1.on('click', function () {
-        self._sort_type = "t";
-        self.redraw();
-    });
-    btn1.style("cursor", "pointer");
-    var btn2 = svg.append("text")
-        .attr('x', 50)
-        .attr("y", 12)
-        .text("By date");
-    btn2.on('click', function () {
-        self._sort_type = "d";
-        self.redraw();
-    });
-    btn2.style("cursor", "pointer");
 }
 

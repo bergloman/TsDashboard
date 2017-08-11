@@ -12,7 +12,7 @@
     <div class="container">
         <div class="row">
             <div class="col-md-12">
-                <h1> Some title</h1>
+                <h1> Test for swimlane widget</h1>
                 <div id="divTarget"></div>
             </div>
         </div>
@@ -31,23 +31,27 @@
             var event_types = ["type1", "type2"];
             var services = ["svc1", "svc2", "svc3"];
             var ts = Date.now() - 23 * 60 * 60 * 1000;
+            var ts_start = ts;
             var events = [];
             for (var i = 0; i < 100; i++) {
-                ts += 15 * 60 * 1000 * Math.random() + 3*60*1000;
+                ts += 15 * 60 * 1000 * Math.random() + 3 * 60 * 1000;
                 events.push({
                     ts: ts,
                     type: event_types[Math.random() > 0.2 ? 1 : 0],
                     service: services[Math.floor(services.length * Math.random())] || services[0]
                 });
             }
+            events.push({ ts: ts_start, type: "extra_type", service: "debug" });
+            events.push({ ts: ts_start + 18 * 60 * 1000, type: "extra_type2", service: "debug" });
 
             var options = {
                 start: Date.now() - 24 * 60 * 60 * 1000,
                 end: Date.now(),
                 events: events,
                 categories: ["type", "service"],
-                chart_div: "#divTarget",
-                circle_radius: 4
+                chart_div: "divTarget",
+                circle_radius: 4,
+                left_padding: 120
             };
             var widget = new WidgetSwimLanes(options);
             widget.draw();
