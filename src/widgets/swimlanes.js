@@ -100,6 +100,8 @@ WidgetSwimLanes.prototype.analyzeEventTypes = function () {
     eventTypes.sort(function (a, b) {
         if (self._sort_type == "d") {
             return (a.min < b.min ? -1 : 1);
+        } else if (self._sort_type == "c") {
+            return (a.cnt < b.cnt ? 1 : -1); // sort descending
         } else {
             return a.type.localeCompare(b.type);
         }
@@ -226,20 +228,31 @@ WidgetSwimLanes.prototype.draw = function () {
     var btn1 = svg.append("text")
         .attr('x', 5)
         .attr("y", 12)
-        .text("By title");
+        .text("Title /");
     btn1.on('click', function () {
         self._sort_type = "t";
         self.redraw();
     });
     btn1.style("cursor", "pointer");
+
     var btn2 = svg.append("text")
-        .attr('x', 50)
+        .attr('x', 32)
         .attr("y", 12)
-        .text("By date");
+        .text("Date /");
     btn2.on('click', function () {
         self._sort_type = "d";
         self.redraw();
     });
     btn2.style("cursor", "pointer");
+
+    var btn3 = svg.append("text")
+        .attr('x', 62)
+        .attr("y", 12)
+        .text("Count");
+    btn3.on('click', function () {
+        self._sort_type = "c";
+        self.redraw();
+    });
+    btn3.style("cursor", "pointer");
 }
 
