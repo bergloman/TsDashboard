@@ -21,9 +21,9 @@ function WidgetSwimLanes(config) {
         circle_color_cb: null,
         circle_color2: null,
         circle_color2_cb: null,
-        lanes_color: "#333",
-        lane_color: "#000",
-        lane_color2: "#070707",
+        lanes_color: "#303030",
+        lane_color: "#000000",
+        lane_color2: "#111",
         lane_opacity: 1,
         lane_selected_opacity: 1,
         lane_height: 30,
@@ -168,10 +168,12 @@ WidgetSwimLanes.prototype.draw = function () {
     lanes.append('rect')
         .attr("class", "timeline-lane")
         .attr('x', 0)
-        .attr('y', 0) //function (d, i) { return i * p.lane_height; })
+        .attr('y', 0)
         .attr('width', width)
         .attr('height', p.lane_height)
-        .attr('fill', function() { return (line_counter++ % 2 == 0 ? p.lane_color : p.lane_color2); })
+        .attr('fill', function() {
+            return (line_counter++ % 2 == 0 ? p.lane_color : p.lane_color2);
+        })
         .on("click", function (d, i) {
             //alert("-" + d + "-" + i);
         });
