@@ -1,19 +1,18 @@
 /**
  * This widget displays swimlanes for events
  * @param {object} config - configuration object
- * @param {Date} config.start - start Date to display
- * @param {Date} config.end - end Date to display
- * @param {Array} config.events - Array of events to display
- * @param {Array} config.categories - Array of field names that are used for grouping into swimlanes
- * @param {string} config.target_id - ID of HTML element where this widget is to be drawn
+ * @param {Date} config.start - start date to display
+ * @param {Date} config.end - end date to display
+ * @param {Array} config.events - Array of events to display. Event must contains two field - "ts" and "type"
+ * @param {string} config.target_div - ID of HTML element where this widget is to be drawn
  */
 function WidgetSwimLanes(config) {
+    let self = this;
     // If we have user-defined parameters, override the defaults.
     var p = {
         start: null,
         end: null,
         events: null,
-        categories: null,
         target_div: "#divTarget",
         side_margin: 0,
         left_padding: 30,
@@ -27,9 +26,8 @@ function WidgetSwimLanes(config) {
         circle_radius: 8,
         circle_over_radius: 10,
         ticks: 10,
-        show_now: false,
-        start_hover_callback: function () { },
-        end_hover_callback: function () { }
+        click_cb: function () { },
+        title_cb: function (d) { return self.getTimeString(d.ts); }
     };
 
     // If we have user-defined parameters, override the defaults
@@ -65,13 +63,7 @@ WidgetSwimLanes.prototype.getTimeString = function (d) {
 }
 
 WidgetSwimLanes.prototype.getEventType = function (event) {
-    var p = this._p;
-    var event_type = "";
-    for (var j = 0; j < p.categories.length; j++) {
-        var cat = p.categories[j];
-        event_type += "[" + event[cat] + "] ";
-    }
-    return event_type.trim();
+    return event.type;
 }
 
 WidgetSwimLanes.prototype.analyzeEventTypes = function () {
@@ -192,21 +184,22 @@ WidgetSwimLanes.prototype.draw = function () {
         .attr("x2", function (d) { return scaleX(d.max); })
         .attr("y2", function (d, i) { return timeline_height + (0.5 + i) * p.lane_height; })
         .style("stroke", p.circle_color)
-        .style("stroke-width", 1);
+        .style("stroke-width", 1)
+        .style("stroke-opacity", 0.5);
 
     svg.selectAll("circle")
         .data(events)
         .enter().append("circle")
         .attr("cy", function (d) { return timeline_height + (0.5 + eventTypesDict[self.getEventType(d)]) * p.lane_height; })
         .attr("cx", function (d) { return scaleX(d.ts); })
-        .attr("r", p.circle_radius)
-        .attr("fill", p.circle_color)
+        .attr("r", p.circle_radius_cb || p.circle_radius)
+        .attr("fill", p.circle_color_cb || p.circle_color)
+        .attr("fill-opacity", p.circle_opacity_cb || 1)
+        .on("click", p.click_cb)
         .on("mouseover", function (d) { d3.select(this).transition().duration(100).attr("r", p.circle_over_radius).attr("fill", p.circle_color2) })
         .on("mouseout", function (d) { d3.select(this).transition().duration(100).attr("r", p.circle_radius).attr("fill", p.circle_color) })
         .append("svg:title")
-        .text(function (d) {
-            return self.getTimeString(d.ts);
-        });
+        .text(p.title_cb);
 
     // show timescale again at bottom
     // time scale
@@ -228,7 +221,7 @@ WidgetSwimLanes.prototype.draw = function () {
     var btn1 = svg.append("text")
         .attr('x', 5)
         .attr("y", 12)
-        .text("Title /");
+        .text("Type /");
     btn1.on('click', function () {
         self._sort_type = "t";
         self.redraw();
