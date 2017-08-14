@@ -14,6 +14,7 @@ function WidgetSwimLanes(config) {
         end: null,
         events: null,
         target_div: "#divTarget",
+        type_field: "type",
         side_margin: 0,
         left_padding: 30,
         circle_color: "#007ACC",
@@ -63,7 +64,7 @@ WidgetSwimLanes.prototype.getTimeString = function (d) {
 }
 
 WidgetSwimLanes.prototype.getEventType = function (event) {
-    return event.type;
+    return event[this._p.type_field];
 }
 
 WidgetSwimLanes.prototype.analyzeEventTypes = function () {
