@@ -7,20 +7,20 @@ module.exports = function (grunt) {
                 separator: ';',
             },
             dist: {
-                src: ['src/widgets/swimlanes.js'],
-                dest: 'build/tsdash.widgets.js',
+                src: ['src/widgets/tsdash-swimlanes.js'],
+                dest: 'build/tsdash-widgets.js',
             },
         },
         pkg: grunt.file.readJSON('package.json'),
         uglify: {
             options: {
-                banner: '/*! <%= pkg.name %> <%= grunt.template.today("yyyy-mm-dd") %> */\n'
+                banner: '/*! <%= pkg.name %> */\n'
             },
             build: {
                 files: [{
                     //'build/<%= pkg.name %>.min.js': ['src/<%= pkg.name %>.js'],
                     'build/<%= pkg.name %>-utils.min.js': ['src/<%= pkg.name %>-utils.js'],
-                    'build/<%= pkg.name %>.widgets.min.js': ['build/<%= pkg.name %>.widgets.js']
+                    'build/<%= pkg.name %>-widgets.min.js': ['build/<%= pkg.name %>-widgets.js']
                 }]
             }
         },

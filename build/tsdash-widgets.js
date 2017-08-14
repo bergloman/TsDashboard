@@ -7,7 +7,7 @@
  * @param {string} config.target_div - ID of HTML element where this widget is to be drawn
  */
 function WidgetSwimLanes(config) {
-    let self = this;
+    var self = this;
     // If we have user-defined parameters, override the defaults.
     var p = {
         start: null,
