@@ -22,7 +22,8 @@ function WidgetSwimLanes(config) {
         circle_color2: null,
         circle_color2_cb: null,
         lanes_color: "#333",
-        master_lane_color: "#333",
+        lane_color: "#000",
+        lane_color2: "#070707",
         lane_opacity: 1,
         lane_selected_opacity: 1,
         lane_height: 30,
@@ -40,7 +41,7 @@ function WidgetSwimLanes(config) {
         }
     }
     p.circle_color = p.circle_color_cb || p.circle_color;
-    p.circle_color2 = p.circle_color2_cb || p.circle_color2;
+    p.circle_color2 = p.circle_color2_cb || p.circle_color2 || p.circle_color;
 
     if (!p.target_div.startsWith("#")) {
         p.target_div = "#" + p.target_div;
@@ -163,15 +164,17 @@ WidgetSwimLanes.prototype.draw = function () {
         .attr('transform', function (d, i) {
             return 'translate(0,' + (timeline_height + i * p.lane_height) + ')'
         });
+    var line_counter = 0;
     lanes.append('rect')
         .attr("class", "timeline-lane")
         .attr('x', 0)
         .attr('y', 0) //function (d, i) { return i * p.lane_height; })
         .attr('width', width)
         .attr('height', p.lane_height)
+        .attr('fill', function() { return (line_counter++ % 2 == 0 ? p.lane_color : p.lane_color2); })
         .on("click", function (d, i) {
             //alert("-" + d + "-" + i);
-        });
+        });grunt
 
     lanes.append("text")
         .attr("class", "timeline-lane-title")
@@ -181,16 +184,16 @@ WidgetSwimLanes.prototype.draw = function () {
             return (d.type || "");
         });
 
-    svg.append('g').selectAll('line')
-        .data(eventTypes)
-        .enter().append('line')
-        .attr("x1", function (d) { return scaleX(d.min); })
-        .attr("y1", function (d, i) { return timeline_height + (0.5 + i) * p.lane_height; })
-        .attr("x2", function (d) { return scaleX(d.max); })
-        .attr("y2", function (d, i) { return timeline_height + (0.5 + i) * p.lane_height; })
-        .style("stroke", p.circle_color)
-        .style("stroke-width", 1)
-        .style("stroke-opacity", 0.5);
+    // svg.append('g').selectAll('line')
+    //     .data(eventTypes)
+    //     .enter().append('line')
+    //     .attr("x1", function (d) { return scaleX(d.min); })
+    //     .attr("y1", function (d, i) { return timeline_height + (0.5 + i) * p.lane_height; })
+    //     .attr("x2", function (d) { return scaleX(d.max); })
+    //     .attr("y2", function (d, i) { return timeline_height + (0.5 + i) * p.lane_height; })
+    //     .style("stroke", p.circle_color)
+    //     .style("stroke-width", 1)
+    //     .style("stroke-opacity", 0.5);
 
     svg.selectAll("circle")
         .data(events)
