@@ -18,7 +18,9 @@ function WidgetSwimLanes(config) {
         side_margin: 0,
         left_padding: 30,
         circle_color: "#007ACC",
-        circle_color2: "#72afcc",
+        circle_color_cb: null,
+        circle_color2: null,
+        circle_color2_cb: null,
         lanes_color: "#333",
         master_lane_color: "#333",
         lane_opacity: 1,
@@ -37,6 +39,8 @@ function WidgetSwimLanes(config) {
             p[prop] = config[prop];
         }
     }
+    p.circle_color = p.circle_color_cb || p.circle_color;
+    p.circle_color2 = p.circle_color2_cb || p.circle_color2;
 
     if (!p.target_div.startsWith("#")) {
         p.target_div = "#" + p.target_div;
@@ -166,7 +170,7 @@ WidgetSwimLanes.prototype.draw = function () {
         .attr('width', width)
         .attr('height', p.lane_height)
         .on("click", function (d, i) {
-            //alert("-" + d + "-" + i); 
+            //alert("-" + d + "-" + i);
         });
 
     lanes.append("text")
@@ -194,11 +198,11 @@ WidgetSwimLanes.prototype.draw = function () {
         .attr("cy", function (d) { return timeline_height + (0.5 + eventTypesDict[self.getEventType(d)]) * p.lane_height; })
         .attr("cx", function (d) { return scaleX(d.ts); })
         .attr("r", p.circle_radius_cb || p.circle_radius)
-        .attr("fill", p.circle_color_cb || p.circle_color)
+        .attr("fill", p.circle_color)
         .attr("fill-opacity", p.circle_opacity_cb || 1)
         .on("click", p.click_cb)
-        .on("mouseover", function (d) { d3.select(this).transition().duration(100).attr("r", p.circle_over_radius).attr("fill", p.circle_color2) })
-        .on("mouseout", function (d) { d3.select(this).transition().duration(100).attr("r", p.circle_radius).attr("fill", p.circle_color) })
+        .on("mouseover", function (d) { d3.select(this).transition().duration(50).attr("r", p.circle_over_radius).attr("fill", p.circle_color2) })
+        .on("mouseout", function (d) { d3.select(this).transition().duration(50).attr("r", p.circle_radius).attr("fill", p.circle_color) })
         .append("svg:title")
         .text(p.title_cb);
 
