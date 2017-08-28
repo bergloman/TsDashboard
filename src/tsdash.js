@@ -983,6 +983,7 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
         margin_left: 50,
         labels: null,
         backgroundSegments: null, // array where each element is { epoch_start: num, epoch_end: num, color: string }
+        backgroundSegmentAxis: "x", // are segments defined for x or y axis
         backgroundSegmentOpacity: 0.3,
         exportable: true
     };
@@ -1299,14 +1300,26 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
             var seg_col = bSegment.color;
             if ((epoch_start == undefined) || (epoch_end == undefined) ||
                 (seg_col == undefined)) { continue; }
-            var seg_x = Math.max(x(epoch_start), 0);
-            svg.append("rect")
-                .attr("x", seg_x)
-                .attr("y", 0)
-                .attr("width", x(epoch_end) - seg_x)
-                .attr("height", p.height - margin.top - margin.bottom)
-                .style("fill", seg_col)
-                .style("fill-opacity", p.backgroundSegmentOpacity);
+            if (p.backgroundSegmentAxis == "x") {
+                var seg_x = Math.max(x(epoch_start), 0);
+                svg.append("rect")
+                    .attr("x", seg_x)
+                    .attr("y", 0)
+                    .attr("width", x(epoch_end) - seg_x)
+                    .attr("height", p.height - margin.top - margin.bottom)
+                    .style("fill", seg_col)
+                    .style("fill-opacity", p.backgroundSegmentOpacity);
+            } else {
+                var seg_y = Math.max(y(epoch_end), 0);
+                var seg_height = y(epoch_start) - seg_y;
+                svg.append("rect")
+                    .attr("x", 0)
+                    .attr("y", seg_y)
+                    .attr("width", width)
+                    .attr("height", seg_height)
+                    .style("fill", seg_col)
+                    .style("fill-opacity", p.backgroundSegmentOpacity);
+            }
         }
     }
     // timepoint markers
