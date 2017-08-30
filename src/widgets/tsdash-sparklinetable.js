@@ -8,6 +8,15 @@ TsDashboard.Widgets.getDateTimeString = function (d) {
     return moment(d).format('YYYY-MM-DD hh:mm:ss');
 }
 
+/**
+ * This widget displays swimlanes for events
+ * @param {object} config - configuration object
+ * @param {Array} config.data - Array of objects with properties title and values
+ * @param {number} config.spark_height - the hight of the sparline chart
+ * @param {number} config.columns - the number of columns in the table
+ * @param {Array} config.col_names - optional array of column names
+ * @param {string} config.target_div - ID of HTML element where this widget is to be drawn
+ */
 TsDashboard.Widgets.SparklineTable = function (config) {
     var self = this;
 
@@ -16,8 +25,6 @@ TsDashboard.Widgets.SparklineTable = function (config) {
         data: null,
         spark_height: 15,
         columns: 3,
-        title_clip_prefix: null,
-        title_clip_after: null,
         col_names: null,
         first_col_width: 150
     };
@@ -112,18 +119,6 @@ TsDashboard.Widgets.SparklineTable.prototype.draw = function () {
 
             if (j == 0) {
                 var ctitle = title;
-                if (p.title_clip_after != null) {
-                    p.title_clip_after.forEach(function (val) {
-                        if (ctitle.indexOf(val) >= 0) {
-                            ctitle = ctitle.substring(0, ctitle.indexOf(val));
-                        }
-                    });
-                }
-                if (p.title_clip_prefix != null) {
-                    if (ctitle.startsWith(p.title_clip_prefix) >= 0) {
-                        ctitle = ctitle.substr(p.title_clip_prefix.length);
-                    }
-                }
                 var titleTd = $("<td style='background-color:black !important; width:" + p.first_col_width
                     + "px; word-break:break-all;'>" + ctitle + "</td>");
                 row.append(titleTd);

@@ -35,7 +35,7 @@
             {
                 values: [],
                 title: "Title 2"
-            }, 
+            },
             {
                 values: [],
                 title: "Title 3"
@@ -59,7 +59,8 @@
             var options = {
                 target_div: "divTarget",
                 data: sparklines,
-                spark_height: 30
+                spark_height: 30,
+                col_names: ["", "First column", "Second column", "Third column"]
             };
             var widget = new TsDashboard.Widgets.SparklineTable(options);
             widget.draw();
