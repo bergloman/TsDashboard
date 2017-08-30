@@ -7,7 +7,10 @@ module.exports = function (grunt) {
                 separator: ';',
             },
             dist: {
-                src: ['src/widgets/tsdash-swimlanes.js'],
+                src: [
+                    'src/widgets/tsdash-swimlanes.js',
+                    'src/widgets/tsdash-sparklinetable.js'
+                ],
                 dest: 'build/tsdash-widgets.js',
             },
         },

@@ -8,9 +8,11 @@ TsDashboard.Widgets.getDateTimeString = function (d) {
     return moment(d).format('YYYY-MM-DD hh:mm:ss');
 }
 
-TsDashboard.Widgets.drawSparklineTable = function (config) {
+TsDashboard.Widgets.SparklineTable = function (config) {
+    var self = this;
+
     var p = {
-        chart_div: "#someChart",
+        target_div: "#someChart",
         data: null,
         spark_height: 15,
         columns: 3,
@@ -33,8 +35,26 @@ TsDashboard.Widgets.drawSparklineTable = function (config) {
         }
     }
 
-    // Parse the date / time
-    var parseDate = d3.time.format("%d-%b-%y").parse;
+
+    if (!p.target_div.startsWith("#")) {
+        p.target_div = "#" + p.target_div;
+    }
+
+    this._p = p;
+    this._sort_type = "d";
+    this.clear();
+}
+
+TsDashboard.Widgets.SparklineTable.prototype.clear = function (d) {
+}
+TsDashboard.Widgets.SparklineTable.prototype.redraw = function (d) {
+    this.clear();
+    this.draw();
+}
+
+TsDashboard.Widgets.SparklineTable.prototype.draw = function () {
+    var self = this;
+    var p = this._p;
     // create a line function that can convert data[] into x and y points
     var sparkline = d3.svg.line()
         .interpolate("linear")
@@ -47,7 +67,7 @@ TsDashboard.Widgets.drawSparklineTable = function (config) {
         .y1(function (d) { return yscale(0); });
 
     // remove the previous drawing
-    $(p.chart_div).empty();
+    $(p.target_div).empty();
 
     var data = p.data;
     var colNo = p.columns;
@@ -69,12 +89,15 @@ TsDashboard.Widgets.drawSparklineTable = function (config) {
     var table = $("<table class=\"table\"></table>");
     table.append(thead);
     table.append(tbody);
-    $(p.chart_div).append(table);
+    $(p.target_div).append(table);
 
     // style
-    $(p.chart_div).css('overflow', 'auto');
-    $(p.chart_div).css('height', p.height);
-    $(p.chart_div).css('margin-bottom', p.margin_bottom);
+    $(p.target_div).css('overflow', 'auto');
+    $(p.target_div).css('height', p.height);
+    $(p.target_div).css('margin-bottom', p.margin_bottom);
+
+    var col_width = ((table.width() - p.first_col_width) / colNo).toFixed();
+    console.log("col_width", col_width)
 
     for (var i = 0; i <= rowNo; i++) {
         // create row
@@ -86,8 +109,6 @@ TsDashboard.Widgets.drawSparklineTable = function (config) {
             if (dataIdx >= p.data.length) continue;
             var datum = data[dataIdx].values;
             var title = data[dataIdx].title;
-            var pipeline = data[dataIdx].pipeline;
-            var url = data[dataIdx].url;
 
             if (j == 0) {
                 var ctitle = title;
@@ -107,13 +128,12 @@ TsDashboard.Widgets.drawSparklineTable = function (config) {
                     + "px; word-break:break-all;'>" + ctitle + "</td>");
                 row.append(titleTd);
             }
-            var imgTd = $("<td " + url + " style='background-color:black !important; border-left: thin solid #282828; width:"
-                + ((table.width() - p.first_col_width) / colNo).toFixed() + "px;'></td>");
+
+            var imgTd = $("<td style='background-color:black !important; border-left: thin solid #282828; width:"
+                + col_width + "px;'></td>");
             var imgDiv = document.createElement("div");
             imgTd.append(imgDiv);
             row.append(imgTd);
-
-            var width = imgTd.width();
 
             datum.forEach(function (d) {
                 d.date = TsDashboard.Widgets.getDateTimeString(d.epoch);
@@ -122,7 +142,7 @@ TsDashboard.Widgets.drawSparklineTable = function (config) {
             var xscale = d3.time.scale()
                 .domain([d3.min(datum, function (d) { return d.epoch; }),
                 d3.max(datum, function (d) { return d.epoch; })])
-                .range([0, width]);
+                .range([0, +col_width]);
             // yscale will fit all walues from data.val within pixels 0-width
             var yscale = d3.scale.linear()
                 .domain([d3.min(datum, function (d) { return d.val; }),
@@ -132,7 +152,7 @@ TsDashboard.Widgets.drawSparklineTable = function (config) {
 
             var svg = d3.select(imgDiv)
                 .append("svg")
-                .attr("width", width)
+                .attr("width", +col_width)
                 .attr("height", p.spark_height);
             svg.append("path")
                 .attr("d", sparkline(datum))

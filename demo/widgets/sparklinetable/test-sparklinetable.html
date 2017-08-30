@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="../../dep/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="../../../src/tsdash.css">
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1> Test for sparkline widget</h1>
+                <div id="divTarget"></div>
+            </div>
+        </div>
+    </div>
+
+    <!--<script src="dep/d3-4.1.1.min.js"></script>-->
+    <script src="../../dep/d3.js"></script>
+    <script src="../../dep/moment.min.js"></script>
+    <script src="../../dep/jquery-3.1.0.min.js"></script>
+    <script src="../../dep/bootstrap.min.js"></script>
+    <script src="../../../build/tsdash-widgets.js"></script>
+
+    <script>
+        // prepare data
+        $(function () {
+            var sparklines = [{
+                values: [],
+                title: "Title 1"
+            },
+            {
+                values: [],
+                title: "Title 2"
+            }, 
+            {
+                values: [],
+                title: "Title 3"
+            },
+            {
+                values: [],
+                title: "Title 4"
+            }];
+            var ts = Date.now() - 23 * 60 * 60 * 1000;
+            var ts_start = ts;
+            for (var i = 0; i < 100; i++) {
+                ts += 15 * 60 * 1000 * Math.random() + 3 * 60 * 1000;
+                for (var sparkline of sparklines) {
+                    sparkline.values.push({
+                        epoch: ts,
+                        val: 20 * Math.random()
+                    });
+                }
+            }
+
+            var options = {
+                target_div: "divTarget",
+                data: sparklines,
+                spark_height: 30
+            };
+            var widget = new TsDashboard.Widgets.SparklineTable(options);
+            widget.draw();
+        });
+    </script>
+</body>
+
+</html>
