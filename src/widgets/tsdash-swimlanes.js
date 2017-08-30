@@ -174,7 +174,7 @@ WidgetSwimLanes.prototype.draw = function () {
         .attr('fill', function() { return (line_counter++ % 2 == 0 ? p.lane_color : p.lane_color2); })
         .on("click", function (d, i) {
             //alert("-" + d + "-" + i);
-        });grunt
+        });
 
     lanes.append("text")
         .attr("class", "timeline-lane-title")
