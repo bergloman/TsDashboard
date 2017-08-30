@@ -23,7 +23,7 @@
     <script src="../../dep/moment.min.js"></script>
     <script src="../../dep/jquery-3.1.0.min.js"></script>
     <script src="../../dep/bootstrap.min.js"></script>
-    <script src="../../../src/widgets/swimlanes.js"></script>
+    <script src="../../../build/tsdash-widgets.js"></script>
 
     <script>
         // prepare data
@@ -53,7 +53,7 @@
                 circle_radius: 4,
                 left_padding: 120
             };
-            var widget = new WidgetSwimLanes(options);
+            var widget = new TsDashboard.Widgets.WidgetSwimLanes(options);
             widget.draw();
         });
     </script>
