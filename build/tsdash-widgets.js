@@ -10,7 +10,7 @@ TsDashboard.Widgets = TsDashboard.Widgets || {};
  * @param {Array} config.events - Array of events to display. Event must contains two field - "ts" and "type"
  * @param {string} config.target_div - ID of HTML element where this widget is to be drawn
  */
-TsDashboard.Widgets.WidgetSwimLanes = function(config) {
+TsDashboard.Widgets.WidgetSwimLanes = function (config) {
     var self = this;
     // If we have user-defined parameters, override the defaults.
     var p = {
@@ -21,6 +21,7 @@ TsDashboard.Widgets.WidgetSwimLanes = function(config) {
         type_field: "type",
         side_margin: 0,
         left_padding: 30,
+        hide_types: false,
         circle_color: "#007ACC",
         circle_color_cb: null,
         circle_color2: null,
@@ -34,6 +35,7 @@ TsDashboard.Widgets.WidgetSwimLanes = function(config) {
         circle_radius: 8,
         circle_over_radius: 10,
         ticks: 10,
+        type_text_opacity: 0.3,
         click_cb: function () { },
         title_cb: function (d) { return self.getTimeString(d.ts); }
     };
@@ -49,6 +51,9 @@ TsDashboard.Widgets.WidgetSwimLanes = function(config) {
 
     if (!p.target_div.startsWith("#")) {
         p.target_div = "#" + p.target_div;
+    }
+    if (p.hide_types) {
+        p.left_padding = 0;
     }
 
     this._p = p;
@@ -174,12 +179,13 @@ TsDashboard.Widgets.WidgetSwimLanes.prototype.draw = function () {
         .attr('y', 0) //function (d, i) { return i * p.lane_height; })
         .attr('width', width)
         .attr('height', p.lane_height)
-        .attr('fill', function() { return (line_counter++ % 2 == 0 ? p.lane_color : p.lane_color2); });
+        .attr('fill', function () { return (line_counter++ % 2 == 0 ? p.lane_color : p.lane_color2); });
 
     lanes.append("text")
         .attr("class", "timeline-lane-title")
         .attr('x', 5)
         .attr("dy", "1.5em")
+        .attr("opacity", p.type_text_opacity)
         .text(function (d, i) {
             return (d.type || "");
         });
@@ -215,35 +221,37 @@ TsDashboard.Widgets.WidgetSwimLanes.prototype.draw = function () {
         .style("stroke", "none");
 
     // append buttons for switching sort
-    var btn1 = svg.append("text")
-        .attr('x', 5)
-        .attr("y", 12)
-        .text("Type /");
-    btn1.on('click', function () {
-        self._sort_type = "t";
-        self.redraw();
-    });
-    btn1.style("cursor", "pointer");
+    if (!p.hide_types) {
+        var btn1 = svg.append("text")
+            .attr('x', 5)
+            .attr("y", 12)
+            .text("Type /");
+        btn1.on('click', function () {
+            self._sort_type = "t";
+            self.redraw();
+        });
+        btn1.style("cursor", "pointer");
 
-    var btn2 = svg.append("text")
-        .attr('x', 32)
-        .attr("y", 12)
-        .text("Date /");
-    btn2.on('click', function () {
-        self._sort_type = "d";
-        self.redraw();
-    });
-    btn2.style("cursor", "pointer");
+        var btn2 = svg.append("text")
+            .attr('x', 32)
+            .attr("y", 12)
+            .text("Date /");
+        btn2.on('click', function () {
+            self._sort_type = "d";
+            self.redraw();
+        });
+        btn2.style("cursor", "pointer");
 
-    var btn3 = svg.append("text")
-        .attr('x', 62)
-        .attr("y", 12)
-        .text("Count");
-    btn3.on('click', function () {
-        self._sort_type = "c";
-        self.redraw();
-    });
-    btn3.style("cursor", "pointer");
+        var btn3 = svg.append("text")
+            .attr('x', 62)
+            .attr("y", 12)
+            .text("Count");
+        btn3.on('click', function () {
+            self._sort_type = "c";
+            self.redraw();
+        });
+        btn3.style("cursor", "pointer");
+    }
 }
 
 ;TsDashboard = TsDashboard || {};
@@ -256,6 +264,15 @@ TsDashboard.Widgets.getDateTimeString = function (d) {
     return moment(d).format('YYYY-MM-DD hh:mm:ss');
 }
 
+/**
+ * This widget displays swimlanes for events
+ * @param {object} config - configuration object
+ * @param {Array} config.data - Array of objects with properties title and values
+ * @param {number} config.spark_height - the hight of the sparline chart
+ * @param {number} config.columns - the number of columns in the table
+ * @param {Array} config.col_names - optional array of column names
+ * @param {string} config.target_div - ID of HTML element where this widget is to be drawn
+ */
 TsDashboard.Widgets.SparklineTable = function (config) {
     var self = this;
 
@@ -264,8 +281,6 @@ TsDashboard.Widgets.SparklineTable = function (config) {
         data: null,
         spark_height: 15,
         columns: 3,
-        title_clip_prefix: null,
-        title_clip_after: null,
         col_names: null,
         first_col_width: 150
     };
@@ -360,18 +375,6 @@ TsDashboard.Widgets.SparklineTable.prototype.draw = function () {
 
             if (j == 0) {
                 var ctitle = title;
-                if (p.title_clip_after != null) {
-                    p.title_clip_after.forEach(function (val) {
-                        if (ctitle.indexOf(val) >= 0) {
-                            ctitle = ctitle.substring(0, ctitle.indexOf(val));
-                        }
-                    });
-                }
-                if (p.title_clip_prefix != null) {
-                    if (ctitle.startsWith(p.title_clip_prefix) >= 0) {
-                        ctitle = ctitle.substr(p.title_clip_prefix.length);
-                    }
-                }
                 var titleTd = $("<td style='background-color:black !important; width:" + p.first_col_width
                     + "px; word-break:break-all;'>" + ctitle + "</td>");
                 row.append(titleTd);
