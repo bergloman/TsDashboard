@@ -2,6 +2,10 @@ function TsDashboardDemoDriver() {
     this.countries = null;
     this.view_definition = null;
     this.view_object = null;
+
+    this.length_in_steps = 145;
+    this.ts_start = new Date((new Date()).getTime() - this.length_in_steps * 24 * 60 * 60 * 1000);
+    
     this.prepareListOfCountries();
     this.prepareViewDefinition();
 }
@@ -40,9 +44,8 @@ TsDashboardDemoDriver.prototype.getParamValues = function (name, search, callbac
 }
 
 TsDashboardDemoDriver.prototype.getDrawData = function (options, callback) {
-    var length_in_days = 145;
-    var ts = new Date();
-    ts = new Date(ts.getTime() - length_in_days * 24 * 60 * 60 * 1000);
+    var length_in_steps = this.length_in_steps;
+    var ts = this.ts_start;
 
     var res = {
         timeseries: [],
@@ -72,7 +75,7 @@ TsDashboardDemoDriver.prototype.getDrawData = function (options, callback) {
         { type: "category2", ts: 1476704004695, title: "Title 3" },
         { type: "category3", ts: 1476704004995, title: "Title 4" }
     ];
-    for (var i = 0; i <= length_in_days; i++) {
+    for (var i = 0; i <= length_in_steps; i++) {
         //d += 24 * 60 * 60 * 1000; // advance single day
         d += 15 * 60 * 1000; // advance 15 min
         ts1.push({ epoch: d, val: ts1_curr });
@@ -95,8 +98,8 @@ TsDashboardDemoDriver.prototype.getDrawData = function (options, callback) {
     }
 
     for (var i = 0; i < 20; i++) {
-        var n1 = Math.floor((Math.random() * length_in_days) + 1);
-        var n2 = Math.floor((Math.random() * length_in_days) + 1);
+        var n1 = Math.floor((Math.random() * length_in_steps) + 1);
+        var n2 = Math.floor((Math.random() * length_in_steps) + 1);
         if (n1 != n2) {
             if (n1 < n2) {
                 edges.push({ size: Math.random(), n1: n1, n2: n2 });
@@ -205,6 +208,32 @@ TsDashboardDemoDriver.prototype.prepareViewDefinition = function (callback) {
                                 timeseries: ["s2"],
                                 options: {
                                     height: 100
+                                }
+                            },
+                            {
+                                title: "Widget with segments",
+                                timeseries: ["s2"],
+                                options: {
+                                    height: 100,
+                                    backgroundSegments: [
+                                        {
+                                            epoch_start: this.ts_start.getTime(),
+                                            epoch_end: this.ts_start.getTime() + 5 * 60 * 60 * 1000,
+                                            color: "green"
+                                        }
+                                    ],
+                                    backgroundSegmentAxis: "x"
+                                }
+                            },
+                            {
+                                title: "Widget with segments - vertical",
+                                timeseries: ["s2"],
+                                options: {
+                                    height: 100,
+                                    backgroundSegments: [
+                                        { epoch_start: 1.9, epoch_end: 2.1, color: "green" }
+                                    ],
+                                    backgroundSegmentAxis: "y"
                                 }
                             }
                         ]
