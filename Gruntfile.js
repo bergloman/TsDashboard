@@ -9,6 +9,7 @@ module.exports = function (grunt) {
             dist: {
                 src: [
                     'src/widgets/tsdash-swimlanes.js',
+                    'src/widgets/tsdash-timeseries.js',
                     'src/widgets/tsdash-sparklinetable.js'
                 ],
                 dest: 'build/tsdash-widgets.js',

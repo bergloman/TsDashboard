@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="../../dep/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="../../../src/tsdash.css">
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1> Test for timeseries widget</h1>
+                <div id="divTarget"></div>
+                <h1> Another test for timeseries widget</h1>
+                <div>
+                    <div id="divTarget2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--<script src="dep/d3-4.1.1.min.js"></script>-->
+    <script src="../../dep/d3.js"></script>
+    <script src="../../dep/moment.min.js"></script>
+    <script src="../../dep/jquery-3.1.0.min.js"></script>
+    <script src="../../dep/bootstrap.min.js"></script>
+    <script src="../../../build/tsdash-widgets.js"></script>
+
+    <script>
+        // prepare data
+        $(function () {
+            var ts = Date.now() - 23 * 60 * 60 * 1000;
+            var ts_start = ts;
+            var data1 = [];
+            var data2 = [];
+            for (var i = 0; i < 100; i++) {
+                ts += 15 * 60 * 1000 * Math.random() + 3 * 60 * 1000;
+                data1.push({
+                    epoch: ts,
+                    val: 3 * Math.random() + 6 * Math.sin(i / 10)
+                });
+                if (i % 2 == 0) {
+                    data2.push({
+                        epoch: ts,
+                        val: 1 * Math.random() + 2 * Math.sin(i / 20)
+                    });
+                }
+            }
+
+            var options = {
+                start: Date.now() - 24 * 60 * 60 * 1000,
+                end: Date.now(),
+                data: [data1, data2],
+                chart_div: "#divTarget",
+                height: 300,
+                xdomain: [ts_start, Date.now()]
+            };
+            var widget = new TsDashboard.Widgets.TimeSeries(options);
+            widget.draw();
+
+            var options2 = {
+                start: Date.now() - 24 * 60 * 60 * 1000,
+                end: Date.now(),
+                data: [data2],
+                chart_div: "#divTarget2",
+                height: 200,
+                xdomain: [ts_start, Date.now()],
+                handle_clicks: true,
+                exportable: true,
+                timepoints: [
+                    [{ epoch: ts_start + 2*(ts - ts_start) / 3, title: "Some title" }]
+                ],
+                backgroundSegments: [{
+                    epoch_start: ts_start,
+                    epoch_end: ts_start + (ts - ts_start) / 3,
+                    color: "blue"
+                }],
+                x_axis_label: "X Axis - Time",
+                y_axis_label: "Y Axis - value"
+            };
+            var widget2 = new TsDashboard.Widgets.TimeSeries(options2);
+            widget2.draw();
+        });
+    </script>
+</body>
+
+</html>
