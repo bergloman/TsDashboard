@@ -20,6 +20,9 @@ TsDashboard.Widgets.WidgetSwimLanes = function (config) {
         target_div: "#divTarget",
         type_field: "type",
         side_margin: 0,
+        left_margin: 0,
+        right_margin: 0,
+        prcnt_margin: true,
         left_padding: 30,
         hide_types: false,
         circle_color: "#007ACC",
@@ -126,9 +129,11 @@ TsDashboard.Widgets.WidgetSwimLanes.prototype.draw = function () {
     var events = p.events;
     var start = p.start || events[0].ts;
     var end = p.end || events[events.length - 1].ts;
-    var span = end - start;
-    start -= span * 0.05;
-    end += span * 0.05;
+    if (self.prcnt_margin) {
+        var span = end - start;
+        start -= span * 0.05;
+        end += span * 0.05;
+    }
 
     $(p.target_div)
         .empty()
@@ -137,7 +142,7 @@ TsDashboard.Widgets.WidgetSwimLanes.prototype.draw = function () {
         .css("background-color", p.lanes_color);
 
     // x axis scaler
-    var target_range = [2 * p.side_margin + p.left_padding, width - 2 * p.side_margin];
+    var target_range = [2 * p.side_margin + p.left_padding + p.left_margin, -p.right_margin + width - 2 * p.side_margin];
     var scaleX = d3.scale.linear()
         .domain([start, end])
         .range(target_range);
@@ -198,6 +203,7 @@ TsDashboard.Widgets.WidgetSwimLanes.prototype.draw = function () {
         .attr("r", p.circle_radius_cb || p.circle_radius)
         .attr("fill", p.circle_color)
         .attr("fill-opacity", p.circle_opacity_cb || 1)
+        .style("cursor", "pointer")
         .on("click", p.click_cb)
         .on("mouseover", function (d) { d3.select(this).transition().duration(50).attr("r", p.circle_over_radius).attr("fill", p.circle_color2).attr("fill-opacity", 1) })
         .on("mouseout", function (d) { d3.select(this).transition().duration(50).attr("r", p.circle_radius).attr("fill", p.circle_color).attr("fill-opacity", p.circle_opacity_cb || 1) })
@@ -253,4 +259,3 @@ TsDashboard.Widgets.WidgetSwimLanes.prototype.draw = function () {
         btn3.style("cursor", "pointer");
     }
 }
-
