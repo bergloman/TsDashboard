@@ -1,4 +1,3 @@
-
 var TsDashboard = TsDashboard || {};
 TsDashboard.Widgets = TsDashboard.Widgets || {};
 
