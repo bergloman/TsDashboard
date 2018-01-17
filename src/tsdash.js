@@ -367,7 +367,7 @@ TsDashboard.prototype.collectParameterValues = function () {
             }
 
         } else if (par.type === "enum") {
-            par_value.value = $("#sel" + par.name + self.sufix).val();
+            par_value.value = $("#in" + par.name + self.sufix).val();
             if (!par.optional && par_value.value === null) {
                 self.showErrorMsg("Missing non-optional parameter: " + par.title);
                 return null;
