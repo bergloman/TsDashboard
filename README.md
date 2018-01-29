@@ -46,6 +46,12 @@ set values or force refresh.
 
 This method is called, when the value of any of the parameters change.
 
+### preParamChange(name)
+
+**Optional** method.
+
+This method is called, when the input control (textbox, dropdown) for given parameter receives focus.
+
 ### getViewDefinition(callback)
 
 Parameter `callback` must accept single parameter - an object that describes the view. For details see special section below.
