@@ -239,8 +239,8 @@ TsDashboard.prototype.initParams = function () {
             $("#in" + par.name + self.sufix).keyup(function () {
                 var val = $("#in" + par.name + self.sufix).val();
                 var skip_search =
-                    (par.search_min_len === undefined && val.length < 3) ||
-                    (par.search_min_len !== undefined && val.length < par.search_min_len)
+                    (par.search_min_len == undefined && val.length < 3) ||
+                    (par.search_min_len != undefined && val.length < par.search_min_len)
                 if (skip_search) return;
                 self.driver.getParamValues(par.name, val, function (options) {
                     $("#opt" + par.name + self.sufix).empty();
@@ -377,7 +377,7 @@ TsDashboard.prototype.collectParameterValues = function () {
             }
 
         } else if (par.type === "enum") {
-            par_value.value = $("#sel" + par.name + self.sufix).val();
+            par_value.value = $("#in" + par.name + self.sufix).val();
             if (!par.optional && par_value.value === null) {
                 self.showErrorMsg("Missing non-optional parameter: " + par.title);
                 return null;
@@ -565,7 +565,7 @@ TsDashboard.prototype.run = function () {
                             }
                             );
                             data_series = mapped.filter(function (x) {
-                                return x !== null;
+                                return x != null;
                             });
 
                             var point_series = [];
@@ -579,7 +579,7 @@ TsDashboard.prototype.run = function () {
                                     }
                                     return null;
                                 })
-                                .filter(function (x) { return x !== null; });
+                                .filter(function (x) { return x != null; });
 
                             var options = {
                                 chart_div: "#" + widget_id,
@@ -615,7 +615,7 @@ TsDashboard.prototype.run = function () {
                                     }
                                     return null;
                                 })
-                                .filter(function (x) { return x !== null; });
+                                .filter(function (x) { return x != null; });
                             var options = {
                                 chart_div: "#" + widget_id,
                                 data: data_series[0],
@@ -647,7 +647,7 @@ TsDashboard.prototype.run = function () {
                                     }
                                     return null;
                                 })
-                                .filter(function (x) { return x !== null; });
+                                .filter(function (x) { return x != null; });
                             var options = {
                                 chart_div: "#" + widget_id,
                                 data: data_series[0],
@@ -683,7 +683,7 @@ TsDashboard.prototype.run = function () {
                                     }
                                     return null;
                                 })
-                                .filter(function (x) { return x !== null; });
+                                .filter(function (x) { return x != null; });
                             var options = {
                                 chart_div: "#" + widget_id,
                                 data: data_series,
@@ -709,7 +709,7 @@ TsDashboard.prototype.run = function () {
                                     }
                                     return null;
                                 })
-                                .filter(function (x) { return x !== null; });
+                                .filter(function (x) { return x != null; });
                             var options = {
                                 kpi_div: "#" + widget_id,
                                 data: data_series[0],
@@ -813,7 +813,7 @@ TsDashboard.prototype._constructGraph = function (graph_widget, graph_data,
             }
             return null;
         })
-        .filter(function (x) { return x !== null; });
+        .filter(function (x) { return x != null; });
     if (graph_data == undefined || graph_data.length == 0) {
         throw new Error("Graph data not available.");
     }
@@ -831,7 +831,7 @@ TsDashboard.prototype._constructGraph = function (graph_widget, graph_data,
                 }
                 return null;
             })
-            .filter(function (x) { return x !== null; });
+            .filter(function (x) { return x != null; });
     }
     // var nodes = graph[0].nodes;
     var options = {
@@ -857,7 +857,7 @@ TsDashboard.prototype._constructSwimlane = function (dataseries_widget, dataseri
         }
         return null;
     })
-        .filter(function (x) { return x !== null; });
+        .filter(function (x) { return x != null; });
 
     if (dataseries_data == undefined || dataseries_data.length == 0) {
         throw new Error("Swimlane data not available.")
@@ -999,7 +999,7 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
     };
 
     // If we have user-defined parameters, override the defaults.
-    if (config !== "undefined") {
+    if (config != "undefined") {
         for (var prop in config) {
             p[prop] = config[prop];
         }
@@ -1018,16 +1018,16 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
         extents.forEach(function (x) { extents2 = extents2.concat(x); });
         p.ydomain = d3.extent(extents2);
     }
-    if (p.xdomain_min !== null) {
+    if (p.xdomain_min != null) {
         p.xdomain[0] = p.xdomain_min;
     }
-    if (p.xdomain_max !== null) {
+    if (p.xdomain_max != null) {
         p.xdomain[1] = p.xdomain_max;
     }
-    if (p.ydomain_min !== null) {
+    if (p.ydomain_min != null) {
         p.ydomain[0] = p.ydomain_min;
     }
-    if (p.ydomain_max !== null) {
+    if (p.ydomain_max != null) {
         p.ydomain[1] = p.ydomain_max;
     }
 
@@ -1513,7 +1513,7 @@ TsDashboard.prototype.drawTable = function (config) {
     };
 
     // If we have user-defined parameters, override the defaults.
-    if (config !== "undefined") {
+    if (config != "undefined") {
         for (var prop in config) {
             p[prop] = config[prop];
         }
@@ -1542,7 +1542,7 @@ TsDashboard.prototype.drawTable = function (config) {
             theadtr.append("<th>" + columns[i].source + "</th>");
         }
     }
-    if (p.sort_by_column !== null && data.length > 0) {
+    if (p.sort_by_column != null && data.length > 0) {
         if (!(p.sort_by_column in data[0])) {
             self.showErrorMsg("Cannot sort table by column: " + p.sort_by_column);
         } else {
@@ -1598,7 +1598,7 @@ TsDashboard.prototype.drawKpi = function (config) {
     };
 
     // If we have user-defined parameters, override the defaults.
-    if (config !== "undefined") {
+    if (config != "undefined") {
         for (var prop in config) {
             p[prop] = config[prop];
         }
@@ -1695,7 +1695,7 @@ TsDashboard.prototype.drawTemporalGraph = function (chart_div, config) {
     };
 
     // If we have user-defined parameters, override the defaults.
-    if (config !== "undefined") {
+    if (config != "undefined") {
         for (var prop in config) {
             p[prop] = config[prop];
         }
@@ -2027,7 +2027,7 @@ TsDashboard.prototype.drawSwimlaneChart = function (chart_div, config) {
     };
 
     // If we have user-defined parameters, override the defaults.
-    if (config !== "undefined") {
+    if (config != "undefined") {
         for (var prop in config) {
             p[prop] = config[prop];
         }
@@ -2186,7 +2186,7 @@ TsDashboard.prototype.drawMultiGantt = function (widget_id, config) {
     }
 
     // If we have user-defined parameters, override the defaults.
-    if (config !== "undefined") {
+    if (config != "undefined") {
         for (var prop in config) {
             p[prop] = config[prop];
         }
@@ -2598,7 +2598,7 @@ TsDashboard.prototype.drawColumnChart = function (config) {
     };
 
     // If we have user-defined parameters, override the defaults.
-    if (config !== "undefined") {
+    if (config != "undefined") {
         for (var prop in config) {
             p[prop] = config[prop];
         }
@@ -2608,10 +2608,10 @@ TsDashboard.prototype.drawColumnChart = function (config) {
     if (!p.ydomain) {
         p.ydomain = d3.extent(p.data, p.yaccessor);
     }
-    if (p.ydomain_min !== null) {
+    if (p.ydomain_min != null) {
         p.ydomain[0] = p.ydomain_min;
     }
-    if (p.ydomain_max !== null) {
+    if (p.ydomain_max != null) {
         p.ydomain[1] = p.ydomain_max;
     }
     // remove the previous drawing
@@ -2796,7 +2796,7 @@ TsDashboard.prototype.drawScatterPlot = function (config) {
     };
 
     // If we have user-defined parameters, override the defaults.
-    if (config !== "undefined") {
+    if (config != "undefined") {
         for (var prop in config) {
             p[prop] = config[prop];
         }
@@ -2955,7 +2955,7 @@ TsDashboard.prototype.drawSparklineTable = function (config) {
     };
 
     // If we have user-defined parameters, override the defaults.
-    if (config !== "undefined") {
+    if (config != "undefined") {
         for (var prop in config) {
             p[prop] = config[prop];
         }
