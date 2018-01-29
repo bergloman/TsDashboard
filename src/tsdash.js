@@ -36,6 +36,13 @@ TsDashboard.prototype.onParamChange = function (name) {
     self._callbacks.memento(self.getMemento());
 };
 
+TsDashboard.prototype.preParamChange = function (name) {
+    var self = this;
+    if (self.driver.preParamChange) {
+        self.driver.preParamChange(name);
+    }
+};
+
 TsDashboard.prototype.init = function () {
     var self = this;
     self.driver.getViewDefinition(function (conf) {
@@ -271,6 +278,9 @@ TsDashboard.prototype.initParams = function () {
         // set up callback for value change
         $("#in" + par.name + self.sufix).change(function () {
             self.onParamChange(par.name);
+        });
+        $("#in" + par.name + self.sufix).focus(function () {
+            self.preParamChange(par.name);
         });
     })(ii);
 
