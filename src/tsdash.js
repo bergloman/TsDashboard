@@ -72,22 +72,22 @@ TsDashboard.prototype.init = function () {
 
         $("#tsd_main" + self.sufix).append("<div role='alert' class='tsd-error alert alert-danger' id='tsd_error" + self.sufix + "'>...</div>");
         $("#tsd_main" + self.sufix).append("<div class='tsd-main-content' id='tsd_main_content" + self.sufix + "'></div>");
-        $("#tsd_main" + self.sufix).append(
-            "<div class='modal' id='divModal" + self.sufix + "' tabindex='-1' role='dialog' aria-labelledby='myModalLabel' aria-hidden='true'>\
-                <div class='modal-dialog'>\
-                    <div class='modal-content'>\
-                        <div class='modal-header'>\
-                            <button type='button' class='close' data-dismiss='modal' aria-hidden='true'>&times;</button>\
-                            <h4 class='modal-title' id='myModalLabel" + self.sufix + "'>\
-                            <span data-bind='text: modal_title'></span>\
-                            </h4>\
-                        </div>\
-                        <div class='modal-body'>\
-                            <div id='divModalChart" + self.sufix + "'></div>\
-                        </div>\
-                    </div>\
-                </div>\
-            </div>");
+        // $("#tsd_main" + self.sufix).append(
+        //     "<div class='modal' id='divModal" + self.sufix + "' tabindex='-1' role='dialog' aria-labelledby='myModalLabel' aria-hidden='true'>\
+        //         <div class='modal-dialog'>\
+        //             <div class='modal-content'>\
+        //                 <div class='modal-header'>\
+        //                     <button type='button' class='close' data-dismiss='modal' aria-hidden='true'>&times;</button>\
+        //                     <h4 class='modal-title' id='myModalLabel" + self.sufix + "'>\
+        //                     <span data-bind='text: modal_title'></span>\
+        //                     </h4>\
+        //                 </div>\
+        //                 <div class='modal-body'>\
+        //                     <div id='divModalChart" + self.sufix + "'></div>\
+        //                 </div>\
+        //             </div>\
+        //         </div>\
+        //     </div>");
 
         if (self.conf.hide_sidebar) {
             self.run();
@@ -720,6 +720,15 @@ TsDashboard.prototype.run = function () {
                                 Object.assign(options, widget.options);
                             }
                             self.drawKpi(options);
+
+                        } else if (widget.type == "title") {
+                            var options = {
+                                kpi_div: "#" + widget_id
+                            }
+                            if (widget.options) {
+                                Object.assign(options, widget.options);
+                            }
+                            self.drawTitle(options);
                         } else if (widget.type == "graph") {
                             var graph_opts = self._constructGraph(
                                 widget.graphs,
@@ -1300,7 +1309,7 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
                     .attr('x2', x(x.domain()[1]))
                     .attr('y2', yy);
             });
-    }// if handle clicks
+    }
 
     if (p.backgroundSegments) {
         for (var bs_idx = 0; bs_idx < p.backgroundSegments.length; bs_idx++) {
@@ -1418,81 +1427,81 @@ TsDashboard.prototype.drawTimeSeriesMulti = function (config) {
         }
     }
 
-    if (p.exportable) {
-        var export_btn = $('<div></div>');
+    // if (p.exportable) {
+    //     var export_btn = $('<div></div>');
 
-        export_btn.addClass('btn-export-data');
-        export_btn.css('position', 'absolute');
-        export_btn.css('right', margin.right);
-        export_btn.css('top', margin.top);
+    //     export_btn.addClass('btn-export-data');
+    //     export_btn.css('position', 'absolute');
+    //     export_btn.css('right', margin.right);
+    //     export_btn.css('top', margin.top);
 
-        export_btn.click(function () {
-            var fname = 'export.csv';
-            var content = '';
+    //     export_btn.click(function () {
+    //         var fname = 'export.csv';
+    //         var content = '';
 
-            var all_series = p.data;
+    //         var all_series = p.data;
 
-            if (all_series.length == 0) {
-                self.promptDownload(fname, content);
-                return;
-            }
+    //         if (all_series.length == 0) {
+    //             self.promptDownload(fname, content);
+    //             return;
+    //         }
 
-            // the headers
-            content += 'timestamp';
-            for (var headerN = 0; headerN < all_series.length; headerN++) {
-                content += ',' + p.labels[headerN];
-            }
-            // count the number of rows in the file
-            var row_count = all_series[0].length;
+    //         // the headers
+    //         content += 'timestamp';
+    //         for (var headerN = 0; headerN < all_series.length; headerN++) {
+    //             content += ',' + p.labels[headerN];
+    //         }
+    //         // count the number of rows in the file
+    //         var row_count = all_series[0].length;
 
-            var rowsDict = {};
-            for (var headerN = 0; headerN < all_series.length; headerN++) {
-                for (var row = 0; row < all_series[headerN].length; row++) {
-                    var epoch = all_series[headerN][row].epoch;
-                    var val = all_series[headerN][row].val;
-                    if (!(epoch in rowsDict)) {
-                        rowsDict[epoch] = [];
-                        for (var rn = 0; rn < all_series.length; rn++) {
-                            rowsDict[epoch].push(0);
-                        }
-                    }
-                    else {
-                        rowsDict[epoch][headerN] = val;
-                    }
-                }
-            }
+    //         var rowsDict = {};
+    //         for (var headerN = 0; headerN < all_series.length; headerN++) {
+    //             for (var row = 0; row < all_series[headerN].length; row++) {
+    //                 var epoch = all_series[headerN][row].epoch;
+    //                 var val = all_series[headerN][row].val;
+    //                 if (!(epoch in rowsDict)) {
+    //                     rowsDict[epoch] = [];
+    //                     for (var rn = 0; rn < all_series.length; rn++) {
+    //                         rowsDict[epoch].push(0);
+    //                     }
+    //                 }
+    //                 else {
+    //                     rowsDict[epoch][headerN] = val;
+    //                 }
+    //             }
+    //         }
 
-            for (var headerN = 0; headerN < all_series.length; headerN++) {
-                for (var row = 0; row < all_series[headerN].length; row++) {
-                    var epoch = all_series[headerN][row].epoch;
-                    var val = all_series[headerN][row].val;
-                    if (epoch in rowsDict) {
-                        rowsDict[epoch][headerN] = val;
-                    }
-                }
-            }
+    //         for (var headerN = 0; headerN < all_series.length; headerN++) {
+    //             for (var row = 0; row < all_series[headerN].length; row++) {
+    //                 var epoch = all_series[headerN][row].epoch;
+    //                 var val = all_series[headerN][row].val;
+    //                 if (epoch in rowsDict) {
+    //                     rowsDict[epoch][headerN] = val;
+    //                 }
+    //             }
+    //         }
 
-            // put keys (epoch) in an array and sort it
-            var keys = [];
-            for (var epoch in rowsDict) {
-                keys.push(epoch);
-            }
-            keys.sort();
+    //         // put keys (epoch) in an array and sort it
+    //         var keys = [];
+    //         for (var epoch in rowsDict) {
+    //             keys.push(epoch);
+    //         }
+    //         keys.sort();
 
-            // go through all the rows and join the elements
-            for (var keyN = 0; keyN < keys.length; keyN++) {
-                var row_str = '\n';
-                row_str += keys[keyN].toString();
-                for (var seriesN = 0; seriesN < all_series.length; seriesN++) {
-                    row_str += ',' + rowsDict[keys[keyN]][seriesN].toString();
-                }
-                content += row_str;
-            }
+    //         // go through all the rows and join the elements
+    //         for (var keyN = 0; keyN < keys.length; keyN++) {
+    //             var row_str = '\n';
+    //             row_str += keys[keyN].toString();
+    //             for (var seriesN = 0; seriesN < all_series.length; seriesN++) {
+    //                 row_str += ',' + rowsDict[keys[keyN]][seriesN].toString();
+    //             }
+    //             content += row_str;
+    //         }
 
-            self.promptDownload(fname, content);
-        })
-        $(p.chart_div).append(export_btn);
-    }
+    //         self.promptDownload(fname, content);
+    //     })
+    //     $(p.chart_div).append(export_btn);
+    // }
 }
 
 TsDashboard.prototype.drawTable = function (config) {
@@ -1581,9 +1590,22 @@ TsDashboard.prototype.drawTable = function (config) {
 
 }
 
+TsDashboard.prototype.drawTitle = function (config) {
+    var p = config;
+    // remove the previous drawing
+    $(p.kpi_div).empty();
+    var headings = ["h1", "h2", "h3", "h4"];
+    for (var i = 0; i < headings.length; i++) {
+        var h = headings[i];
+        if (p[h]) {
+            $(p.kpi_div).append($("<" + h + "></" + h + ">").text(p[h]));
+        }
+    }
+    //$(p.kpi_div).append(table);
+}
+
 TsDashboard.prototype.drawKpi = function (config) {
     var self = this;
-    // var self = this;
     // Default parameters.
     var p = {
         kpi_div: "#someKpi" + self.sufix,
@@ -1613,17 +1635,18 @@ TsDashboard.prototype.drawKpi = function (config) {
     var row = $("<tr></tr>");
     for (var i = 0; i < data.length; i++) {
         var dd = data[i];
-        var td = $("<td class='tsd-kpi-tile' />");
-        var div = $('<div class="tsd-kpi-tile-ok" />');
+        var td = $("<td class='' />");
+        var div = $('<div class="tsd-kpi-tile tsd-kpi-tile-ok" />');
         switch (dd.status) {
             case "ok": div.addClass("tsd-kpi-tile-ok"); break;
             case "error": div.addClass("tsd-kpi-tile-error"); break;
             case "warning": div.addClass("tsd-kpi-tile-warning"); break;
             default: div.addClass("tsd-kpi-tile-inactive"); break;
         }
-        div.append("<div class='tsd-kpi-tile-title'></div>").text(dd.name);
+
+        $("<div class='tsd-kpi-tile-title'></div>").text(dd.name).appendTo(div);
         if (dd.value != null) {
-            div.append("<div class='tsd-kpi-tile-value'></div>").text(dd.value);
+            $("<div class='tsd-kpi-tile-value'></div>").text(dd.value).appendTo(div);
         }
         if (config.height != null) {
             div.css('height', config.height);

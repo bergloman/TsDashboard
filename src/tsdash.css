@@ -1,6 +1,11 @@
 body {    
-    background-color: #1E1E1E;
+    margin: 0;
+    padding: 0;
+    background-color: #253746;
     color: #fff;
+}
+body, h1, h2, h3, div, span {
+    font-family: Arial, Helvetica, sans-serif;
 }
 
 tsd {
@@ -230,6 +235,8 @@ h3, h4{
 .tsd-kpi-tile {
     color:white;
     font-size: 14px;
+    padding: 15px;
+    border-radius: 5px;
 }
 .tsd-kpi-tile div {
     margin-left: auto;
@@ -239,7 +246,6 @@ h3, h4{
     vertical-align: middle;
 }
 .tsd-kpi-tile-ok {
-    /*background-color: mediumseagreen;*/
     background-color: #59b641;
 }
 .tsd-kpi-tile-warning {
@@ -254,6 +260,15 @@ h3, h4{
 .tsd-kpi-tile-title{
     font-size: 18px;
     font-weight: bold;
+}
+
+button.close {
+    color: #fff;
+    opacity: .6;
+}
+button.close:hover {
+    color: #fff;
+    opacity: .99;
 }
 
 /*********************************/
