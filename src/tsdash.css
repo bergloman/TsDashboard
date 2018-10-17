@@ -20,14 +20,14 @@ tsd {
 }
 
 h1{
-    color: orange;    
+    color: goldenrod;
 }
 
 h2 {
-    color: orangered;    
+    color: goldenrod;
 }
 h3, h4{
-    color: goldenrod;    
+    color: goldenrod;
 }
 
 /*.tsd-header{
