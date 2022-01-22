@@ -1,3 +1,5 @@
+# WARNING: This repository is archived and not actively maintained!
+
 # TsDashboard
 
 Light-weight javascript library for creating time-series dashboards.
